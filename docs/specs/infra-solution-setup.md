@@ -1,6 +1,6 @@
 # [Infra] 建立解決方案與四個專案
 
-> **狀態**：🚧 實作中
+> **狀態**：✅ 完成
 > **建立時間**：2026-03-24
 > **完成時間**：－
 
@@ -37,4 +37,7 @@
 
 ## 實際產出
 
-<!-- 實作完成後填寫 -->
+- **Commit**：`chore(infra): 建立四層架構專案與測試專案`
+- **專案**：KoreanLearn.Library / .Data / .Service / .Web + KoreanLearn.Tests
+- **相依方向**：Web → Service → Data → Library，Tests → Web/Service/Data
+- **備註**：舊 KoreaLearning 單一專案已移除
