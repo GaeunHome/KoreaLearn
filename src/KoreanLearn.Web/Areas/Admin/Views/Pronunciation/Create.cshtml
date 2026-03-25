@@ -1,0 +1,37 @@
+@model KoreanLearn.Service.ViewModels.Admin.Pronunciation.PronunciationFormViewModel
+@{ ViewData["Title"] = "新增發音練習"; }
+
+<h2 class="mb-4"><i class="bi bi-plus-circle me-2"></i>新增發音練習</h2>
+<div class="row"><div class="col-lg-8">
+    <div class="card shadow-sm"><div class="card-body">
+        <form asp-area="Admin" asp-controller="Pronunciation" asp-action="Create" method="post" enctype="multipart/form-data">
+            @Html.AntiForgeryToken()
+            <div class="row">
+                <div class="col-md-4 mb-3">
+                    <label asp-for="Korean" class="form-label">韓文 <span class="text-danger">*</span></label>
+                    <input asp-for="Korean" class="form-control fs-4" />
+                    <span asp-validation-for="Korean" class="text-danger"></span>
+                </div>
+                <div class="col-md-4 mb-3">
+                    <label asp-for="Romanization" class="form-label">羅馬拼音</label>
+                    <input asp-for="Romanization" class="form-control" />
+                </div>
+                <div class="col-md-4 mb-3">
+                    <label asp-for="Chinese" class="form-label">中文</label>
+                    <input asp-for="Chinese" class="form-control" />
+                </div>
+            </div>
+            <div class="mb-3">
+                <label asp-for="AudioFile" class="form-label">標準音檔 <span class="text-danger">*</span></label>
+                <input asp-for="AudioFile" class="form-control" type="file" accept="audio/*" />
+                <span asp-validation-for="AudioFile" class="text-danger"></span>
+            </div>
+            <div class="d-flex gap-2">
+                <button type="submit" class="btn btn-primary"><i class="bi bi-check-lg me-1"></i>建立</button>
+                <a asp-area="Admin" asp-controller="Pronunciation" asp-action="Index" class="btn btn-outline-secondary">
+                    <i class="bi bi-arrow-left me-1"></i>返回</a>
+            </div>
+        </form>
+    </div></div>
+</div></div>
+@section Scripts { <partial name="_ValidationScriptsPartial" /> }

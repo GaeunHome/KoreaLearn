@@ -107,7 +107,7 @@ dotnet test --collect:"XPlat Code Coverage"
 - [x] **P2-07** 測驗作答介面 + 自動計分 + QuizAttempt 紀錄
 - [x] **P2-08** 字卡系統後台管理（牌組 + 字卡 CRUD）
 - [x] **P2-09** 字卡學習介面（翻轉動畫 + SM-2 間隔重複）
-- [ ] **P2-10** 發音練習
+- [x] **P2-10** 發音練習（後台管理 + 前台錄音 Web Audio API）
 
 ### Phase 3：商業與社群功能
 

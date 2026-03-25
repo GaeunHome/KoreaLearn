@@ -1,0 +1,121 @@
+@model IReadOnlyList<KoreanLearn.Service.ViewModels.Admin.Pronunciation.PronunciationListViewModel>
+@{ ViewData["Title"] = "發音練習"; }
+
+<h2 class="mb-4"><i class="bi bi-mic me-2"></i>發音練習</h2>
+
+@if (!Model.Any())
+{
+    <div class="alert alert-info"><i class="bi bi-info-circle me-2"></i>目前沒有發音練習。</div>
+}
+else
+{
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            @foreach (var ex in Model)
+            {
+                <div class="card shadow-sm mb-4">
+                    <div class="card-body text-center">
+                        <h2 class="display-4 mb-2">@ex.Korean</h2>
+                        @if (!string.IsNullOrEmpty(ex.Romanization))
+                        {
+                            <p class="text-muted fs-5">@ex.Romanization</p>
+                        }
+                        @if (!string.IsNullOrEmpty(ex.Chinese))
+                        {
+                            <p class="text-secondary">@ex.Chinese</p>
+                        }
+
+                        <!-- Standard audio -->
+                        @if (!string.IsNullOrEmpty(ex.StandardAudioUrl))
+                        {
+                            <div class="mb-3">
+                                <button class="btn btn-outline-primary" onclick="playAudio('@ex.StandardAudioUrl')">
+                                    <i class="bi bi-volume-up me-1"></i>聽標準發音
+                                </button>
+                            </div>
+                        }
+
+                        <!-- Record button -->
+                        <div class="d-flex justify-content-center gap-2">
+                            <button class="btn btn-danger" id="recordBtn-@ex.Id"
+                                    onclick="toggleRecord(@ex.Id)">
+                                <i class="bi bi-mic-fill me-1"></i>按住錄音
+                            </button>
+                        </div>
+                        <div id="recording-status-@ex.Id" class="mt-2 text-muted small"></div>
+                        <div id="playback-@ex.Id" class="mt-2"></div>
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+}
+
+@section Scripts {
+    <script>
+        var recorders = {};
+        var audioChunks = {};
+
+        function playAudio(url) {
+            new Audio(url).play();
+        }
+
+        async function toggleRecord(exId) {
+            var btn = document.getElementById('recordBtn-' + exId);
+            var status = document.getElementById('recording-status-' + exId);
+
+            if (recorders[exId] && recorders[exId].state === 'recording') {
+                recorders[exId].stop();
+                btn.innerHTML = '<i class="bi bi-mic-fill me-1"></i>按住錄音';
+                btn.classList.remove('btn-secondary');
+                btn.classList.add('btn-danger');
+                status.textContent = '處理中...';
+                return;
+            }
+
+            try {
+                var stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                var recorder = new MediaRecorder(stream);
+                recorders[exId] = recorder;
+                audioChunks[exId] = [];
+
+                recorder.ondataavailable = function (e) { audioChunks[exId].push(e.data); };
+                recorder.onstop = function () {
+                    stream.getTracks().forEach(t => t.stop());
+                    var blob = new Blob(audioChunks[exId], { type: 'audio/webm' });
+                    uploadRecording(exId, blob);
+                };
+
+                recorder.start();
+                btn.innerHTML = '<i class="bi bi-stop-fill me-1"></i>停止錄音';
+                btn.classList.remove('btn-danger');
+                btn.classList.add('btn-secondary');
+                status.textContent = '錄音中...';
+            } catch (err) {
+                status.textContent = '無法存取麥克風';
+            }
+        }
+
+        function uploadRecording(exId, blob) {
+            var formData = new FormData();
+            formData.append('exerciseId', exId);
+            formData.append('recording', blob, 'recording.webm');
+
+            fetch('@Url.Action("Upload", "Pronunciation", new { area = "Learn" })', {
+                method: 'POST',
+                body: formData
+            })
+            .then(r => r.json())
+            .then(data => {
+                var status = document.getElementById('recording-status-' + exId);
+                var playback = document.getElementById('playback-' + exId);
+                if (data.success) {
+                    status.textContent = '上傳成功！';
+                    playback.innerHTML = '<audio controls><source src="' + data.recordingUrl + '" type="audio/webm"></audio>';
+                } else {
+                    status.textContent = '上傳失敗';
+                }
+            });
+        }
+    </script>
+}

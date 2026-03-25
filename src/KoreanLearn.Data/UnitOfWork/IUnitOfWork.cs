@@ -15,6 +15,7 @@ public interface IUnitOfWork : IDisposable
     IQuizAttemptRepository QuizAttempts { get; }
     IFlashcardDeckRepository FlashcardDecks { get; }
     IFlashcardLogRepository FlashcardLogs { get; }
+    IPronunciationRepository Pronunciations { get; }
     IDiscussionRepository Discussions { get; }
 
     Task<int> SaveChangesAsync(CancellationToken ct = default);
