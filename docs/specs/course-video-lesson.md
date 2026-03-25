@@ -1,9 +1,9 @@
 ---
 # [Course] 影片課程上傳與播放
 
-> **狀態**：🔲 待實作
+> **狀態**：✅ 完成
 > **建立時間**：2026-03-25
-> **完成時間**：－
+> **完成時間**：2026-03-25
 
 ## 功能描述
 
@@ -50,4 +50,9 @@
 
 ## 實際產出
 
-<!-- 實作完成後填寫 -->
+- **Service**：IProgressService / ProgressService（進度儲存/讀取/完成標記）、ILessonPlayerService / LessonPlayerService（影片播放 ViewModel 組裝）
+- **ViewModel**：VideoPlayerViewModel（含前後單元導航）
+- **Controller**：Learn/LessonController（Video, SaveProgress, Complete）
+- **View**：Learn/Lesson/Video.cshtml（HTML5 video + 自動進度儲存 + 完成標記）
+- **HTTP 驗證**：302（未登入）、200（SaveProgress/Complete JSON）、404（非 Video 類型）
+- **UX 審查**：✅ 通過
