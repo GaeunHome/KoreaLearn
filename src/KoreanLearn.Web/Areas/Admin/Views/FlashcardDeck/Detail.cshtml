@@ -1,0 +1,74 @@
+@model KoreanLearn.Service.ViewModels.Admin.Flashcard.DeckDetailViewModel
+@{ ViewData["Title"] = Model.Title; }
+
+<div class="mb-4">
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a asp-area="Admin" asp-controller="FlashcardDeck" asp-action="Index">字卡管理</a></li>
+            <li class="breadcrumb-item active">@Model.Title</li>
+        </ol>
+    </nav>
+    <div class="d-flex justify-content-between align-items-start">
+        <div>
+            <h2>@Model.Title</h2>
+            @if (!string.IsNullOrEmpty(Model.Description))
+            {
+                <p class="text-muted">@Model.Description</p>
+            }
+            <span class="badge bg-info">@Model.Cards.Count 張字卡</span>
+        </div>
+        <div class="d-flex gap-2">
+            <a asp-area="Admin" asp-controller="FlashcardDeck" asp-action="Edit" asp-route-id="@Model.Id"
+               class="btn btn-outline-primary"><i class="bi bi-pencil me-1"></i>編輯牌組</a>
+            <a asp-area="Admin" asp-controller="FlashcardDeck" asp-action="AddCard"
+               asp-route-deckId="@Model.Id" asp-route-deckTitle="@Model.Title"
+               class="btn btn-primary"><i class="bi bi-plus-lg me-1"></i>新增字卡</a>
+        </div>
+    </div>
+</div>
+
+@if (!Model.Cards.Any())
+{
+    <div class="alert alert-info"><i class="bi bi-info-circle me-2"></i>此牌組尚無字卡。</div>
+}
+else
+{
+    <div class="table-responsive">
+        <table class="table table-hover align-middle">
+            <thead class="table-light">
+                <tr>
+                    <th style="width:40px">#</th>
+                    <th>韓文</th>
+                    <th>中文</th>
+                    <th>羅馬拼音</th>
+                    <th>例句</th>
+                    <th class="text-center" style="width:60px">排序</th>
+                    <th style="width:150px">操作</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var card in Model.Cards)
+                {
+                    <tr>
+                        <td class="text-muted">@card.Id</td>
+                        <td class="fw-bold fs-5">@card.Korean</td>
+                        <td>@card.Chinese</td>
+                        <td class="text-muted">@(card.Romanization ?? "—")</td>
+                        <td class="text-muted small">@(card.ExampleSentence ?? "—")</td>
+                        <td class="text-center">@card.SortOrder</td>
+                        <td>
+                            <a asp-area="Admin" asp-controller="FlashcardDeck" asp-action="EditCard" asp-route-id="@card.Id"
+                               class="btn btn-sm btn-outline-primary me-1"><i class="bi bi-pencil"></i></a>
+                            <form asp-area="Admin" asp-controller="FlashcardDeck" asp-action="DeleteCard"
+                                  asp-route-id="@card.Id" asp-route-deckId="@Model.Id"
+                                  method="post" class="d-inline" onsubmit="return confirm('確定要刪除「@card.Korean」嗎？');">
+                                @Html.AntiForgeryToken()
+                                <button type="submit" class="btn btn-sm btn-outline-danger"><i class="bi bi-trash"></i></button>
+                            </form>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+}

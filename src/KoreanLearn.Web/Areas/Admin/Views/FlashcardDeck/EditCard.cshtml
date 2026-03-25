@@ -1,0 +1,60 @@
+@model KoreanLearn.Service.ViewModels.Admin.Flashcard.CardFormViewModel
+@{ ViewData["Title"] = "編輯字卡"; }
+
+<div class="mb-4">
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a asp-area="Admin" asp-controller="FlashcardDeck" asp-action="Index">字卡管理</a></li>
+            <li class="breadcrumb-item"><a asp-area="Admin" asp-controller="FlashcardDeck" asp-action="Detail" asp-route-id="@Model.DeckId">@(Model.DeckTitle ?? "牌組")</a></li>
+            <li class="breadcrumb-item active">編輯字卡</li>
+        </ol>
+    </nav>
+    <h2><i class="bi bi-pencil me-2"></i>編輯字卡</h2>
+</div>
+
+<div class="row"><div class="col-lg-8">
+    <div class="card shadow-sm"><div class="card-body">
+        <form asp-area="Admin" asp-controller="FlashcardDeck" asp-action="EditCard" method="post">
+            @Html.AntiForgeryToken()
+            <input asp-for="Id" type="hidden" />
+            <input asp-for="DeckId" type="hidden" />
+            <input asp-for="DeckTitle" type="hidden" />
+            <div asp-validation-summary="ModelOnly" class="alert alert-danger" style="display:none;"></div>
+
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label asp-for="Korean" class="form-label">韓文 <span class="text-danger">*</span></label>
+                    <input asp-for="Korean" class="form-control fs-4" />
+                    <span asp-validation-for="Korean" class="text-danger"></span>
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label asp-for="Chinese" class="form-label">中文 <span class="text-danger">*</span></label>
+                    <input asp-for="Chinese" class="form-control" />
+                    <span asp-validation-for="Chinese" class="text-danger"></span>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label asp-for="Romanization" class="form-label">羅馬拼音</label>
+                    <input asp-for="Romanization" class="form-control" />
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label asp-for="SortOrder" class="form-label">排序</label>
+                    <input asp-for="SortOrder" class="form-control" type="number" min="0" />
+                </div>
+            </div>
+            <div class="mb-3">
+                <label asp-for="ExampleSentence" class="form-label">例句</label>
+                <textarea asp-for="ExampleSentence" class="form-control" rows="2"></textarea>
+            </div>
+
+            <div class="d-flex gap-2">
+                <button type="submit" class="btn btn-primary"><i class="bi bi-check-lg me-1"></i>儲存變更</button>
+                <a asp-area="Admin" asp-controller="FlashcardDeck" asp-action="Detail" asp-route-id="@Model.DeckId"
+                   class="btn btn-outline-secondary"><i class="bi bi-arrow-left me-1"></i>返回牌組</a>
+            </div>
+        </form>
+    </div></div>
+</div></div>
+
+@section Scripts { <partial name="_ValidationScriptsPartial" /> }

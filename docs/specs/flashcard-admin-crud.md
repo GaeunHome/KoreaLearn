@@ -1,8 +1,8 @@
 # [Flashcard] 字卡系統後台管理
 
-> **狀態**：🔲 待實作
+> **狀態**：✅ 完成
 > **建立時間**：2026-03-25
-> **完成時間**：－
+> **完成時間**：2026-03-25
 
 ## 功能描述
 
@@ -26,4 +26,6 @@
 
 ## 實際產出
 
-<!-- 實作完成後填寫 -->
+- FlashcardAdminService：牌組 + 字卡 CRUD
+- Admin/FlashcardDeckController + 6 個 Views
+- HTTP 驗證通過、UX 審查 ✅
