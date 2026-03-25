@@ -29,5 +29,7 @@ public class CertificateConfiguration : IEntityTypeConfiguration<Certificate>
 
         builder.HasIndex(c => c.CertificateNumber).IsUnique();
         builder.HasIndex(c => new { c.UserId, c.CourseId }).IsUnique();
+
+        builder.HasQueryFilter(c => !c.Course.IsDeleted);
     }
 }

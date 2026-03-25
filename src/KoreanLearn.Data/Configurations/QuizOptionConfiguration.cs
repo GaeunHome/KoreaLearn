@@ -20,5 +20,7 @@ public class QuizOptionConfiguration : IEntityTypeConfiguration<QuizOption>
             .OnDelete(DeleteBehavior.Cascade);
 
         builder.HasIndex(o => o.QuestionId);
+
+        builder.HasQueryFilter(o => !o.Question.Quiz.IsDeleted);
     }
 }

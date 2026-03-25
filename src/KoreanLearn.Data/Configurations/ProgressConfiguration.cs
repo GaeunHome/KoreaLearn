@@ -23,5 +23,7 @@ public class ProgressConfiguration : IEntityTypeConfiguration<Progress>
 
         builder.HasIndex(p => new { p.UserId, p.LessonId }).IsUnique();
         builder.HasIndex(p => p.UserId);
+
+        builder.HasQueryFilter(p => !p.Lesson.IsDeleted);
     }
 }

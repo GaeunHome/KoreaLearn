@@ -23,5 +23,7 @@ public class FlashcardLogConfiguration : IEntityTypeConfiguration<FlashcardLog>
 
         builder.HasIndex(l => new { l.UserId, l.FlashcardId });
         builder.HasIndex(l => l.NextReviewDate);
+
+        builder.HasQueryFilter(l => !l.Flashcard.Deck.IsDeleted);
     }
 }

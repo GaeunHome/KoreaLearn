@@ -26,5 +26,7 @@ public class PronunciationAttemptConfiguration : IEntityTypeConfiguration<Pronun
 
         builder.HasIndex(a => a.UserId);
         builder.HasIndex(a => a.ExerciseId);
+
+        builder.HasQueryFilter(a => !a.Exercise.IsDeleted);
     }
 }

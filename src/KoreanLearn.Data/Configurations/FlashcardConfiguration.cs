@@ -32,5 +32,7 @@ public class FlashcardConfiguration : IEntityTypeConfiguration<Flashcard>
             .OnDelete(DeleteBehavior.Cascade);
 
         builder.HasIndex(f => f.DeckId);
+
+        builder.HasQueryFilter(f => !f.Deck.IsDeleted);
     }
 }

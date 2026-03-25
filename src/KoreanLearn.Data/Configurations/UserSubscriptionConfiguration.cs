@@ -22,5 +22,7 @@ public class UserSubscriptionConfiguration : IEntityTypeConfiguration<UserSubscr
             .OnDelete(DeleteBehavior.Restrict);
 
         builder.HasIndex(s => s.UserId);
+
+        builder.HasQueryFilter(s => !s.Plan.IsDeleted);
     }
 }

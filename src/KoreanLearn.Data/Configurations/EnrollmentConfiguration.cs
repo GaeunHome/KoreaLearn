@@ -23,5 +23,7 @@ public class EnrollmentConfiguration : IEntityTypeConfiguration<Enrollment>
 
         builder.HasIndex(e => new { e.UserId, e.CourseId }).IsUnique();
         builder.HasIndex(e => e.UserId);
+
+        builder.HasQueryFilter(e => !e.Course.IsDeleted);
     }
 }

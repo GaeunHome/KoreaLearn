@@ -30,5 +30,7 @@ public class QuizAnswerConfiguration : IEntityTypeConfiguration<QuizAnswer>
             .OnDelete(DeleteBehavior.SetNull);
 
         builder.HasIndex(a => a.AttemptId);
+
+        builder.HasQueryFilter(a => !a.Attempt.Quiz.IsDeleted);
     }
 }

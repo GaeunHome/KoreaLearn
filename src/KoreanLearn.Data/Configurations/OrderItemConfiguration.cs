@@ -25,5 +25,7 @@ public class OrderItemConfiguration : IEntityTypeConfiguration<OrderItem>
             .OnDelete(DeleteBehavior.Restrict);
 
         builder.HasIndex(oi => oi.OrderId);
+
+        builder.HasQueryFilter(oi => !oi.Course.IsDeleted);
     }
 }
