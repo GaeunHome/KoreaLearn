@@ -17,6 +17,7 @@ public class CourseService(
         CancellationToken ct = default)
     {
         var courses = await uow.Courses.GetPublishedAsync(ct).ConfigureAwait(false);
+        logger.LogDebug("取得 {Count} 門已發佈課程", courses.Count);
         return mapper.Map<IReadOnlyList<CourseListViewModel>>(courses);
     }
 
