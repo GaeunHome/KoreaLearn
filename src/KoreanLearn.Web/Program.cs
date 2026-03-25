@@ -41,10 +41,11 @@ try
 
     if (!app.Environment.IsDevelopment())
     {
-        app.UseExceptionHandler("/Home/Error");
+        app.UseExceptionHandler("/Error");
         app.UseHsts();
     }
 
+    app.UseStatusCodePagesWithReExecute("/Error/{0}");
     app.UseHttpsRedirection();
     app.UseStaticFiles();
     app.UseRouting();

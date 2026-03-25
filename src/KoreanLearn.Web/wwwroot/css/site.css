@@ -1,31 +1,389 @@
+/* ═══════════════════════════════════════════════
+   KoreanLearn Design System
+   ═══════════════════════════════════════════════ */
+
+:root {
+  --kl-primary: #2B3A67;
+  --kl-primary-light: #3D4F80;
+  --kl-primary-dark: #1E2A4A;
+  --kl-accent: #E8846B;
+  --kl-accent-light: #F0A08D;
+  --kl-success: #5DB075;
+  --kl-warning: #E6B74F;
+  --kl-danger: #D9534F;
+  --kl-info: #5B9BD5;
+  --kl-bg: #F8F6F3;
+  --kl-bg-card: #FFFFFF;
+  --kl-text: #2D2D2D;
+  --kl-text-muted: #7A7A7A;
+  --kl-border: #E5E2DD;
+  --kl-radius: 8px;
+  --kl-radius-lg: 12px;
+  --kl-shadow: 0 1px 3px rgba(0,0,0,0.06);
+  --kl-shadow-md: 0 2px 8px rgba(0,0,0,0.08);
+  --kl-font: 'Noto Sans TC', 'Noto Sans KR', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+}
+
+/* ─── Base ────────────────────────────────── */
+
 html {
-  font-size: 14px;
-}
-
-@media (min-width: 768px) {
-  html {
-    font-size: 16px;
-  }
-}
-
-.btn:focus, .btn:active:focus, .btn-link.nav-link:focus, .form-control:focus, .form-check-input:focus {
-  box-shadow: 0 0 0 0.1rem white, 0 0 0 0.25rem #258cfb;
-}
-
-html {
+  font-size: 15px;
   position: relative;
   min-height: 100%;
 }
 
 body {
-  margin-bottom: 60px;
+  font-family: var(--kl-font);
+  color: var(--kl-text);
+  background: var(--kl-bg);
+  line-height: 1.6;
+  margin-bottom: 0;
 }
 
-.form-floating > .form-control-plaintext::placeholder, .form-floating > .form-control::placeholder {
-  color: var(--bs-secondary-color);
-  text-align: end;
+a {
+  color: var(--kl-primary);
+  text-decoration: none;
 }
 
-.form-floating > .form-control-plaintext:focus::placeholder, .form-floating > .form-control:focus::placeholder {
-  text-align: start;
+a:hover {
+  color: var(--kl-accent);
+}
+
+/* ─── Typography ──────────────────────────── */
+
+h1, h2, h3, h4, h5, h6 {
+  color: var(--kl-primary-dark);
+  font-weight: 600;
+}
+
+.text-muted {
+  color: var(--kl-text-muted) !important;
+}
+
+/* ─── Cards ───────────────────────────────── */
+
+.card {
+  border: 1px solid var(--kl-border);
+  border-radius: var(--kl-radius);
+  box-shadow: var(--kl-shadow);
+  background: var(--kl-bg-card);
+}
+
+.card-header {
+  background: #FAFAF8;
+  border-bottom: 1px solid var(--kl-border);
+}
+
+/* ─── Buttons ─────────────────────────────── */
+
+.btn {
+  border-radius: var(--kl-radius);
+  font-weight: 500;
+  padding: 0.45rem 1.1rem;
+  transition: background-color 0.15s, border-color 0.15s;
+}
+
+.btn-primary {
+  background: var(--kl-primary);
+  border-color: var(--kl-primary);
+}
+
+.btn-primary:hover {
+  background: var(--kl-primary-light);
+  border-color: var(--kl-primary-light);
+}
+
+.btn-success {
+  background: var(--kl-success);
+  border-color: var(--kl-success);
+}
+
+.btn-danger {
+  background: var(--kl-danger);
+  border-color: var(--kl-danger);
+}
+
+.btn-warning {
+  background: var(--kl-warning);
+  border-color: var(--kl-warning);
+  color: #fff;
+}
+
+.btn-outline-primary {
+  color: var(--kl-primary);
+  border-color: var(--kl-primary);
+}
+
+.btn-outline-primary:hover {
+  background: var(--kl-primary);
+  border-color: var(--kl-primary);
+}
+
+.btn-outline-danger {
+  color: var(--kl-danger);
+  border-color: var(--kl-danger);
+}
+
+.btn-outline-danger:hover {
+  background: var(--kl-danger);
+  border-color: var(--kl-danger);
+}
+
+/* ─── Forms ───────────────────────────────── */
+
+.form-control, .form-select {
+  border-radius: var(--kl-radius);
+  border-color: var(--kl-border);
+}
+
+.form-control:focus, .form-select:focus, .form-check-input:focus {
+  border-color: var(--kl-primary);
+  box-shadow: 0 0 0 2px rgba(43, 58, 103, 0.15);
+}
+
+/* ─── Badges ──────────────────────────────── */
+
+.badge {
+  font-weight: 500;
+  border-radius: 4px;
+  letter-spacing: 0.02em;
+}
+
+.badge.bg-primary { background: var(--kl-primary) !important; }
+.badge.bg-success { background: var(--kl-success) !important; }
+.badge.bg-warning { background: var(--kl-warning) !important; color: #fff !important; }
+.badge.bg-danger  { background: var(--kl-danger) !important; }
+.badge.bg-info    { background: var(--kl-info) !important; }
+.badge.bg-secondary { background: #8E8E93 !important; }
+
+/* ─── Tables ──────────────────────────────── */
+
+.table {
+  border-color: var(--kl-border);
+}
+
+.table thead {
+  background: #FAFAF8;
+}
+
+.table th {
+  font-weight: 600;
+  color: var(--kl-primary-dark);
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+/* ─── Alerts ──────────────────────────────── */
+
+.alert-success {
+  background: #EBF5EE;
+  border-color: #C8E6CF;
+  color: #2D6E42;
+}
+
+.alert-danger {
+  background: #FBEAEA;
+  border-color: #F0C4C4;
+  color: #8B2D2D;
+}
+
+.alert-info {
+  background: #EAF2FB;
+  border-color: #C4D9F0;
+  color: #2D4A6B;
+}
+
+/* ─── Navbar (Public) ─────────────────────── */
+
+.kl-navbar {
+  background: var(--kl-primary) !important;
+  padding: 0.6rem 0;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.1);
+}
+
+.kl-navbar .navbar-brand {
+  font-weight: 700;
+  font-size: 1.2rem;
+  letter-spacing: 0.02em;
+}
+
+.kl-navbar .nav-link {
+  font-weight: 500;
+  padding: 0.4rem 0.9rem;
+  border-radius: var(--kl-radius);
+}
+
+/* ─── Navbar (Admin) ──────────────────────── */
+
+.kl-admin-navbar {
+  background: var(--kl-primary-dark) !important;
+  padding: 0.5rem 0;
+}
+
+.kl-admin-sidebar {
+  background: #F5F4F2;
+  border-right: 1px solid var(--kl-border);
+  min-height: calc(100vh - 52px);
+}
+
+.kl-admin-sidebar .nav-link {
+  color: var(--kl-text);
+  padding: 0.55rem 1rem;
+  border-radius: var(--kl-radius);
+  margin: 2px 8px;
+  font-size: 0.9rem;
+}
+
+.kl-admin-sidebar .nav-link:hover,
+.kl-admin-sidebar .nav-link.active {
+  background: var(--kl-primary);
+  color: #fff;
+}
+
+.kl-admin-sidebar .nav-link i {
+  width: 20px;
+  text-align: center;
+}
+
+/* ─── Navbar (Learn) ──────────────────────── */
+
+.kl-learn-navbar {
+  background: var(--kl-success) !important;
+  padding: 0.5rem 0;
+}
+
+/* ─── Breadcrumb ──────────────────────────── */
+
+.breadcrumb {
+  background: transparent;
+  padding: 0;
+  font-size: 0.88rem;
+}
+
+.breadcrumb-item a {
+  color: var(--kl-primary);
+}
+
+/* ─── Course Cards ────────────────────────── */
+
+.kl-course-card {
+  border: 1px solid var(--kl-border);
+  border-radius: var(--kl-radius-lg);
+  overflow: hidden;
+  background: var(--kl-bg-card);
+}
+
+.kl-course-card .card-img-top {
+  height: 180px;
+  object-fit: cover;
+}
+
+.kl-course-card .card-body {
+  padding: 1.1rem;
+}
+
+/* ─── Hero ────────────────────────────────── */
+
+.kl-hero {
+  background: linear-gradient(135deg, var(--kl-primary) 0%, var(--kl-primary-light) 100%);
+  color: #fff;
+  padding: 4rem 0;
+  border-radius: 0 0 var(--kl-radius-lg) var(--kl-radius-lg);
+}
+
+.kl-hero h1 {
+  color: #fff;
+  font-size: 2.4rem;
+  font-weight: 700;
+}
+
+.kl-hero p {
+  font-size: 1.15rem;
+  opacity: 0.9;
+}
+
+.kl-hero .btn {
+  padding: 0.6rem 2rem;
+  font-size: 1.05rem;
+}
+
+/* ─── Footer ──────────────────────────────── */
+
+.kl-footer {
+  background: var(--kl-primary-dark);
+  color: rgba(255,255,255,0.7);
+  padding: 1.5rem 0;
+  font-size: 0.88rem;
+}
+
+/* ─── Progress Bar ────────────────────────── */
+
+.progress {
+  border-radius: 20px;
+  background: #EDE9E4;
+}
+
+.progress-bar {
+  border-radius: 20px;
+}
+
+/* ─── Pagination ──────────────────────────── */
+
+.page-link {
+  color: var(--kl-primary);
+  border-color: var(--kl-border);
+  border-radius: var(--kl-radius) !important;
+  margin: 0 2px;
+}
+
+.page-item.active .page-link {
+  background: var(--kl-primary);
+  border-color: var(--kl-primary);
+}
+
+/* ─── Accordion ───────────────────────────── */
+
+.accordion-button:not(.collapsed) {
+  background: #EEF1F7;
+  color: var(--kl-primary-dark);
+}
+
+.accordion-button:focus {
+  box-shadow: 0 0 0 2px rgba(43, 58, 103, 0.15);
+}
+
+/* ─── Error Page ──────────────────────────── */
+
+.kl-error-page {
+  min-height: 60vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
+
+.kl-error-page .error-code {
+  font-size: 6rem;
+  font-weight: 800;
+  color: var(--kl-primary);
+  line-height: 1;
+}
+
+/* ─── Utility ─────────────────────────────── */
+
+.kl-section-title {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: var(--kl-primary-dark);
+  padding-bottom: 0.5rem;
+  margin-bottom: 1rem;
+  border-bottom: 2px solid var(--kl-accent);
+  display: inline-block;
+}
+
+@media (max-width: 767.98px) {
+  html { font-size: 14px; }
+  .kl-hero { padding: 2.5rem 0; }
+  .kl-hero h1 { font-size: 1.8rem; }
 }
