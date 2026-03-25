@@ -1,3 +1,6 @@
+using KoreanLearn.Service.Services.Implementation;
+using KoreanLearn.Service.Services.Interfaces;
+
 namespace KoreanLearn.Web.Infrastructure.Extensions;
 
 public static class ApplicationServiceExtensions
@@ -11,8 +14,8 @@ public static class ApplicationServiceExtensions
             cfg.AddMaps(typeof(KoreanLearn.Service.Marker).Assembly);
         });
 
-        // Services will be registered here as they are created
-        // services.AddScoped<ICourseService, CourseService>();
+        // Services
+        services.AddScoped<ICourseService, CourseService>();
 
         return services;
     }

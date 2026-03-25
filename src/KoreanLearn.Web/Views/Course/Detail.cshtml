@@ -1,0 +1,106 @@
+@model KoreanLearn.Service.ViewModels.Course.CourseDetailViewModel
+@{ ViewData["Title"] = Model.Title; }
+
+<nav aria-label="breadcrumb" class="mb-3">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a asp-controller="Home" asp-action="Index">首頁</a></li>
+        <li class="breadcrumb-item"><a asp-controller="Course" asp-action="Index">課程列表</a></li>
+        <li class="breadcrumb-item active">@Model.Title</li>
+    </ol>
+</nav>
+
+<div class="row">
+    <!-- 課程資訊 -->
+    <div class="col-md-8">
+        <h1 class="h2 mb-3">@Model.Title</h1>
+        <div class="mb-3">
+            <span class="badge bg-info fs-6">@Model.LevelDisplay</span>
+            <span class="text-muted ms-2">@Model.TotalLessons 堂課</span>
+            <span class="text-muted ms-2">@Model.Sections.Count 章節</span>
+        </div>
+
+        @if (!string.IsNullOrEmpty(Model.Description))
+        {
+            <div class="card mb-4">
+                <div class="card-body">
+                    <h5 class="card-title">課程介紹</h5>
+                    <p class="card-text">@Model.Description</p>
+                </div>
+            </div>
+        }
+
+        <!-- 課程大綱 -->
+        <h3 class="h4 mb-3"><i class="bi bi-list-ol me-1"></i>課程大綱</h3>
+
+        @if (Model.Sections.Any())
+        {
+            <div class="accordion" id="courseOutline">
+                @for (int i = 0; i < Model.Sections.Count; i++)
+                {
+                    var sec = Model.Sections[i];
+                    var collapseId = $"section{sec.Id}";
+                    <div class="accordion-item">
+                        <h2 class="accordion-header">
+                            <button class="accordion-button @(i > 0 ? "collapsed" : "")" type="button"
+                                    data-bs-toggle="collapse" data-bs-target="#@collapseId">
+                                <strong>@sec.Title</strong>
+                                <span class="badge bg-secondary ms-2">@sec.Lessons.Count 堂</span>
+                            </button>
+                        </h2>
+                        <div id="@collapseId" class="accordion-collapse collapse @(i == 0 ? "show" : "")"
+                             data-bs-parent="#courseOutline">
+                            <div class="accordion-body p-0">
+                                <ul class="list-group list-group-flush">
+                                    @foreach (var lesson in sec.Lessons)
+                                    {
+                                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                                            <span>
+                                                <i class="bi @lesson.TypeIcon me-2 text-muted"></i>
+                                                @lesson.Title
+                                                @if (lesson.IsFreePreview)
+                                                {
+                                                    <span class="badge bg-success ms-1">免費試看</span>
+                                                }
+                                            </span>
+                                            <span class="badge bg-light text-dark">@lesson.TypeDisplay</span>
+                                        </li>
+                                    }
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                }
+            </div>
+        }
+        else
+        {
+            <p class="text-muted">此課程尚無章節內容</p>
+        }
+    </div>
+
+    <!-- 側邊欄：購買資訊 -->
+    <div class="col-md-4">
+        <div class="card shadow-sm sticky-top" style="top: 20px;">
+            @if (!string.IsNullOrEmpty(Model.CoverImageUrl))
+            {
+                <img src="@Model.CoverImageUrl" class="card-img-top" alt="@Model.Title" />
+            }
+            else
+            {
+                <div class="card-img-top bg-secondary bg-opacity-10 d-flex align-items-center justify-content-center"
+                     style="height: 200px;">
+                    <i class="bi bi-book display-1 text-secondary"></i>
+                </div>
+            }
+            <div class="card-body text-center">
+                <h4 class="text-primary mb-3">NT$ @Model.Price.ToString("N0")</h4>
+                <a href="#" class="btn btn-primary btn-lg w-100 mb-2">
+                    <i class="bi bi-cart-plus me-1"></i>立即購買
+                </a>
+                <p class="text-muted small mt-2 mb-0">
+                    <i class="bi bi-shield-check me-1"></i>購買後即可永久觀看
+                </p>
+            </div>
+        </div>
+    </div>
+</div>

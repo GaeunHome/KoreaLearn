@@ -1,14 +1,16 @@
 using System.Diagnostics;
-using Microsoft.AspNetCore.Mvc;
+using KoreanLearn.Service.Services.Interfaces;
 using KoreanLearn.Web.Models;
+using Microsoft.AspNetCore.Mvc;
 
 namespace KoreanLearn.Web.Controllers;
 
-public class HomeController : Controller
+public class HomeController(ICourseService courseService) : Controller
 {
-    public IActionResult Index()
+    public async Task<IActionResult> Index(CancellationToken ct)
     {
-        return View();
+        var vm = await courseService.GetHomeViewModelAsync(ct);
+        return View(vm);
     }
 
     public IActionResult Privacy()
