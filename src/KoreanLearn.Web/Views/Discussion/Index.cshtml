@@ -1,0 +1,39 @@
+@model KoreanLearn.Library.Helpers.PagedResult<KoreanLearn.Service.Services.Interfaces.DiscussionListItem>
+@{ ViewData["Title"] = "討論區"; var courseId = (int)ViewBag.CourseId; }
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2><i class="bi bi-chat-dots me-2"></i>討論區</h2>
+    @if (User.Identity?.IsAuthenticated == true)
+    {
+        <a asp-controller="Discussion" asp-action="Create" asp-route-courseId="@courseId" class="btn btn-primary">
+            <i class="bi bi-plus-lg me-1"></i>發起討論
+        </a>
+    }
+</div>
+
+@if (!Model.Items.Any())
+{
+    <div class="alert alert-info"><i class="bi bi-info-circle me-2"></i>目前沒有討論，成為第一個發言的人吧！</div>
+}
+else
+{
+    <div class="list-group">
+        @foreach (var d in Model.Items)
+        {
+            <a asp-controller="Discussion" asp-action="Detail" asp-route-id="@d.Id"
+               class="list-group-item list-group-item-action">
+                <div class="d-flex justify-content-between">
+                    <h6 class="mb-1">@d.Title</h6>
+                    <small class="text-muted">@d.CreatedAt.ToString("yyyy-MM-dd")</small>
+                </div>
+                <small class="text-muted">@d.AuthorName · @d.ReplyCount 則回覆</small>
+            </a>
+        }
+    </div>
+}
+
+<div class="mt-3">
+    <a asp-controller="Course" asp-action="Detail" asp-route-id="@courseId" class="btn btn-outline-secondary">
+        <i class="bi bi-arrow-left me-1"></i>返回課程
+    </a>
+</div>

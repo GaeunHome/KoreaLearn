@@ -25,6 +25,7 @@ public static class ApplicationServiceExtensions
         services.AddScoped<IFlashcardLearnService, FlashcardLearnService>();
         services.AddScoped<IPronunciationService, PronunciationService>();
         services.AddScoped<IOrderService, OrderService>();
+        services.AddScoped<IDiscussionService, DiscussionService>();
 
         return services;
     }

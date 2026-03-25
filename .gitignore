@@ -1,4 +1,3 @@
-.claude/*
 .DS_Store
 *.log
 logs/
@@ -7,3 +6,4 @@ _backup/
 **/obj/
 **/bin\\Debug/
 docs/
+**/appsettings*.json
