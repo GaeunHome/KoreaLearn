@@ -1,5 +1,8 @@
 using KoreanLearn.Data;
 using KoreanLearn.Data.Entities;
+using KoreanLearn.Data.Repositories.Implementation;
+using KoreanLearn.Data.Repositories.Interfaces;
+using KoreanLearn.Data.UnitOfWork;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 
@@ -35,6 +38,21 @@ public static class DataServiceExtensions
             })
             .AddRoles<IdentityRole>()
             .AddEntityFrameworkStores<ApplicationDbContext>();
+
+        // Repositories
+        services.AddScoped<ICourseRepository, CourseRepository>();
+        services.AddScoped<ISectionRepository, SectionRepository>();
+        services.AddScoped<ILessonRepository, LessonRepository>();
+        services.AddScoped<IEnrollmentRepository, EnrollmentRepository>();
+        services.AddScoped<IOrderRepository, OrderRepository>();
+        services.AddScoped<IProgressRepository, ProgressRepository>();
+        services.AddScoped<IAnnouncementRepository, AnnouncementRepository>();
+        services.AddScoped<IQuizRepository, QuizRepository>();
+        services.AddScoped<IFlashcardDeckRepository, FlashcardDeckRepository>();
+        services.AddScoped<IDiscussionRepository, DiscussionRepository>();
+
+        // UnitOfWork
+        services.AddScoped<IUnitOfWork, KoreanLearn.Data.UnitOfWork.UnitOfWork>();
 
         return services;
     }
