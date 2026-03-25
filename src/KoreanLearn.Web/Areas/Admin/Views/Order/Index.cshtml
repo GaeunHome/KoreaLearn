@@ -1,0 +1,32 @@
+@model KoreanLearn.Library.Helpers.PagedResult<KoreanLearn.Service.Services.Interfaces.OrderListViewModel>
+@{ ViewData["Title"] = "訂單管理"; }
+
+<h2 class="mb-4"><i class="bi bi-cart me-2"></i>訂單管理</h2>
+
+@if (!Model.Items.Any())
+{
+    <div class="alert alert-info">目前沒有訂單。</div>
+}
+else
+{
+    <div class="table-responsive">
+        <table class="table table-hover align-middle">
+            <thead class="table-light">
+                <tr><th>訂單編號</th><th>課程</th><th class="text-end">金額</th><th>狀態</th><th>付款</th><th>日期</th></tr>
+            </thead>
+            <tbody>
+                @foreach (var o in Model.Items)
+                {
+                    <tr>
+                        <td><code>@o.OrderNumber</code></td>
+                        <td>@(o.CourseName ?? "—")</td>
+                        <td class="text-end">NT$ @o.TotalAmount.ToString("N0")</td>
+                        <td><span class="badge @(o.Status == "Completed" ? "bg-success" : "bg-warning text-dark")">@o.Status</span></td>
+                        <td><span class="badge @(o.PaymentStatus == "Completed" ? "bg-success" : "bg-secondary")">@o.PaymentStatus</span></td>
+                        <td class="text-muted">@o.CreatedAt.ToString("yyyy-MM-dd HH:mm")</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+}

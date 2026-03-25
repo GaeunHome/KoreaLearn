@@ -1,0 +1,42 @@
+@model KoreanLearn.Service.Services.Interfaces.OrderDetailViewModel
+@{ ViewData["Title"] = "結帳"; }
+
+<div class="row justify-content-center">
+    <div class="col-lg-6">
+        <div class="card shadow-sm">
+            <div class="card-header bg-primary text-white">
+                <h4 class="mb-0"><i class="bi bi-cart-check me-2"></i>訂單確認</h4>
+            </div>
+            <div class="card-body">
+                <p class="text-muted">訂單編號：<code>@Model.OrderNumber</code></p>
+
+                <table class="table">
+                    <thead><tr><th>課程</th><th class="text-end">價格</th></tr></thead>
+                    <tbody>
+                        @foreach (var item in Model.Items)
+                        {
+                            <tr><td>@item.CourseTitle</td><td class="text-end">NT$ @item.Price.ToString("N0")</td></tr>
+                        }
+                    </tbody>
+                    <tfoot>
+                        <tr class="table-active">
+                            <td class="fw-bold">合計</td>
+                            <td class="text-end fw-bold fs-5 text-primary">NT$ @Model.TotalAmount.ToString("N0")</td>
+                        </tr>
+                    </tfoot>
+                </table>
+
+                <div class="alert alert-info">
+                    <i class="bi bi-info-circle me-2"></i>此為模擬付款，點擊按鈕即完成付款。
+                </div>
+
+                <form asp-controller="Order" asp-action="Pay" asp-route-id="@Model.Id" method="post">
+                    @Html.AntiForgeryToken()
+                    <button type="submit" class="btn btn-success btn-lg w-100" onclick="this.disabled=true;this.form.submit();">
+                        <i class="bi bi-credit-card me-2"></i>模擬付款
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,42 @@
+@model KoreanLearn.Service.Services.Interfaces.OrderDetailViewModel
+@{ ViewData["Title"] = "訂單詳情"; }
+
+<h2 class="mb-4"><i class="bi bi-receipt me-2"></i>訂單詳情</h2>
+
+<div class="row">
+    <div class="col-lg-8">
+        <div class="card shadow-sm">
+            <div class="card-body">
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <p><strong>訂單編號：</strong><code>@Model.OrderNumber</code></p>
+                        <p><strong>建立時間：</strong>@Model.CreatedAt.ToString("yyyy-MM-dd HH:mm")</p>
+                    </div>
+                    <div class="col-md-6">
+                        <p><strong>訂單狀態：</strong><span class="badge @(Model.Status == "Completed" ? "bg-success" : "bg-warning text-dark")">@Model.Status</span></p>
+                        <p><strong>付款狀態：</strong><span class="badge @(Model.PaymentStatus == "Completed" ? "bg-success" : "bg-warning text-dark")">@Model.PaymentStatus</span></p>
+                    </div>
+                </div>
+
+                <table class="table">
+                    <thead><tr><th>課程</th><th class="text-end">價格</th></tr></thead>
+                    <tbody>
+                        @foreach (var item in Model.Items)
+                        {
+                            <tr>
+                                <td><a asp-controller="Course" asp-action="Detail" asp-route-id="@item.CourseId">@item.CourseTitle</a></td>
+                                <td class="text-end">NT$ @item.Price.ToString("N0")</td>
+                            </tr>
+                        }
+                    </tbody>
+                    <tfoot>
+                        <tr class="table-active"><td class="fw-bold">合計</td><td class="text-end fw-bold text-primary">NT$ @Model.TotalAmount.ToString("N0")</td></tr>
+                    </tfoot>
+                </table>
+            </div>
+        </div>
+        <div class="mt-3">
+            <a asp-controller="Order" asp-action="Index" class="btn btn-outline-secondary"><i class="bi bi-arrow-left me-1"></i>返回訂單列表</a>
+        </div>
+    </div>
+</div>

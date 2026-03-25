@@ -141,9 +141,22 @@
             }
             <div class="card-body text-center">
                 <h4 class="text-primary mb-3">NT$ @Model.Price.ToString("N0")</h4>
-                <a href="#" class="btn btn-primary btn-lg w-100 mb-2">
-                    <i class="bi bi-cart-plus me-1"></i>立即購買
-                </a>
+                @if (User.Identity?.IsAuthenticated == true)
+                {
+                    <form asp-controller="Order" asp-action="Create" method="post">
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" name="courseId" value="@Model.Id" />
+                        <button type="submit" class="btn btn-primary btn-lg w-100 mb-2">
+                            <i class="bi bi-cart-plus me-1"></i>立即購買
+                        </button>
+                    </form>
+                }
+                else
+                {
+                    <a asp-area="Identity" asp-page="/Account/Login" class="btn btn-primary btn-lg w-100 mb-2">
+                        <i class="bi bi-box-arrow-in-right me-1"></i>登入後購買
+                    </a>
+                }
                 <p class="text-muted small mt-2 mb-0">
                     <i class="bi bi-shield-check me-1"></i>購買後即可永久觀看
                 </p>
