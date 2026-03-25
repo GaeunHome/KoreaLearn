@@ -13,6 +13,7 @@ public class UnitOfWork(
     IProgressRepository progresses,
     IAnnouncementRepository announcements,
     IQuizRepository quizzes,
+    IQuizAttemptRepository quizAttempts,
     IFlashcardDeckRepository flashcardDecks,
     IDiscussionRepository discussions) : IUnitOfWork
 {
@@ -26,6 +27,7 @@ public class UnitOfWork(
     public IProgressRepository Progresses => progresses;
     public IAnnouncementRepository Announcements => announcements;
     public IQuizRepository Quizzes => quizzes;
+    public IQuizAttemptRepository QuizAttempts => quizAttempts;
     public IFlashcardDeckRepository FlashcardDecks => flashcardDecks;
     public IDiscussionRepository Discussions => discussions;
 

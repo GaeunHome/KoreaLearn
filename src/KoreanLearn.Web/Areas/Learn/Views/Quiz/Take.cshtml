@@ -1,0 +1,114 @@
+@model KoreanLearn.Service.ViewModels.Learn.QuizTakeViewModel
+@{
+    ViewData["Title"] = Model.Title;
+}
+
+<div class="mb-3">
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a asp-area="" asp-controller="Course" asp-action="Detail" asp-route-id="@Model.CourseId">@(Model.CourseTitle ?? "課程")</a></li>
+            <li class="breadcrumb-item active">@Model.Title</li>
+        </ol>
+    </nav>
+</div>
+
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <div class="card shadow-sm mb-4">
+            <div class="card-header bg-primary text-white">
+                <h4 class="mb-0"><i class="bi bi-question-circle me-2"></i>@Model.Title</h4>
+            </div>
+            <div class="card-body">
+                @if (!string.IsNullOrEmpty(Model.Description))
+                {
+                    <p class="text-muted">@Model.Description</p>
+                }
+                <div class="d-flex gap-3 mb-3">
+                    <span class="badge bg-info fs-6"><i class="bi bi-star me-1"></i>滿分 @Model.TotalPoints 分</span>
+                    <span class="badge bg-warning text-dark fs-6"><i class="bi bi-check-circle me-1"></i>及格 @Model.PassingScore 分</span>
+                    @if (Model.TimeLimitMinutes > 0)
+                    {
+                        <span class="badge bg-danger fs-6"><i class="bi bi-clock me-1"></i>@Model.TimeLimitMinutes 分鐘</span>
+                    }
+                    <span class="badge bg-secondary fs-6"><i class="bi bi-list-ol me-1"></i>@Model.Questions.Count 題</span>
+                </div>
+            </div>
+        </div>
+
+        <form asp-area="Learn" asp-controller="Quiz" asp-action="Submit" asp-route-id="@Model.QuizId" method="post">
+            @Html.AntiForgeryToken()
+
+            @for (var i = 0; i < Model.Questions.Count; i++)
+            {
+                var q = Model.Questions[i];
+                <div class="card shadow-sm mb-3">
+                    <div class="card-header bg-light">
+                        <div class="d-flex justify-content-between">
+                            <span class="fw-bold">第 @(i + 1) 題</span>
+                            <span class="badge bg-info">@q.Points 分</span>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <p class="fw-semibold mb-3">@q.Content</p>
+
+                        @if (q.Type == QuestionType.SingleChoice)
+                        {
+                            @foreach (var opt in q.Options)
+                            {
+                                <div class="form-check mb-2">
+                                    <input class="form-check-input" type="radio"
+                                           name="q_@q.QuestionId" value="@opt.OptionId"
+                                           id="opt_@opt.OptionId" />
+                                    <label class="form-check-label" for="opt_@opt.OptionId">
+                                        @opt.Content
+                                    </label>
+                                </div>
+                            }
+                        }
+                        else if (q.Type == QuestionType.MultipleChoice)
+                        {
+                            @foreach (var opt in q.Options)
+                            {
+                                <div class="form-check mb-2">
+                                    <input class="form-check-input" type="checkbox"
+                                           name="mc_@q.QuestionId" value="@opt.OptionId"
+                                           id="opt_@opt.OptionId" />
+                                    <label class="form-check-label" for="opt_@opt.OptionId">
+                                        @opt.Content
+                                    </label>
+                                </div>
+                            }
+                            <input type="hidden" name="q_@q.QuestionId" id="mc_hidden_@q.QuestionId" />
+                        }
+                        else if (q.Type == QuestionType.FillInBlank)
+                        {
+                            <input type="text" class="form-control" name="q_@q.QuestionId"
+                                   placeholder="請輸入答案" autocomplete="off" />
+                        }
+                    </div>
+                </div>
+            }
+
+            <div class="text-center mb-4">
+                <button type="submit" class="btn btn-primary btn-lg" id="btnSubmit"
+                        onclick="prepareSubmit(); this.disabled=true; this.form.submit();">
+                    <i class="bi bi-send me-2"></i>提交答案
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        function prepareSubmit() {
+            // Collect multiple choice answers into hidden fields
+            document.querySelectorAll('[id^="mc_hidden_"]').forEach(hidden => {
+                var qId = hidden.name.replace('q_', '');
+                var checked = document.querySelectorAll('input[name="mc_' + qId + '"]:checked');
+                var values = Array.from(checked).map(cb => cb.value);
+                hidden.value = values.join(',');
+            });
+        }
+    </script>
+}

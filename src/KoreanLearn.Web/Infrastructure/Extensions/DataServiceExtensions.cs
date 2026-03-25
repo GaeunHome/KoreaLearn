@@ -48,6 +48,7 @@ public static class DataServiceExtensions
         services.AddScoped<IProgressRepository, ProgressRepository>();
         services.AddScoped<IAnnouncementRepository, AnnouncementRepository>();
         services.AddScoped<IQuizRepository, QuizRepository>();
+        services.AddScoped<IQuizAttemptRepository, QuizAttemptRepository>();
         services.AddScoped<IFlashcardDeckRepository, FlashcardDeckRepository>();
         services.AddScoped<IDiscussionRepository, DiscussionRepository>();
 

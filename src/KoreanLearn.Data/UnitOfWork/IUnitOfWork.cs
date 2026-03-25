@@ -12,6 +12,7 @@ public interface IUnitOfWork : IDisposable
     IProgressRepository Progresses { get; }
     IAnnouncementRepository Announcements { get; }
     IQuizRepository Quizzes { get; }
+    IQuizAttemptRepository QuizAttempts { get; }
     IFlashcardDeckRepository FlashcardDecks { get; }
     IDiscussionRepository Discussions { get; }
 

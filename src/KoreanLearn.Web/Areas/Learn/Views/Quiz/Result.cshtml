@@ -1,0 +1,89 @@
+@model KoreanLearn.Service.ViewModels.Learn.QuizResultViewModel
+@{
+    ViewData["Title"] = "測驗結果";
+}
+
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <!-- Score Card -->
+        <div class="card shadow-sm mb-4 @(Model.IsPassed ? "border-success" : "border-danger")">
+            <div class="card-body text-center py-5">
+                @if (Model.IsPassed)
+                {
+                    <i class="bi bi-trophy-fill display-1 text-success"></i>
+                    <h2 class="mt-3 text-success">恭喜通過！</h2>
+                }
+                else
+                {
+                    <i class="bi bi-emoji-frown display-1 text-danger"></i>
+                    <h2 class="mt-3 text-danger">未通過</h2>
+                }
+
+                <div class="display-4 fw-bold my-3">
+                    @Model.Score / @Model.TotalPoints
+                </div>
+
+                <div class="progress mx-auto mb-3" style="max-width: 400px; height: 20px;">
+                    <div class="progress-bar @(Model.IsPassed ? "bg-success" : "bg-danger")"
+                         role="progressbar" style="width: @Model.ScorePercent%">
+                        @Model.ScorePercent%
+                    </div>
+                </div>
+
+                <p class="text-muted">及格分數：@Model.PassingScore 分</p>
+
+                <div class="d-flex justify-content-center gap-3 mt-4">
+                    <a asp-area="Learn" asp-controller="Quiz" asp-action="Take" asp-route-id="@Model.QuizId"
+                       class="btn btn-outline-primary">
+                        <i class="bi bi-arrow-repeat me-1"></i>重新作答
+                    </a>
+                    <a asp-area="" asp-controller="Course" asp-action="Detail" asp-route-id="@Model.CourseId"
+                       class="btn btn-primary">
+                        <i class="bi bi-arrow-left me-1"></i>返回課程
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Answer Details -->
+        <h4 class="mb-3"><i class="bi bi-list-check me-2"></i>作答詳情</h4>
+
+        @for (var i = 0; i < Model.Answers.Count; i++)
+        {
+            var ans = Model.Answers[i];
+            <div class="card shadow-sm mb-3 @(ans.IsCorrect ? "border-success" : "border-danger")">
+                <div class="card-header d-flex justify-content-between align-items-center @(ans.IsCorrect ? "bg-success bg-opacity-10" : "bg-danger bg-opacity-10")">
+                    <span class="fw-bold">第 @(i + 1) 題</span>
+                    <div>
+                        @if (ans.IsCorrect)
+                        {
+                            <span class="badge bg-success"><i class="bi bi-check-lg me-1"></i>正確 +@ans.PointsEarned</span>
+                        }
+                        else
+                        {
+                            <span class="badge bg-danger"><i class="bi bi-x-lg me-1"></i>錯誤 +0</span>
+                        }
+                    </div>
+                </div>
+                <div class="card-body">
+                    <p class="fw-semibold">@ans.QuestionContent</p>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <small class="text-muted">你的答案：</small>
+                            <p class="@(ans.IsCorrect ? "text-success" : "text-danger") fw-bold">
+                                @(ans.SelectedAnswer ?? "（未作答）")
+                            </p>
+                        </div>
+                        @if (!ans.IsCorrect)
+                        {
+                            <div class="col-md-6">
+                                <small class="text-muted">正確答案：</small>
+                                <p class="text-success fw-bold">@ans.CorrectAnswer</p>
+                            </div>
+                        }
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+</div>
