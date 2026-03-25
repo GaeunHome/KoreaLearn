@@ -28,6 +28,7 @@ public static class ApplicationServiceExtensions
         services.AddScoped<IDiscussionService, DiscussionService>();
         services.AddScoped<IDashboardService, DashboardService>();
         services.AddScoped<ISubscriptionService, SubscriptionService>();
+        services.AddScoped<ICertificateService, CertificateService>();
 
         return services;
     }
