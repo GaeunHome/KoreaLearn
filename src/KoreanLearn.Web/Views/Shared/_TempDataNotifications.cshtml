@@ -1,0 +1,16 @@
+@if (TempData["Success"] is string success)
+{
+    <div data-tempdata-success="@success" style="display:none;"></div>
+}
+@if (TempData["Error"] is string error)
+{
+    <div data-tempdata-error="@error" style="display:none;"></div>
+}
+@if (TempData["Warning"] is string warning)
+{
+    <div data-tempdata-warning="@warning" style="display:none;"></div>
+}
+@if (TempData["Info"] is string info)
+{
+    <div data-tempdata-info="@info" style="display:none;"></div>
+}

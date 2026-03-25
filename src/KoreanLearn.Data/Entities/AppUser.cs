@@ -19,5 +19,6 @@ public class AppUser : IdentityUser
     public ICollection<FlashcardLog> FlashcardLogs { get; set; } = [];
     public ICollection<Discussion> Discussions { get; set; } = [];
     public ICollection<DiscussionReply> DiscussionReplies { get; set; } = [];
+    public ICollection<Course> TeacherCourses { get; set; } = [];
     public UserSubscription? ActiveSubscription { get; set; }
 }

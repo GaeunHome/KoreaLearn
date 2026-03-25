@@ -1,0 +1,110 @@
+@page
+@model LoginModel
+@{
+    ViewData["Title"] = "登入";
+    Layout = "/Views/Shared/_Layout.cshtml";
+}
+
+<div class="kl-auth-wrapper">
+    <div class="row justify-content-center w-100" style="max-width: 900px;">
+        <!-- 左側說明 -->
+        <div class="col-lg-5 d-none d-lg-flex align-items-center">
+            <div class="p-4">
+                <div class="mb-4">
+                    <i class="bi bi-translate" style="font-size: 3rem; color: var(--kl-primary);"></i>
+                </div>
+                <h2 style="color: var(--kl-primary-dark);">歡迎回來！</h2>
+                <p class="text-muted mb-4">登入你的帳號，繼續韓語學習之旅。</p>
+                <div class="mb-3 d-flex align-items-start">
+                    <div class="kl-feature-icon me-3" style="background: rgba(43,58,103,0.08); color: var(--kl-primary); min-width:40px; width:40px; height:40px; border-radius:8px;">
+                        <i class="bi bi-book" style="font-size:1rem;"></i>
+                    </div>
+                    <div>
+                        <strong>5 門精選課程</strong>
+                        <p class="text-muted small mb-0">從入門到 TOPIK 備考完整涵蓋</p>
+                    </div>
+                </div>
+                <div class="mb-3 d-flex align-items-start">
+                    <div class="kl-feature-icon me-3" style="background: rgba(93,176,117,0.1); color: var(--kl-success); min-width:40px; width:40px; height:40px; border-radius:8px;">
+                        <i class="bi bi-card-text" style="font-size:1rem;"></i>
+                    </div>
+                    <div>
+                        <strong>字卡與發音練習</strong>
+                        <p class="text-muted small mb-0">SM-2 間隔重複演算法強化記憶</p>
+                    </div>
+                </div>
+                <div class="d-flex align-items-start">
+                    <div class="kl-feature-icon me-3" style="background: rgba(232,132,107,0.1); color: var(--kl-accent); min-width:40px; width:40px; height:40px; border-radius:8px;">
+                        <i class="bi bi-award" style="font-size:1rem;"></i>
+                    </div>
+                    <div>
+                        <strong>結業證書</strong>
+                        <p class="text-muted small mb-0">完課後自動產生 PDF 證書</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 右側表單 -->
+        <div class="col-lg-5">
+            <div class="card" style="border-radius: var(--kl-radius-lg); box-shadow: var(--kl-shadow-md);">
+                <div class="card-body p-4">
+                    <div class="text-center mb-4 d-lg-none">
+                        <i class="bi bi-translate" style="font-size: 2rem; color: var(--kl-primary);"></i>
+                    </div>
+                    <h4 class="text-center mb-1">帳號登入</h4>
+                    <p class="text-center text-muted small mb-4">輸入你的帳號密碼以繼續</p>
+
+                    <div asp-validation-summary="ModelOnly" class="alert alert-danger" role="alert"></div>
+
+                    <form method="post" data-no-disable="true">
+                        <div class="mb-3">
+                            <label asp-for="Input.Email" class="form-label">電子信箱</label>
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="bi bi-envelope"></i></span>
+                                <input asp-for="Input.Email" class="form-control" placeholder="name@example.com" autocomplete="email" />
+                            </div>
+                            <span asp-validation-for="Input.Email" class="text-danger small"></span>
+                        </div>
+                        <div class="mb-3">
+                            <label asp-for="Input.Password" class="form-label">密碼</label>
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="bi bi-lock"></i></span>
+                                <input asp-for="Input.Password" class="form-control" placeholder="輸入密碼" autocomplete="current-password" />
+                                <button type="button" class="btn btn-outline-secondary kl-toggle-pw" tabindex="-1">
+                                    <i class="bi bi-eye"></i>
+                                </button>
+                            </div>
+                            <span asp-validation-for="Input.Password" class="text-danger small"></span>
+                        </div>
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <div class="form-check">
+                                <input asp-for="Input.RememberMe" class="form-check-input" />
+                                <label asp-for="Input.RememberMe" class="form-check-label small">記住我</label>
+                            </div>
+                        </div>
+                        <button type="submit" class="btn btn-primary w-100 py-2">
+                            登入
+                        </button>
+                    </form>
+
+                    <hr class="my-4" />
+
+                    <p class="text-center mb-0 small">
+                        還沒有帳號？
+                        <a asp-page="/Account/Register" asp-area="Identity" class="fw-semibold">立即註冊</a>
+                    </p>
+                </div>
+            </div>
+
+            <p class="text-center text-muted mt-3" style="font-size: 0.8rem;">
+                <i class="bi bi-shield-lock me-1"></i>
+                你的資料經過加密保護，我們絕不會分享你的個人資訊。
+            </p>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

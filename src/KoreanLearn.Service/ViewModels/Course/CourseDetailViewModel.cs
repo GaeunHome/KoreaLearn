@@ -10,6 +10,8 @@ public class CourseDetailViewModel
     public string? CoverImageUrl { get; set; }
     public decimal Price { get; set; }
     public DifficultyLevel Level { get; set; }
+    public string? TeacherName { get; set; }
+    public bool IsEnrolled { get; set; }
     public IReadOnlyList<SectionViewModel> Sections { get; set; } = [];
 
     public string LevelDisplay => Level switch

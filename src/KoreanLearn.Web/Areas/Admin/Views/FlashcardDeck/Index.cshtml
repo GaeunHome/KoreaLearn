@@ -42,9 +42,10 @@ else
                             <a asp-area="Admin" asp-controller="FlashcardDeck" asp-action="Edit" asp-route-id="@deck.Id"
                                class="btn btn-sm btn-outline-primary me-1"><i class="bi bi-pencil"></i> 編輯</a>
                             <form asp-area="Admin" asp-controller="FlashcardDeck" asp-action="Delete" asp-route-id="@deck.Id"
-                                  method="post" class="d-inline" onsubmit="return confirm('確定要刪除「@deck.Title」嗎？');">
+                                  method="post" class="d-inline">
                                 @Html.AntiForgeryToken()
-                                <button type="submit" class="btn btn-sm btn-outline-danger"><i class="bi bi-trash"></i> 刪除</button>
+                                <button type="submit" class="btn btn-sm btn-outline-danger"
+                                        data-confirm="確定要刪除字卡牌組「@deck.Title」嗎？"><i class="bi bi-trash"></i> 刪除</button>
                             </form>
                         </td>
                     </tr>

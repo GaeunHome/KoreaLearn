@@ -55,17 +55,23 @@ public class CourseService(
         logger.LogInformation("取得課程詳情 | CourseId={CourseId} | Title={Title} | Sections={SectionCount}",
             id, course.Title, course.Sections.Count);
         var vm = mapper.Map<CourseDetailViewModel>(course);
+        vm.TeacherName = course.Teacher?.DisplayName;
 
-        // Fill in progress data if user is logged in
+        // Fill in enrollment status and progress data if user is logged in
         if (!string.IsNullOrEmpty(userId))
         {
-            var progresses = await uow.Progresses.GetByUserAndCourseAsync(userId, id, ct).ConfigureAwait(false);
-            var completedLessonIds = progresses.Where(p => p.IsCompleted).Select(p => p.LessonId).ToHashSet();
-            foreach (var sec in vm.Sections)
+            vm.IsEnrolled = await uow.Enrollments.HasActiveAccessAsync(userId, id, ct).ConfigureAwait(false);
+
+            if (vm.IsEnrolled)
             {
-                foreach (var lesson in sec.Lessons)
+                var progresses = await uow.Progresses.GetByUserAndCourseAsync(userId, id, ct).ConfigureAwait(false);
+                var completedLessonIds = progresses.Where(p => p.IsCompleted).Select(p => p.LessonId).ToHashSet();
+                foreach (var sec in vm.Sections)
                 {
-                    lesson.IsCompleted = completedLessonIds.Contains(lesson.Id);
+                    foreach (var lesson in sec.Lessons)
+                    {
+                        lesson.IsCompleted = completedLessonIds.Contains(lesson.Id);
+                    }
                 }
             }
         }

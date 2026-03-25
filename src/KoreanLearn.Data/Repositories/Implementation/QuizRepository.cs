@@ -17,4 +17,10 @@ public class QuizRepository(ApplicationDbContext db) : Repository<Quiz>(db), IQu
             .Include(q => q.Questions.OrderBy(qq => qq.SortOrder))
                 .ThenInclude(q => q.Options.OrderBy(o => o.SortOrder))
             .FirstOrDefaultAsync(q => q.LessonId == lessonId, ct).ConfigureAwait(false);
+
+    public async Task<QuizQuestion?> GetQuestionByIdAsync(int questionId, CancellationToken ct = default)
+        => await db.Set<QuizQuestion>()
+            .Include(q => q.Options.OrderBy(o => o.SortOrder))
+            .Include(q => q.Quiz)
+            .FirstOrDefaultAsync(q => q.Id == questionId, ct).ConfigureAwait(false);
 }

@@ -27,4 +27,19 @@ public class DiscussionRepository(ApplicationDbContext db) : Repository<Discussi
             .ToListAsync(ct).ConfigureAwait(false);
         return new PagedResult<Discussion>(items, total, page, pageSize);
     }
+
+    public async Task<PagedResult<Discussion>> GetAllPagedAsync(int page, int pageSize, CancellationToken ct = default)
+    {
+        var query = DbSet.AsNoTracking()
+            .Include(d => d.User)
+            .Include(d => d.Course)
+            .Include(d => d.Replies);
+
+        var total = await query.CountAsync(ct).ConfigureAwait(false);
+        var items = await query
+            .OrderByDescending(d => d.CreatedAt)
+            .Skip((page - 1) * pageSize).Take(pageSize)
+            .ToListAsync(ct).ConfigureAwait(false);
+        return new PagedResult<Discussion>(items, total, page, pageSize);
+    }
 }

@@ -15,4 +15,9 @@ public class FlashcardDeckRepository(ApplicationDbContext db) : Repository<Flash
         => await DbSet.AsNoTracking()
             .Where(d => d.CourseId == courseId)
             .ToListAsync(ct).ConfigureAwait(false);
+
+    public async Task<Flashcard?> GetCardByIdAsync(int cardId, CancellationToken ct = default)
+        => await db.Set<Flashcard>()
+            .Include(c => c.Deck)
+            .FirstOrDefaultAsync(c => c.Id == cardId, ct).ConfigureAwait(false);
 }

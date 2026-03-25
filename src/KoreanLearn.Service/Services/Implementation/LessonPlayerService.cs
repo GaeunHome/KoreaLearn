@@ -21,7 +21,9 @@ public class LessonPlayerService(
             return null;
         }
 
-        var (section, course, progress, prevId, nextId) = await GetLessonContextAsync(lesson, userId, ct).ConfigureAwait(false);
+        var context = await GetLessonContextAsync(lesson, userId, ct).ConfigureAwait(false);
+        if (context is null) return null;
+        var (section, course, progress, prevId, nextId) = context.Value;
 
         return new VideoPlayerViewModel
         {
@@ -37,7 +39,8 @@ public class LessonPlayerService(
             CourseId = course?.Id ?? 0,
             CourseTitle = course?.Title,
             PreviousLessonId = prevId,
-            NextLessonId = nextId
+            NextLessonId = nextId,
+            Attachments = await GetAttachmentsAsync(lesson.Id, ct).ConfigureAwait(false)
         };
     }
 
@@ -51,7 +54,9 @@ public class LessonPlayerService(
             return null;
         }
 
-        var (section, course, progress, prevId, nextId) = await GetLessonContextAsync(lesson, userId, ct).ConfigureAwait(false);
+        var context = await GetLessonContextAsync(lesson, userId, ct).ConfigureAwait(false);
+        if (context is null) return null;
+        var (section, course, progress, prevId, nextId) = context.Value;
 
         return new ArticlePlayerViewModel
         {
@@ -65,7 +70,8 @@ public class LessonPlayerService(
             CourseId = course?.Id ?? 0,
             CourseTitle = course?.Title,
             PreviousLessonId = prevId,
-            NextLessonId = nextId
+            NextLessonId = nextId,
+            Attachments = await GetAttachmentsAsync(lesson.Id, ct).ConfigureAwait(false)
         };
     }
 
@@ -79,7 +85,9 @@ public class LessonPlayerService(
             return null;
         }
 
-        var (section, course, progress, prevId, nextId) = await GetLessonContextAsync(lesson, userId, ct).ConfigureAwait(false);
+        var context = await GetLessonContextAsync(lesson, userId, ct).ConfigureAwait(false);
+        if (context is null) return null;
+        var (section, course, progress, prevId, nextId) = context.Value;
 
         return new PdfPlayerViewModel
         {
@@ -94,17 +102,32 @@ public class LessonPlayerService(
             CourseId = course?.Id ?? 0,
             CourseTitle = course?.Title,
             PreviousLessonId = prevId,
-            NextLessonId = nextId
+            NextLessonId = nextId,
+            Attachments = await GetAttachmentsAsync(lesson.Id, ct).ConfigureAwait(false)
         };
     }
 
-    private async Task<(Section? section, Course? course, Progress? progress, int? prevId, int? nextId)>
+    /// <summary>取得課程上下文，同時檢查用戶是否有存取權限。無權限時回傳 null。</summary>
+    private async Task<(Section? section, Course? course, Progress? progress, int? prevId, int? nextId)?>
         GetLessonContextAsync(Lesson lesson, string userId, CancellationToken ct)
     {
         var section = await uow.Sections.GetByIdAsync(lesson.SectionId, ct).ConfigureAwait(false);
         var course = section is not null
             ? await uow.Courses.GetByIdAsync(section.CourseId, ct).ConfigureAwait(false)
             : null;
+
+        // 權限檢查：非免費試看的課程必須有購買或訂閱
+        if (!lesson.IsFreePreview && course is not null)
+        {
+            var hasAccess = await uow.Enrollments.HasActiveAccessAsync(userId, course.Id, ct).ConfigureAwait(false);
+            if (!hasAccess)
+            {
+                logger.LogWarning("未購買課程 | UserId={UserId} | CourseId={CourseId} | LessonId={LessonId}",
+                    userId, course.Id, lesson.Id);
+                return null;
+            }
+        }
+
         var progress = await uow.Progresses.GetByUserAndLessonAsync(userId, lesson.Id, ct).ConfigureAwait(false);
 
         int? prevId = null;
@@ -119,5 +142,23 @@ public class LessonPlayerService(
         }
 
         return (section, course, progress, prevId, nextId);
+    }
+
+    private async Task<IReadOnlyList<LessonAttachmentViewModel>> GetAttachmentsAsync(
+        int lessonId, CancellationToken ct)
+    {
+        var attachments = await uow.LessonAttachments.GetByLessonIdAsync(lessonId, ct).ConfigureAwait(false);
+        return attachments.Select(a => new LessonAttachmentViewModel
+        {
+            Id = a.Id,
+            FileName = a.FileName,
+            FileUrl = a.FileUrl,
+            FileSizeDisplay = a.FileSizeBytes switch
+            {
+                < 1024 => $"{a.FileSizeBytes} B",
+                < 1024 * 1024 => $"{a.FileSizeBytes / 1024.0:F1} KB",
+                _ => $"{a.FileSizeBytes / (1024.0 * 1024.0):F1} MB"
+            }
+        }).ToList();
     }
 }

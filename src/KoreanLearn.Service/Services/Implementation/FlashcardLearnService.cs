@@ -46,15 +46,10 @@ public class FlashcardLearnService(
         var dueLogs = await uow.FlashcardLogs.GetDueCardsAsync(userId, deckId, ct).ConfigureAwait(false);
         var dueCardIds = dueLogs.Select(l => l.FlashcardId).ToHashSet();
 
-        // Get cards the user has never seen
-        var allCardIds = deck.Flashcards.Select(c => c.Id).ToHashSet();
-        var seenCards = new HashSet<int>();
-        foreach (var card in deck.Flashcards)
-        {
-            var log = await uow.FlashcardLogs.GetByUserAndCardAsync(userId, card.Id, ct).ConfigureAwait(false);
-            if (log is not null) seenCards.Add(card.Id);
-        }
-        var newCardIds = allCardIds.Except(seenCards).ToHashSet();
+        // 批次載入使用者的所有學習紀錄，避免 N+1 查詢
+        var allLogs = await uow.FlashcardLogs.GetByUserAndDeckAsync(userId, deckId, ct).ConfigureAwait(false);
+        var seenCardIds = allLogs.Select(l => l.FlashcardId).ToHashSet();
+        var newCardIds = deck.Flashcards.Select(c => c.Id).Except(seenCardIds).ToHashSet();
 
         // Study session: due cards first, then new cards (max 20 per session)
         var studyCards = new List<FlashcardItemViewModel>();

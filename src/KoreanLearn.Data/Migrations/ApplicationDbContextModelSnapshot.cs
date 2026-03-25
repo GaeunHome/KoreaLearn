@@ -235,6 +235,10 @@ namespace KoreanLearn.Data.Migrations
                     b.Property<int>("SortOrder")
                         .HasColumnType("int");
 
+                    b.Property<string>("TeacherId")
+                        .HasMaxLength(450)
+                        .HasColumnType("nvarchar(450)");
+
                     b.Property<string>("Title")
                         .IsRequired()
                         .HasMaxLength(200)
@@ -246,6 +250,8 @@ namespace KoreanLearn.Data.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("IsPublished");
+
+                    b.HasIndex("TeacherId");
 
                     b.HasIndex("Title");
 
@@ -580,6 +586,52 @@ namespace KoreanLearn.Data.Migrations
                     b.HasIndex("SectionId");
 
                     b.ToTable("Lessons", (string)null);
+                });
+
+            modelBuilder.Entity("KoreanLearn.Data.Entities.LessonAttachment", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime?>("DeletedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("FileName")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<long>("FileSizeBytes")
+                        .HasColumnType("bigint");
+
+                    b.Property<string>("FileUrl")
+                        .IsRequired()
+                        .HasMaxLength(1000)
+                        .HasColumnType("nvarchar(1000)");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit");
+
+                    b.Property<int>("LessonId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("SortOrder")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("LessonId");
+
+                    b.ToTable("LessonAttachments", (string)null);
                 });
 
             modelBuilder.Entity("KoreanLearn.Data.Entities.Order", b =>
@@ -1283,6 +1335,16 @@ namespace KoreanLearn.Data.Migrations
                     b.Navigation("User");
                 });
 
+            modelBuilder.Entity("KoreanLearn.Data.Entities.Course", b =>
+                {
+                    b.HasOne("KoreanLearn.Data.Entities.AppUser", "Teacher")
+                        .WithMany("TeacherCourses")
+                        .HasForeignKey("TeacherId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.Navigation("Teacher");
+                });
+
             modelBuilder.Entity("KoreanLearn.Data.Entities.Discussion", b =>
                 {
                     b.HasOne("KoreanLearn.Data.Entities.Course", "Course")
@@ -1389,6 +1451,17 @@ namespace KoreanLearn.Data.Migrations
                         .IsRequired();
 
                     b.Navigation("Section");
+                });
+
+            modelBuilder.Entity("KoreanLearn.Data.Entities.LessonAttachment", b =>
+                {
+                    b.HasOne("KoreanLearn.Data.Entities.Lesson", "Lesson")
+                        .WithMany("Attachments")
+                        .HasForeignKey("LessonId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Lesson");
                 });
 
             modelBuilder.Entity("KoreanLearn.Data.Entities.Order", b =>
@@ -1645,6 +1718,8 @@ namespace KoreanLearn.Data.Migrations
                     b.Navigation("Progresses");
 
                     b.Navigation("QuizAttempts");
+
+                    b.Navigation("TeacherCourses");
                 });
 
             modelBuilder.Entity("KoreanLearn.Data.Entities.Course", b =>
@@ -1673,6 +1748,8 @@ namespace KoreanLearn.Data.Migrations
 
             modelBuilder.Entity("KoreanLearn.Data.Entities.Lesson", b =>
                 {
+                    b.Navigation("Attachments");
+
                     b.Navigation("Progresses");
 
                     b.Navigation("Quiz");

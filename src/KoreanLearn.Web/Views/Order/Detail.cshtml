@@ -1,42 +1,83 @@
 @model KoreanLearn.Service.Services.Interfaces.OrderDetailViewModel
 @{ ViewData["Title"] = "訂單詳情"; }
 
-<h2 class="mb-4"><i class="bi bi-receipt me-2"></i>訂單詳情</h2>
+<nav aria-label="breadcrumb" class="mb-3">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a asp-controller="Order" asp-action="Index">我的訂單</a></li>
+        <li class="breadcrumb-item active">@Model.OrderNumber</li>
+    </ol>
+</nav>
 
 <div class="row">
     <div class="col-lg-8">
-        <div class="card shadow-sm">
-            <div class="card-body">
-                <div class="row mb-3">
+        <div class="card">
+            <div class="card-body p-4">
+                <div class="row mb-4">
                     <div class="col-md-6">
-                        <p><strong>訂單編號：</strong><code>@Model.OrderNumber</code></p>
-                        <p><strong>建立時間：</strong>@Model.CreatedAt.ToString("yyyy-MM-dd HH:mm")</p>
+                        <label class="small text-muted">訂單編號</label>
+                        <p class="fw-semibold"><code>@Model.OrderNumber</code></p>
                     </div>
                     <div class="col-md-6">
-                        <p><strong>訂單狀態：</strong><span class="badge @(Model.Status == "Completed" ? "bg-success" : "bg-warning text-dark")">@Model.Status</span></p>
-                        <p><strong>付款狀態：</strong><span class="badge @(Model.PaymentStatus == "Completed" ? "bg-success" : "bg-warning text-dark")">@Model.PaymentStatus</span></p>
+                        <label class="small text-muted">建立時間</label>
+                        <p>@Model.CreatedAt.ToString("yyyy-MM-dd HH:mm")</p>
+                    </div>
+                </div>
+                <div class="row mb-4">
+                    <div class="col-md-6">
+                        <label class="small text-muted">訂單狀態</label>
+                        <div>
+                            @{
+                                var statusClass = Model.Status switch { "Completed" => "bg-success", "Cancelled" => "bg-secondary", _ => "bg-warning text-dark" };
+                                var statusText = Model.Status switch { "Completed" => "已完成", "Cancelled" => "已取消", "Pending" => "待付款", _ => Model.Status };
+                            }
+                            <span class="badge @statusClass">@statusText</span>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="small text-muted">付款狀態</label>
+                        <div>
+                            @{
+                                var payClass = Model.PaymentStatus switch { "Completed" => "bg-success", _ => "bg-warning text-dark" };
+                                var payText = Model.PaymentStatus switch { "Completed" => "已付款", _ => "未付款" };
+                            }
+                            <span class="badge @payClass">@payText</span>
+                        </div>
                     </div>
                 </div>
 
-                <table class="table">
-                    <thead><tr><th>課程</th><th class="text-end">價格</th></tr></thead>
-                    <tbody>
-                        @foreach (var item in Model.Items)
-                        {
+                <h6 class="mb-3">購買項目</h6>
+                <div class="table-responsive">
+                    <table class="table mb-0">
+                        <thead><tr><th>課程</th><th class="text-end">價格</th></tr></thead>
+                        <tbody>
+                            @foreach (var item in Model.Items)
+                            {
+                                <tr>
+                                    <td>
+                                        <a asp-controller="Course" asp-action="Detail" asp-route-id="@item.CourseId"
+                                           class="text-decoration-none">
+                                            <i class="bi bi-book me-1"></i>@item.CourseTitle
+                                        </a>
+                                    </td>
+                                    <td class="text-end">NT$ @item.Price.ToString("N0")</td>
+                                </tr>
+                            }
+                        </tbody>
+                        <tfoot>
                             <tr>
-                                <td><a asp-controller="Course" asp-action="Detail" asp-route-id="@item.CourseId">@item.CourseTitle</a></td>
-                                <td class="text-end">NT$ @item.Price.ToString("N0")</td>
+                                <td class="fw-bold">合計</td>
+                                <td class="text-end fw-bold fs-5" style="color: var(--kl-accent);">NT$ @Model.TotalAmount.ToString("N0")</td>
                             </tr>
-                        }
-                    </tbody>
-                    <tfoot>
-                        <tr class="table-active"><td class="fw-bold">合計</td><td class="text-end fw-bold text-primary">NT$ @Model.TotalAmount.ToString("N0")</td></tr>
-                    </tfoot>
-                </table>
+                        </tfoot>
+                    </table>
+                </div>
             </div>
         </div>
+
         <div class="mt-3">
-            <a asp-controller="Order" asp-action="Index" class="btn btn-outline-secondary"><i class="bi bi-arrow-left me-1"></i>返回訂單列表</a>
+            <a asp-controller="Order" asp-action="Index" class="btn btn-outline-secondary">
+                <i class="bi bi-arrow-left me-1"></i>返回訂單列表
+            </a>
         </div>
     </div>
 </div>

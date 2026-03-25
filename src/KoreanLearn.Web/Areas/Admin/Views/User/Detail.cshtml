@@ -1,0 +1,83 @@
+@model KoreanLearn.Service.ViewModels.Admin.User.UserDetailViewModel
+@{ ViewData["Title"] = Model.DisplayName; }
+
+<nav aria-label="breadcrumb" class="mb-3">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a asp-area="Admin" asp-controller="User" asp-action="Index">用戶管理</a></li>
+        <li class="breadcrumb-item active">@Model.DisplayName</li>
+    </ol>
+</nav>
+
+<div class="row">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header"><h5 class="mb-0"><i class="bi bi-person me-2"></i>用戶資料</h5></div>
+            <div class="card-body">
+                <table class="table table-borderless mb-0">
+                    <tr><th style="width:120px">名稱</th><td>@Model.DisplayName</td></tr>
+                    <tr><th>Email</th><td>@Model.Email</td></tr>
+                    <tr><th>電話</th><td>@(Model.PhoneNumber ?? "—")</td></tr>
+                    <tr><th>註冊時間</th><td>@Model.CreatedAt.ToString("yyyy-MM-dd HH:mm")</td></tr>
+                    <tr>
+                        <th>角色</th>
+                        <td>
+                            @foreach (var role in Model.Roles)
+                            {
+                                var cls = role switch { "Admin" => "bg-danger", "Teacher" => "bg-success", _ => "bg-secondary" };
+                                <span class="badge @cls me-1">@role</span>
+                            }
+                        </td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-6">
+        <div class="card mb-3">
+            <div class="card-header"><h5 class="mb-0"><i class="bi bi-bar-chart me-2"></i>統計</h5></div>
+            <div class="card-body">
+                <div class="row text-center">
+                    <div class="col-4">
+                        <div class="display-6">@Model.EnrollmentCount</div>
+                        <small class="text-muted">已選課程</small>
+                    </div>
+                    <div class="col-4">
+                        <div class="display-6">@Model.OrderCount</div>
+                        <small class="text-muted">訂單數</small>
+                    </div>
+                    <div class="col-4">
+                        <div class="display-6">@Model.CourseCount</div>
+                        <small class="text-muted">教授課程</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-header"><h5 class="mb-0"><i class="bi bi-shield me-2"></i>角色管理</h5></div>
+            <div class="card-body">
+                @if (!Model.Roles.Contains("Teacher"))
+                {
+                    <form asp-area="Admin" asp-controller="User" asp-action="PromoteToTeacher" asp-route-id="@Model.Id" method="post" class="d-inline">
+                        @Html.AntiForgeryToken()
+                        <button type="submit" class="btn btn-success"
+                                data-confirm="確定要將「@Model.DisplayName」升級為教師嗎？">
+                            <i class="bi bi-arrow-up-circle me-1"></i>升級為教師
+                        </button>
+                    </form>
+                }
+                else
+                {
+                    <form asp-area="Admin" asp-controller="User" asp-action="DemoteFromTeacher" asp-route-id="@Model.Id" method="post" class="d-inline">
+                        @Html.AntiForgeryToken()
+                        <button type="submit" class="btn btn-warning"
+                                data-confirm="確定要將「@Model.DisplayName」從教師降級嗎？">
+                            <i class="bi bi-arrow-down-circle me-1"></i>從教師降級
+                        </button>
+                    </form>
+                }
+            </div>
+        </div>
+    </div>
+</div>

@@ -15,7 +15,7 @@ public class LessonController(
     {
         var userId = User.FindFirstValue(ClaimTypes.NameIdentifier)!;
         var vm = await lessonPlayerService.GetVideoPlayerAsync(id, userId, ct);
-        if (vm is null) return NotFound();
+        if (vm is null) return AccessDeniedOrNotFound(id);
         return View(vm);
     }
 
@@ -23,7 +23,7 @@ public class LessonController(
     {
         var userId = User.FindFirstValue(ClaimTypes.NameIdentifier)!;
         var vm = await lessonPlayerService.GetArticlePlayerAsync(id, userId, ct);
-        if (vm is null) return NotFound();
+        if (vm is null) return AccessDeniedOrNotFound(id);
         return View(vm);
     }
 
@@ -31,7 +31,7 @@ public class LessonController(
     {
         var userId = User.FindFirstValue(ClaimTypes.NameIdentifier)!;
         var vm = await lessonPlayerService.GetPdfPlayerAsync(id, userId, ct);
-        if (vm is null) return NotFound();
+        if (vm is null) return AccessDeniedOrNotFound(id);
         return View(vm);
     }
 
@@ -59,6 +59,24 @@ public class LessonController(
             return Json(new { success = true });
 
         return Json(new { success = false, error = result.ErrorMessage });
+    }
+
+    [HttpPost]
+    public async Task<IActionResult> UndoComplete(int id, CancellationToken ct = default)
+    {
+        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier)!;
+        var result = await progressService.UndoLessonCompleteAsync(userId, id, ct);
+
+        if (result.IsSuccess)
+            return Json(new { success = true });
+
+        return Json(new { success = false, error = result.ErrorMessage });
+    }
+
+    private IActionResult AccessDeniedOrNotFound(int lessonId)
+    {
+        TempData["Warning"] = "您尚未購買此課程，無法存取此單元內容。請先購買課程。";
+        return RedirectToAction("Index", "Course", new { area = "" });
     }
 }
 

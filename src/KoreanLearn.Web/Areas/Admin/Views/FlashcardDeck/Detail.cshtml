@@ -61,9 +61,10 @@ else
                                class="btn btn-sm btn-outline-primary me-1"><i class="bi bi-pencil"></i></a>
                             <form asp-area="Admin" asp-controller="FlashcardDeck" asp-action="DeleteCard"
                                   asp-route-id="@card.Id" asp-route-deckId="@Model.Id"
-                                  method="post" class="d-inline" onsubmit="return confirm('確定要刪除「@card.Korean」嗎？');">
+                                  method="post" class="d-inline">
                                 @Html.AntiForgeryToken()
-                                <button type="submit" class="btn btn-sm btn-outline-danger"><i class="bi bi-trash"></i></button>
+                                <button type="submit" class="btn btn-sm btn-outline-danger"
+                                        data-confirm="確定要刪除字卡「@card.Korean」嗎？"><i class="bi bi-trash"></i></button>
                             </form>
                         </td>
                     </tr>

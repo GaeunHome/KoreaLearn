@@ -1,43 +1,70 @@
 @model KoreanLearn.Service.Services.Interfaces.DiscussionDetailViewModel
 @{ ViewData["Title"] = Model.Title; }
 
-<div class="mb-3">
-    <a asp-controller="Discussion" asp-action="Index" asp-route-courseId="@Model.CourseId" class="btn btn-sm btn-outline-secondary">
-        <i class="bi bi-arrow-left me-1"></i>返回討論區
-    </a>
-</div>
+<nav aria-label="breadcrumb" class="mb-3">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a asp-controller="Discussion" asp-action="Index" asp-route-courseId="@Model.CourseId">討論區</a></li>
+        <li class="breadcrumb-item active">@Model.Title</li>
+    </ol>
+</nav>
 
-<div class="card shadow-sm mb-4">
-    <div class="card-body">
-        <h3>@Model.Title</h3>
-        <p class="text-muted small">@Model.AuthorName · @Model.CreatedAt.ToString("yyyy-MM-dd HH:mm")</p>
-        <p>@Model.Content</p>
-    </div>
-</div>
-
-<h5 class="mb-3"><i class="bi bi-chat me-1"></i>回覆 (@Model.Replies.Count)</h5>
-
-@foreach (var r in Model.Replies)
-{
-    <div class="card mb-2">
-        <div class="card-body py-2">
-            <p class="mb-1">@r.Content</p>
-            <small class="text-muted">@r.AuthorName · @r.CreatedAt.ToString("yyyy-MM-dd HH:mm")</small>
+<!-- 原始貼文 -->
+<div class="card mb-4">
+    <div class="card-body p-4">
+        <h4 class="mb-2">@Model.Title</h4>
+        <div class="d-flex align-items-center text-muted small mb-3">
+            <i class="bi bi-person-circle me-1"></i>
+            <span class="fw-semibold">@Model.AuthorName</span>
+            <span class="mx-2">·</span>
+            <i class="bi bi-clock me-1"></i>
+            <span>@Model.CreatedAt.ToString("yyyy-MM-dd HH:mm")</span>
         </div>
+        <div style="line-height: 1.8;">@Model.Content</div>
     </div>
+</div>
+
+<!-- 回覆列表 -->
+<div class="d-flex align-items-center mb-3">
+    <h5 class="mb-0"><i class="bi bi-chat me-2"></i>回覆</h5>
+    <span class="badge bg-secondary ms-2">@Model.Replies.Count</span>
+</div>
+
+@if (Model.Replies.Any())
+{
+    @foreach (var r in Model.Replies)
+    {
+        <div class="card mb-2">
+            <div class="card-body py-3 px-4">
+                <div style="line-height: 1.7;">@r.Content</div>
+                <div class="text-muted small mt-2">
+                    <i class="bi bi-person me-1"></i>@r.AuthorName
+                    <span class="mx-2">·</span>
+                    @r.CreatedAt.ToString("MM/dd HH:mm")
+                </div>
+            </div>
+        </div>
+    }
+}
+else
+{
+    <p class="text-muted">還沒有人回覆，來說點什麼吧！</p>
 }
 
+<!-- 回覆表單 -->
 @if (User.Identity?.IsAuthenticated == true)
 {
-    <div class="card mt-3">
-        <div class="card-body">
+    <div class="card mt-4">
+        <div class="card-body p-4">
+            <h6 class="mb-3"><i class="bi bi-reply me-1"></i>撰寫回覆</h6>
             <form asp-controller="Discussion" asp-action="Reply" method="post">
                 @Html.AntiForgeryToken()
                 <input type="hidden" name="discussionId" value="@Model.Id" />
-                <div class="mb-2">
-                    <textarea name="content" class="form-control" rows="3" placeholder="輸入回覆..." required></textarea>
+                <div class="mb-3">
+                    <textarea name="content" class="form-control" rows="3" placeholder="分享你的想法..." required></textarea>
                 </div>
-                <button type="submit" class="btn btn-primary btn-sm"><i class="bi bi-reply me-1"></i>回覆</button>
+                <button type="submit" class="btn btn-primary">
+                    <i class="bi bi-send me-1"></i>送出回覆
+                </button>
             </form>
         </div>
     </div>

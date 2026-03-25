@@ -5,13 +5,23 @@ using KoreanLearn.Service.Services.Interfaces;
 
 namespace KoreanLearn.Web.Controllers;
 
-public class DiscussionController(IDiscussionService discussionService) : Controller
+public class DiscussionController(
+    IDiscussionService discussionService,
+    ICourseService courseService) : Controller
 {
-    public async Task<IActionResult> Index(int courseId, int page = 1, CancellationToken ct = default)
+    public async Task<IActionResult> Index(int? courseId, int page = 1, CancellationToken ct = default)
     {
-        var result = await discussionService.GetByCourseAsync(courseId, page, 20, ct);
         ViewBag.CourseId = courseId;
-        return View(result);
+
+        if (courseId.HasValue && courseId.Value > 0)
+        {
+            var result = await discussionService.GetByCourseAsync(courseId.Value, page, 20, ct);
+            return View(result);
+        }
+
+        // 全站討論列表
+        var all = await discussionService.GetAllAsync(page, 20, ct);
+        return View(all);
     }
 
     public async Task<IActionResult> Detail(int id, CancellationToken ct = default)
@@ -22,9 +32,17 @@ public class DiscussionController(IDiscussionService discussionService) : Contro
     }
 
     [Authorize]
-    public IActionResult Create(int courseId)
+    public async Task<IActionResult> Create(int? courseId, CancellationToken ct = default)
     {
-        ViewBag.CourseId = courseId;
+        // 如果沒帶 courseId，讓用戶選擇課程
+        if (!courseId.HasValue || courseId.Value <= 0)
+        {
+            var courses = await courseService.GetPublishedCoursesAsync(ct);
+            ViewBag.Courses = courses;
+            return View("SelectCourse");
+        }
+
+        ViewBag.CourseId = courseId.Value;
         return View();
     }
 

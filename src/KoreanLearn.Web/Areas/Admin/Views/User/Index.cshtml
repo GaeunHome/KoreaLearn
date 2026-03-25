@@ -1,0 +1,66 @@
+@model KoreanLearn.Library.Helpers.PagedResult<KoreanLearn.Service.ViewModels.Admin.User.UserListViewModel>
+@{ ViewData["Title"] = "用戶管理"; var search = ViewBag.Search as string; }
+
+<h2 class="mb-4"><i class="bi bi-people me-2"></i>用戶管理</h2>
+
+<form method="get" class="mb-4">
+    <div class="input-group" style="max-width: 400px;">
+        <input type="text" name="search" value="@search" class="form-control" placeholder="搜尋 Email 或名稱..." />
+        <button type="submit" class="btn btn-outline-primary"><i class="bi bi-search"></i></button>
+        @if (!string.IsNullOrEmpty(search))
+        {
+            <a asp-area="Admin" asp-controller="User" asp-action="Index" class="btn btn-outline-secondary">清除</a>
+        }
+    </div>
+</form>
+
+@if (!Model.Items.Any())
+{
+    <div class="alert alert-info">沒有找到符合條件的使用者。</div>
+}
+else
+{
+    <div class="table-responsive">
+        <table class="table table-hover align-middle">
+            <thead class="table-light">
+                <tr><th>名稱</th><th>Email</th><th>角色</th><th>註冊時間</th><th></th></tr>
+            </thead>
+            <tbody>
+                @foreach (var user in Model.Items)
+                {
+                    <tr>
+                        <td class="fw-semibold">@user.DisplayName</td>
+                        <td class="text-muted">@user.Email</td>
+                        <td>
+                            @foreach (var role in user.Roles)
+                            {
+                                var cls = role switch { "Admin" => "bg-danger", "Teacher" => "bg-success", _ => "bg-secondary" };
+                                <span class="badge @cls me-1">@role</span>
+                            }
+                        </td>
+                        <td class="text-muted">@user.CreatedAt.ToString("yyyy-MM-dd")</td>
+                        <td>
+                            <a asp-area="Admin" asp-controller="User" asp-action="Detail" asp-route-id="@user.Id"
+                               class="btn btn-sm btn-outline-primary"><i class="bi bi-eye"></i></a>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+
+    @if (Model.TotalPages > 1)
+    {
+        <nav>
+            <ul class="pagination justify-content-center">
+                @for (var i = 1; i <= Model.TotalPages; i++)
+                {
+                    <li class="page-item @(i == Model.Page ? "active" : "")">
+                        <a class="page-link" asp-area="Admin" asp-controller="User" asp-action="Index"
+                           asp-route-page="@i" asp-route-search="@search">@i</a>
+                    </li>
+                }
+            </ul>
+        </nav>
+    }
+}

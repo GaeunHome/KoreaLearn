@@ -19,7 +19,8 @@ public class UnitOfWork(
     IPronunciationRepository pronunciations,
     ISubscriptionPlanRepository subscriptionPlans,
     IUserSubscriptionRepository userSubscriptions,
-    IDiscussionRepository discussions) : IUnitOfWork
+    IDiscussionRepository discussions,
+    ILessonAttachmentRepository lessonAttachments) : IUnitOfWork
 {
     private IDbContextTransaction? _transaction;
 
@@ -38,6 +39,7 @@ public class UnitOfWork(
     public ISubscriptionPlanRepository SubscriptionPlans => subscriptionPlans;
     public IUserSubscriptionRepository UserSubscriptions => userSubscriptions;
     public IDiscussionRepository Discussions => discussions;
+    public ILessonAttachmentRepository LessonAttachments => lessonAttachments;
 
     public Task<int> SaveChangesAsync(CancellationToken ct = default)
         => db.SaveChangesAsync(ct);

@@ -91,10 +91,10 @@ else
                                 </a>
                                 <form asp-area="Admin" asp-controller="Section" asp-action="Delete"
                                       asp-route-id="@sec.Id" asp-route-courseId="@Model.Id"
-                                      method="post" class="d-inline"
-                                      onsubmit="return confirm('確定要刪除「@sec.Title」嗎？');">
+                                      method="post" class="d-inline">
                                     @Html.AntiForgeryToken()
-                                    <button type="submit" class="btn btn-sm btn-outline-danger">
+                                    <button type="submit" class="btn btn-sm btn-outline-danger"
+                                            data-confirm="確定要刪除章節「@sec.Title」嗎？該章節下的所有單元也會一併刪除。">
                                         <i class="bi bi-trash"></i> 刪除
                                     </button>
                                 </form>
@@ -140,10 +140,10 @@ else
                                                 </a>
                                                 <form asp-area="Admin" asp-controller="Lesson" asp-action="Delete"
                                                       asp-route-id="@lesson.Id" asp-route-courseId="@Model.Id"
-                                                      method="post" class="d-inline"
-                                                      onsubmit="return confirm('確定要刪除「@lesson.Title」嗎？');">
+                                                      method="post" class="d-inline">
                                                     @Html.AntiForgeryToken()
-                                                    <button type="submit" class="btn btn-sm btn-outline-danger">
+                                                    <button type="submit" class="btn btn-sm btn-outline-danger"
+                                                            data-confirm="確定要刪除單元「@lesson.Title」嗎？">
                                                         <i class="bi bi-trash"></i>
                                                     </button>
                                                 </form>

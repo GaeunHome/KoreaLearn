@@ -22,4 +22,12 @@ public class FlashcardLogRepository(ApplicationDbContext db) : Repository<Flashc
             .OrderBy(l => l.NextReviewDate)
             .ToListAsync(ct)
             .ConfigureAwait(false);
+
+    public async Task<IReadOnlyList<FlashcardLog>> GetByUserAndDeckAsync(
+        string userId, int deckId, CancellationToken ct = default)
+        => await DbSet
+            .Include(l => l.Flashcard)
+            .Where(l => l.UserId == userId && l.Flashcard.DeckId == deckId)
+            .ToListAsync(ct)
+            .ConfigureAwait(false);
 }

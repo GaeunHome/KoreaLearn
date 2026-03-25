@@ -1,4 +1,5 @@
 @model KoreanLearn.Service.ViewModels.Course.CourseDetailViewModel
+@using KoreanLearn.Library.Enums
 @{ ViewData["Title"] = Model.Title; }
 
 <nav aria-label="breadcrumb" class="mb-3">
@@ -12,14 +13,18 @@
 <div class="row">
     <!-- 課程資訊 -->
     <div class="col-md-8">
-        <h1 class="h2 mb-3">@Model.Title</h1>
+        <h1 class="h2 mb-2">@Model.Title</h1>
         <div class="mb-3">
             <span class="badge bg-info fs-6">@Model.LevelDisplay</span>
             <span class="text-muted ms-2">@Model.TotalLessons 堂課</span>
             <span class="text-muted ms-2">@Model.Sections.Count 章節</span>
+            @if (!string.IsNullOrEmpty(Model.TeacherName))
+            {
+                <span class="text-muted ms-2"><i class="bi bi-person-badge me-1"></i>@Model.TeacherName</span>
+            }
         </div>
 
-        @if (Model.CompletedLessons > 0)
+        @if (Model.IsEnrolled && Model.CompletedLessons > 0)
         {
             <div class="card mb-4 border-success">
                 <div class="card-body">
@@ -83,17 +88,22 @@
                                             LessonType.Pdf => "Pdf",
                                             _ => "Article"
                                         };
+                                        var canAccess = Model.IsEnrolled || lesson.IsFreePreview;
                                         <li class="list-group-item d-flex justify-content-between align-items-center">
                                             <span>
-                                                @if (lesson.IsCompleted)
+                                                @if (Model.IsEnrolled && lesson.IsCompleted)
                                                 {
                                                     <i class="bi bi-check-circle-fill me-2 text-success"></i>
                                                 }
-                                                else
+                                                else if (canAccess)
                                                 {
                                                     <i class="bi @lesson.TypeIcon me-2 text-muted"></i>
                                                 }
-                                                @if (User.Identity?.IsAuthenticated == true)
+                                                else
+                                                {
+                                                    <i class="bi bi-lock me-2 text-muted"></i>
+                                                }
+                                                @if (canAccess && User.Identity?.IsAuthenticated == true)
                                                 {
                                                     <a asp-area="Learn" asp-controller="Lesson" asp-action="@lessonAction" asp-route-id="@lesson.Id"
                                                        class="text-decoration-none">
@@ -102,7 +112,7 @@
                                                 }
                                                 else
                                                 {
-                                                    @lesson.Title
+                                                    <span class="@(!canAccess ? "text-muted" : "")">@lesson.Title</span>
                                                 }
                                                 @if (lesson.IsFreePreview)
                                                 {
@@ -134,32 +144,71 @@
             }
             else
             {
-                <div class="card-img-top bg-secondary bg-opacity-10 d-flex align-items-center justify-content-center"
-                     style="height: 200px;">
-                    <i class="bi bi-book display-1 text-secondary"></i>
+                <div class="card-img-top d-flex align-items-center justify-content-center"
+                     style="height: 200px; background: linear-gradient(135deg, #EEF1F7 0%, #E1E6EF 100%);">
+                    <i class="bi bi-book display-1" style="color: var(--kl-primary); opacity: 0.2;"></i>
                 </div>
             }
             <div class="card-body text-center">
-                <h4 class="text-primary mb-3">NT$ @Model.Price.ToString("N0")</h4>
-                @if (User.Identity?.IsAuthenticated == true)
+                @if (Model.IsEnrolled)
                 {
+                    <!-- 已購買：顯示繼續學習 -->
+                    <div class="mb-3">
+                        <span class="badge bg-success fs-6 px-3 py-2">
+                            <i class="bi bi-check-circle me-1"></i>已購買
+                        </span>
+                    </div>
+                    @if (Model.TotalLessons > 0)
+                    {
+                        var firstIncomplete = Model.Sections
+                                .SelectMany(s => s.Lessons)
+                                .FirstOrDefault(l => !l.IsCompleted);
+                            var targetLesson = firstIncomplete ?? Model.Sections.First().Lessons.First();
+                            var targetAction = targetLesson.Type switch
+                            {
+                                LessonType.Video => "Video",
+                                LessonType.Article => "Article",
+                                LessonType.Pdf => "Pdf",
+                                _ => "Article"
+                            };
+                        <a asp-area="Learn" asp-controller="Lesson" asp-action="@targetAction" asp-route-id="@targetLesson.Id"
+                           class="btn btn-primary btn-lg w-100 mb-2">
+                            <i class="bi bi-play-circle me-1"></i>
+                            @(firstIncomplete is not null ? "繼續學習" : "複習課程")
+                        </a>
+                    }
+                    <a asp-area="Learn" asp-controller="Dashboard" asp-action="Index"
+                       class="btn btn-outline-primary btn-sm w-100">
+                        <i class="bi bi-mortarboard me-1"></i>我的學習
+                    </a>
+                }
+                else if (User.Identity?.IsAuthenticated == true)
+                {
+                    <!-- 已登入未購買：顯示價格 + 購買 -->
+                    <h4 class="mb-3" style="color: var(--kl-accent);">NT$ @Model.Price.ToString("N0")</h4>
                     <form asp-controller="Order" asp-action="Create" method="post">
                         @Html.AntiForgeryToken()
                         <input type="hidden" name="courseId" value="@Model.Id" />
-                        <button type="submit" class="btn btn-primary btn-lg w-100 mb-2">
+                        <button type="submit" class="btn btn-primary btn-lg w-100 mb-2"
+                                data-confirm="確定要購買「@Model.Title」（NT$ @Model.Price.ToString("N0")）嗎？">
                             <i class="bi bi-cart-plus me-1"></i>立即購買
                         </button>
                     </form>
+                    <p class="text-muted small mt-2 mb-0">
+                        <i class="bi bi-shield-check me-1"></i>購買後即可永久觀看
+                    </p>
                 }
                 else
                 {
+                    <!-- 未登入：顯示價格 + 登入 -->
+                    <h4 class="mb-3" style="color: var(--kl-accent);">NT$ @Model.Price.ToString("N0")</h4>
                     <a asp-area="Identity" asp-page="/Account/Login" class="btn btn-primary btn-lg w-100 mb-2">
                         <i class="bi bi-box-arrow-in-right me-1"></i>登入後購買
                     </a>
+                    <p class="text-muted small mt-2 mb-0">
+                        <i class="bi bi-shield-check me-1"></i>購買後即可永久觀看
+                    </p>
                 }
-                <p class="text-muted small mt-2 mb-0">
-                    <i class="bi bi-shield-check me-1"></i>購買後即可永久觀看
-                </p>
             </div>
         </div>
     </div>

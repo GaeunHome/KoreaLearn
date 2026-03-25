@@ -17,4 +17,5 @@ public class ArticlePlayerViewModel
     // Next/Previous lesson
     public int? PreviousLessonId { get; set; }
     public int? NextLessonId { get; set; }
+    public IReadOnlyList<LessonAttachmentViewModel> Attachments { get; set; } = [];
 }

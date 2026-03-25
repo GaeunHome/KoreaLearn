@@ -6,4 +6,5 @@ public interface IQuizRepository : IRepository<Quiz>
 {
     Task<Quiz?> GetWithQuestionsAsync(int id, CancellationToken ct = default);
     Task<Quiz?> GetByLessonIdAsync(int lessonId, CancellationToken ct = default);
+    Task<QuizQuestion?> GetQuestionByIdAsync(int questionId, CancellationToken ct = default);
 }

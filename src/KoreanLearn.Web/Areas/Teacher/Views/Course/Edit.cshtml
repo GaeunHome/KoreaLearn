@@ -1,0 +1,95 @@
+@model KoreanLearn.Service.ViewModels.Admin.Course.EditCourseViewModel
+@{
+    ViewData["Title"] = "編輯課程";
+}
+
+<div class="mb-4">
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a asp-area="Teacher" asp-controller="Course" asp-action="Index">課程管理</a></li>
+            <li class="breadcrumb-item"><a asp-area="Teacher" asp-controller="Course" asp-action="Detail" asp-route-id="@Model.Id">@Model.Title</a></li>
+            <li class="breadcrumb-item active">編輯</li>
+        </ol>
+    </nav>
+    <h2><i class="bi bi-pencil me-2"></i>編輯課程</h2>
+</div>
+
+<div class="row">
+    <div class="col-lg-8">
+        <div class="card shadow-sm">
+            <div class="card-body">
+                <form asp-area="Teacher" asp-controller="Course" asp-action="Edit" method="post" enctype="multipart/form-data">
+                    @Html.AntiForgeryToken()
+                    <input asp-for="Id" type="hidden" />
+                    <div asp-validation-summary="ModelOnly" class="alert alert-danger" style="display:none;"></div>
+
+                    <div class="mb-3">
+                        <label asp-for="Title" class="form-label">課程標題 <span class="text-danger">*</span></label>
+                        <input asp-for="Title" class="form-control" />
+                        <span asp-validation-for="Title" class="text-danger"></span>
+                    </div>
+
+                    <div class="mb-3">
+                        <label asp-for="Description" class="form-label">課程介紹</label>
+                        <textarea asp-for="Description" class="form-control" rows="5"></textarea>
+                        <span asp-validation-for="Description" class="text-danger"></span>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-4 mb-3">
+                            <label asp-for="Price" class="form-label">售價 <span class="text-danger">*</span></label>
+                            <div class="input-group">
+                                <span class="input-group-text">NT$</span>
+                                <input asp-for="Price" class="form-control" type="number" min="0" step="1" />
+                            </div>
+                            <span asp-validation-for="Price" class="text-danger"></span>
+                        </div>
+
+                        <div class="col-md-4 mb-3">
+                            <label asp-for="Level" class="form-label">難度等級 <span class="text-danger">*</span></label>
+                            <select asp-for="Level" asp-items="Html.GetEnumSelectList<DifficultyLevel>()" class="form-select">
+                                <option value="">請選擇...</option>
+                            </select>
+                            <span asp-validation-for="Level" class="text-danger"></span>
+                        </div>
+
+                        <div class="col-md-4 mb-3">
+                            <label asp-for="SortOrder" class="form-label">排序</label>
+                            <input asp-for="SortOrder" class="form-control" type="number" min="0" />
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label asp-for="CoverImage" class="form-label">封面圖片</label>
+                        @if (!string.IsNullOrEmpty(Model.ExistingCoverImageUrl))
+                        {
+                            <div class="mb-2">
+                                <img src="@Model.ExistingCoverImageUrl" alt="封面圖片" class="img-thumbnail" style="max-width:200px; max-height:150px;" />
+                                <p class="text-muted small mt-1">上傳新圖片將覆蓋現有圖片</p>
+                            </div>
+                        }
+                        <input asp-for="CoverImage" class="form-control" type="file" accept="image/*" />
+                    </div>
+
+                    <div class="mb-3 form-check">
+                        <input asp-for="IsPublished" class="form-check-input" />
+                        <label asp-for="IsPublished" class="form-check-label">是否發佈</label>
+                    </div>
+
+                    <div class="d-flex gap-2">
+                        <button type="submit" class="btn btn-primary" onclick="this.disabled=true;this.form.submit();">
+                            <i class="bi bi-check-lg me-1"></i>儲存變更
+                        </button>
+                        <a asp-area="Teacher" asp-controller="Course" asp-action="Detail" asp-route-id="@Model.Id" class="btn btn-outline-secondary">
+                            <i class="bi bi-arrow-left me-1"></i>返回詳情
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

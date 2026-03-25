@@ -1,0 +1,164 @@
+@model KoreanLearn.Service.ViewModels.Admin.Lesson.LessonFormViewModel
+@{
+    ViewData["Title"] = "編輯單元";
+}
+
+<div class="mb-4">
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a asp-area="Teacher" asp-controller="Course" asp-action="Index">課程管理</a></li>
+            <li class="breadcrumb-item"><a asp-area="Teacher" asp-controller="Course" asp-action="Detail" asp-route-id="@Model.CourseId">@(Model.CourseTitle ?? "課程")</a></li>
+            <li class="breadcrumb-item active">編輯單元</li>
+        </ol>
+    </nav>
+    <h2><i class="bi bi-pencil me-2"></i>編輯單元</h2>
+</div>
+
+<div class="row">
+    <div class="col-lg-8">
+        <div class="card shadow-sm">
+            <div class="card-body">
+                <form asp-area="Teacher" asp-controller="Lesson" asp-action="Edit" method="post" enctype="multipart/form-data">
+                    @Html.AntiForgeryToken()
+                    <input asp-for="Id" type="hidden" />
+                    <input asp-for="SectionId" type="hidden" />
+                    <input asp-for="CourseId" type="hidden" />
+                    <input asp-for="SectionTitle" type="hidden" />
+                    <input asp-for="CourseTitle" type="hidden" />
+                    <div asp-validation-summary="ModelOnly" class="alert alert-danger" style="display:none;"></div>
+
+                    <div class="mb-3">
+                        <label asp-for="Title" class="form-label">單元標題 <span class="text-danger">*</span></label>
+                        <input asp-for="Title" class="form-control" />
+                        <span asp-validation-for="Title" class="text-danger"></span>
+                    </div>
+
+                    <div class="mb-3">
+                        <label asp-for="Description" class="form-label">單元說明</label>
+                        <textarea asp-for="Description" class="form-control" rows="3"></textarea>
+                        <span asp-validation-for="Description" class="text-danger"></span>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-4 mb-3">
+                            <label asp-for="Type" class="form-label">類型 <span class="text-danger">*</span></label>
+                            <select asp-for="Type" asp-items="Html.GetEnumSelectList<LessonType>()" class="form-select" id="lessonType">
+                                <option value="">請選擇...</option>
+                            </select>
+                            <span asp-validation-for="Type" class="text-danger"></span>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label asp-for="SortOrder" class="form-label">排序</label>
+                            <input asp-for="SortOrder" class="form-control" type="number" min="0" />
+                        </div>
+                        <div class="col-md-4 mb-3 d-flex align-items-end">
+                            <div class="form-check">
+                                <input asp-for="IsFreePreview" class="form-check-input" />
+                                <label asp-for="IsFreePreview" class="form-check-label">免費試看</label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Video fields -->
+                    <div id="videoFields" style="display:none;">
+                        <hr />
+                        <h5 class="text-primary"><i class="bi bi-play-circle me-1"></i>影片設定</h5>
+                        @if (!string.IsNullOrEmpty(Model.ExistingVideoUrl))
+                        {
+                            <div class="alert alert-secondary mb-2">
+                                <i class="bi bi-film me-1"></i>現有影片：<code>@Model.ExistingVideoUrl</code>
+                                <p class="text-muted small mb-0 mt-1">上傳新影片將覆蓋現有影片</p>
+                            </div>
+                        }
+                        <div class="mb-3">
+                            <label asp-for="VideoFile" class="form-label">影片檔案</label>
+                            <input asp-for="VideoFile" class="form-control" type="file" accept="video/*" />
+                        </div>
+                        <div class="mb-3">
+                            <label asp-for="VideoDurationSeconds" class="form-label">影片長度（秒）</label>
+                            <input asp-for="VideoDurationSeconds" class="form-control" type="number" min="0" style="max-width:200px;" />
+                        </div>
+                    </div>
+
+                    <!-- Article fields -->
+                    <div id="articleFields" style="display:none;">
+                        <hr />
+                        <h5 class="text-primary"><i class="bi bi-file-text me-1"></i>文章設定</h5>
+                        <div class="mb-3">
+                            <label class="form-label">文章內容</label>
+                            <div id="quillEditor" style="min-height:300px;">@Html.Raw(Model.ArticleContent ?? "")</div>
+                            <input asp-for="ArticleContent" type="hidden" id="articleContentHidden" />
+                        </div>
+                    </div>
+
+                    <!-- PDF fields -->
+                    <div id="pdfFields" style="display:none;">
+                        <hr />
+                        <h5 class="text-primary"><i class="bi bi-file-pdf me-1"></i>PDF 設定</h5>
+                        @if (!string.IsNullOrEmpty(Model.ExistingPdfUrl))
+                        {
+                            <div class="alert alert-secondary mb-2">
+                                <i class="bi bi-file-pdf me-1"></i>現有 PDF：<code>@Model.ExistingPdfFileName</code>
+                                <p class="text-muted small mb-0 mt-1">上傳新檔案將覆蓋現有 PDF</p>
+                            </div>
+                        }
+                        <div class="mb-3">
+                            <label asp-for="PdfFile" class="form-label">PDF 檔案</label>
+                            <input asp-for="PdfFile" class="form-control" type="file" accept=".pdf" />
+                        </div>
+                    </div>
+
+                    <hr />
+                    <div class="d-flex gap-2">
+                        <button type="submit" class="btn btn-primary" id="btnSubmit">
+                            <i class="bi bi-check-lg me-1"></i>儲存變更
+                        </button>
+                        <a asp-area="Teacher" asp-controller="Course" asp-action="Detail" asp-route-id="@Model.CourseId" class="btn btn-outline-secondary">
+                            <i class="bi bi-arrow-left me-1"></i>返回課程
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Styles {
+    <link href="https://cdn.jsdelivr.net/npm/quill@2.0.3/dist/quill.snow.css" rel="stylesheet" />
+}
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script src="https://cdn.jsdelivr.net/npm/quill@2.0.3/dist/quill.js"></script>
+    <script>
+        // Type toggle
+        document.getElementById('lessonType').addEventListener('change', function () {
+            document.getElementById('videoFields').style.display = this.value === '0' ? 'block' : 'none';
+            document.getElementById('articleFields').style.display = this.value === '1' ? 'block' : 'none';
+            document.getElementById('pdfFields').style.display = this.value === '2' ? 'block' : 'none';
+        });
+        document.getElementById('lessonType').dispatchEvent(new Event('change'));
+
+        // Quill editor
+        var quill = new Quill('#quillEditor', {
+            theme: 'snow',
+            placeholder: '請輸入文章內容...',
+            modules: {
+                toolbar: [
+                    [{ 'header': [1, 2, 3, false] }],
+                    ['bold', 'italic', 'underline', 'strike'],
+                    [{ 'color': [] }, { 'background': [] }],
+                    [{ 'list': 'ordered' }, { 'list': 'bullet' }],
+                    ['blockquote', 'code-block'],
+                    ['link', 'image'],
+                    ['clean']
+                ]
+            }
+        });
+
+        // Sync quill content to hidden input on submit
+        document.getElementById('btnSubmit').addEventListener('click', function (e) {
+            document.getElementById('articleContentHidden').value = quill.root.innerHTML;
+        });
+    </script>
+}

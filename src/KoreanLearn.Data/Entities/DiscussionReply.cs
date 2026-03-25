@@ -1,3 +1,6 @@
+using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Metadata.Builders;
+
 namespace KoreanLearn.Data.Entities;
 
 public class DiscussionReply : BaseEntity, ISoftDeletable
@@ -13,4 +16,28 @@ public class DiscussionReply : BaseEntity, ISoftDeletable
     // Navigation
     public AppUser User { get; set; } = null!;
     public Discussion Discussion { get; set; } = null!;
+}
+
+public class DiscussionReplyConfiguration : IEntityTypeConfiguration<DiscussionReply>
+{
+    public void Configure(EntityTypeBuilder<DiscussionReply> builder)
+    {
+        builder.ToTable("DiscussionReplies");
+        builder.HasKey(r => r.Id);
+
+        builder.Property(r => r.Content)
+            .IsRequired().HasMaxLength(4000);
+
+        builder.HasOne(r => r.User)
+            .WithMany(u => u.DiscussionReplies)
+            .HasForeignKey(r => r.UserId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        builder.HasOne(r => r.Discussion)
+            .WithMany(d => d.Replies)
+            .HasForeignKey(r => r.DiscussionId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        builder.HasIndex(r => r.DiscussionId);
+    }
 }

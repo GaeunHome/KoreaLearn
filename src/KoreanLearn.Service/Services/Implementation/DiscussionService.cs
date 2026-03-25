@@ -10,6 +10,21 @@ public class DiscussionService(
     IUnitOfWork uow,
     ILogger<DiscussionService> logger) : IDiscussionService
 {
+    public async Task<PagedResult<DiscussionListItem>> GetAllAsync(
+        int page, int pageSize, CancellationToken ct = default)
+    {
+        var result = await uow.Discussions.GetAllPagedAsync(page, pageSize, ct).ConfigureAwait(false);
+        var items = result.Items.Select(d => new DiscussionListItem
+        {
+            Id = d.Id, Title = d.Title,
+            AuthorName = d.User?.DisplayName ?? "匿名",
+            CourseId = d.CourseId, CourseName = d.Course?.Title,
+            CreatedAt = d.CreatedAt,
+            ReplyCount = d.Replies.Count
+        }).ToList();
+        return new PagedResult<DiscussionListItem>(items, result.TotalCount, result.Page, result.PageSize);
+    }
+
     public async Task<PagedResult<DiscussionListItem>> GetByCourseAsync(
         int courseId, int page, int pageSize, CancellationToken ct = default)
     {
@@ -18,6 +33,7 @@ public class DiscussionService(
         {
             Id = d.Id, Title = d.Title,
             AuthorName = d.User?.DisplayName ?? "匿名",
+            CourseId = d.CourseId,
             CreatedAt = d.CreatedAt,
             ReplyCount = d.Replies.Count
         }).ToList();
@@ -45,6 +61,15 @@ public class DiscussionService(
     public async Task<ServiceResult<int>> CreateAsync(
         string userId, int courseId, string title, string content, CancellationToken ct = default)
     {
+        if (string.IsNullOrWhiteSpace(title))
+            return ServiceResult<int>.Failure("請輸入標題");
+        if (string.IsNullOrWhiteSpace(content))
+            return ServiceResult<int>.Failure("請輸入內容");
+
+        var course = await uow.Courses.GetByIdAsync(courseId, ct).ConfigureAwait(false);
+        if (course is null)
+            return ServiceResult<int>.Failure("課程不存在");
+
         var discussion = new Discussion
         {
             UserId = userId, CourseId = courseId, Title = title, Content = content

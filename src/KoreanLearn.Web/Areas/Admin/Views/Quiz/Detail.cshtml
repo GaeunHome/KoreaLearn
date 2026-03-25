@@ -64,10 +64,10 @@ else
                     </a>
                     <form asp-area="Admin" asp-controller="Quiz" asp-action="DeleteQuestion"
                           asp-route-id="@q.Id" asp-route-quizId="@Model.Id"
-                          method="post" class="d-inline"
-                          onsubmit="return confirm('確定要刪除此題目嗎？');">
+                          method="post" class="d-inline">
                         @Html.AntiForgeryToken()
-                        <button type="submit" class="btn btn-sm btn-outline-danger">
+                        <button type="submit" class="btn btn-sm btn-outline-danger"
+                                data-confirm="確定要刪除此題目嗎？刪除後無法復原。">
                             <i class="bi bi-trash"></i>
                         </button>
                     </form>

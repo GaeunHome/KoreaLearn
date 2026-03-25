@@ -19,6 +19,7 @@ public interface IUnitOfWork : IDisposable
     ISubscriptionPlanRepository SubscriptionPlans { get; }
     IUserSubscriptionRepository UserSubscriptions { get; }
     IDiscussionRepository Discussions { get; }
+    ILessonAttachmentRepository LessonAttachments { get; }
 
     Task<int> SaveChangesAsync(CancellationToken ct = default);
     Task BeginTransactionAsync(CancellationToken ct = default);

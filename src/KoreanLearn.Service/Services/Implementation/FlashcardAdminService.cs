@@ -110,25 +110,20 @@ public class FlashcardAdminService(
 
     public async Task<CardFormViewModel?> GetCardForEditAsync(int cardId, CancellationToken ct = default)
     {
-        var allDecks = await uow.FlashcardDecks.GetAllAsync(ct).ConfigureAwait(false);
-        foreach (var d in allDecks)
+        var card = await uow.FlashcardDecks.GetCardByIdAsync(cardId, ct).ConfigureAwait(false);
+        if (card is null) return null;
+
+        return new CardFormViewModel
         {
-            var deck = await uow.FlashcardDecks.GetWithCardsAsync(d.Id, ct).ConfigureAwait(false);
-            var card = deck?.Flashcards.FirstOrDefault(c => c.Id == cardId);
-            if (card is null) continue;
-            return new CardFormViewModel
-            {
-                Id = card.Id,
-                DeckId = deck!.Id,
-                Korean = card.Korean,
-                Chinese = card.Chinese,
-                Romanization = card.Romanization,
-                ExampleSentence = card.ExampleSentence,
-                SortOrder = card.SortOrder,
-                DeckTitle = deck.Title
-            };
-        }
-        return null;
+            Id = card.Id,
+            DeckId = card.DeckId,
+            Korean = card.Korean,
+            Chinese = card.Chinese,
+            Romanization = card.Romanization,
+            ExampleSentence = card.ExampleSentence,
+            SortOrder = card.SortOrder,
+            DeckTitle = card.Deck?.Title
+        };
     }
 
     public async Task<ServiceResult<int>> AddCardAsync(CardFormViewModel vm, CancellationToken ct = default)

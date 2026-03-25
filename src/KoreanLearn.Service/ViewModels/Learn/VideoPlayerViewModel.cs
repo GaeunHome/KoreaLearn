@@ -19,4 +19,7 @@ public class VideoPlayerViewModel
     // Next/Previous lesson
     public int? PreviousLessonId { get; set; }
     public int? NextLessonId { get; set; }
+
+    // Attachments
+    public IReadOnlyList<LessonAttachmentViewModel> Attachments { get; set; } = [];
 }

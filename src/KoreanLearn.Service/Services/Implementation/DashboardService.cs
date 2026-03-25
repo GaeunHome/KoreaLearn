@@ -1,12 +1,15 @@
+using KoreanLearn.Data;
 using KoreanLearn.Data.UnitOfWork;
 using KoreanLearn.Library.Enums;
 using KoreanLearn.Service.Services.Interfaces;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 
 namespace KoreanLearn.Service.Services.Implementation;
 
 public class DashboardService(
     IUnitOfWork uow,
+    IDbContextFactory<ApplicationDbContext> dbFactory,
     ILogger<DashboardService> logger) : IDashboardService
 {
     public async Task<StudentDashboardViewModel> GetStudentDashboardAsync(
@@ -51,26 +54,69 @@ public class DashboardService(
 
     public async Task<AdminDashboardViewModel> GetAdminDashboardAsync(CancellationToken ct = default)
     {
-        var totalCourses = await uow.Courses.CountAsync(ct).ConfigureAwait(false);
-        var totalOrders = await uow.Orders.CountAsync(ct).ConfigureAwait(false);
+        logger.LogInformation("開始載入管理員儀表板資料（平行查詢）");
 
-        var allOrders = await uow.Orders.GetAllAsync(ct).ConfigureAwait(false);
-        var revenue = allOrders.Where(o => o.Status == OrderStatus.Completed).Sum(o => o.TotalAmount);
+        // 使用 IDbContextFactory 建立獨立 DbContext 進行平行查詢
+        var courseCountTask = CountCoursesAsync(ct);
+        var orderCountTask = CountOrdersAsync(ct);
+        var revenueTask = CalculateRevenueAsync(ct);
+        var recentOrdersTask = GetRecentOrdersAsync(ct);
+        var userCountTask = CountUsersAsync(ct);
 
-        var recentOrders = allOrders.Take(10).Select(o => new RecentOrderItem
-        {
-            OrderNumber = o.OrderNumber,
-            Amount = o.TotalAmount,
-            Status = o.Status.ToString(),
-            CreatedAt = o.CreatedAt
-        }).ToList();
+        await Task.WhenAll(courseCountTask, orderCountTask, revenueTask, recentOrdersTask, userCountTask)
+            .ConfigureAwait(false);
 
         return new AdminDashboardViewModel
         {
-            TotalCourses = totalCourses,
-            TotalOrders = totalOrders,
-            TotalRevenue = revenue,
-            RecentOrders = recentOrders
+            TotalCourses = await courseCountTask.ConfigureAwait(false),
+            TotalOrders = await orderCountTask.ConfigureAwait(false),
+            TotalRevenue = await revenueTask.ConfigureAwait(false),
+            RecentOrders = await recentOrdersTask.ConfigureAwait(false),
+            TotalUsers = await userCountTask.ConfigureAwait(false)
         };
+    }
+
+    private async Task<int> CountCoursesAsync(CancellationToken ct)
+    {
+        await using var db = await dbFactory.CreateDbContextAsync(ct).ConfigureAwait(false);
+        return await db.Courses.CountAsync(ct).ConfigureAwait(false);
+    }
+
+    private async Task<int> CountOrdersAsync(CancellationToken ct)
+    {
+        await using var db = await dbFactory.CreateDbContextAsync(ct).ConfigureAwait(false);
+        return await db.Orders.CountAsync(ct).ConfigureAwait(false);
+    }
+
+    private async Task<decimal> CalculateRevenueAsync(CancellationToken ct)
+    {
+        await using var db = await dbFactory.CreateDbContextAsync(ct).ConfigureAwait(false);
+        return await db.Orders
+            .Where(o => o.Status == OrderStatus.Completed)
+            .SumAsync(o => o.TotalAmount, ct)
+            .ConfigureAwait(false);
+    }
+
+    private async Task<IReadOnlyList<RecentOrderItem>> GetRecentOrdersAsync(CancellationToken ct)
+    {
+        await using var db = await dbFactory.CreateDbContextAsync(ct).ConfigureAwait(false);
+        return await db.Orders
+            .OrderByDescending(o => o.CreatedAt)
+            .Take(10)
+            .Select(o => new RecentOrderItem
+            {
+                OrderNumber = o.OrderNumber,
+                Amount = o.TotalAmount,
+                Status = o.Status.ToString(),
+                CreatedAt = o.CreatedAt
+            })
+            .ToListAsync(ct)
+            .ConfigureAwait(false);
+    }
+
+    private async Task<int> CountUsersAsync(CancellationToken ct)
+    {
+        await using var db = await dbFactory.CreateDbContextAsync(ct).ConfigureAwait(false);
+        return await db.Users.CountAsync(ct).ConfigureAwait(false);
     }
 }

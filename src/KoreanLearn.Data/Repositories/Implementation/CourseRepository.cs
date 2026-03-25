@@ -25,6 +25,7 @@ public class CourseRepository(ApplicationDbContext db) : Repository<Course>(db),
 
     public async Task<Course?> GetWithSectionsAndLessonsAsync(int id, CancellationToken ct = default)
         => await DbSet
+            .Include(c => c.Teacher)
             .Include(c => c.Sections.OrderBy(s => s.SortOrder))
                 .ThenInclude(s => s.Lessons.OrderBy(l => l.SortOrder))
             .FirstOrDefaultAsync(c => c.Id == id, ct).ConfigureAwait(false);
@@ -34,4 +35,19 @@ public class CourseRepository(ApplicationDbContext db) : Repository<Course>(db),
             .Where(c => c.IsPublished)
             .OrderBy(c => c.SortOrder)
             .ToListAsync(ct).ConfigureAwait(false);
+
+    public async Task<PagedResult<Course>> GetByTeacherIdPagedAsync(
+        string teacherId, int page, int pageSize, CancellationToken ct = default)
+    {
+        var query = DbSet.AsNoTracking().Where(c => c.TeacherId == teacherId);
+        var total = await query.CountAsync(ct).ConfigureAwait(false);
+        var items = await query.OrderByDescending(c => c.CreatedAt)
+            .Skip((page - 1) * pageSize).Take(pageSize)
+            .Include(c => c.Sections)
+            .ToListAsync(ct).ConfigureAwait(false);
+        return new PagedResult<Course>(items, total, page, pageSize);
+    }
+
+    public async Task<bool> IsOwnedByTeacherAsync(int courseId, string teacherId, CancellationToken ct = default)
+        => await DbSet.AnyAsync(c => c.Id == courseId && c.TeacherId == teacherId, ct).ConfigureAwait(false);
 }

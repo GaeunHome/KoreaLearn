@@ -164,43 +164,35 @@ public class QuizAdminService(
 
     public async Task<QuestionFormViewModel?> GetQuestionForEditAsync(int questionId, CancellationToken ct = default)
     {
-        // Load quiz with all questions to find the specific one
-        var allQuizzes = await uow.Quizzes.GetAllAsync(ct).ConfigureAwait(false);
-        foreach (var q in allQuizzes)
+        var question = await uow.Quizzes.GetQuestionByIdAsync(questionId, ct).ConfigureAwait(false);
+        if (question?.Quiz is null) return null;
+
+        var lesson = await uow.Lessons.GetByIdAsync(question.Quiz.LessonId, ct).ConfigureAwait(false);
+        var section = lesson is not null
+            ? await uow.Sections.GetByIdAsync(lesson.SectionId, ct).ConfigureAwait(false)
+            : null;
+        var course = section is not null
+            ? await uow.Courses.GetByIdAsync(section.CourseId, ct).ConfigureAwait(false)
+            : null;
+
+        return new QuestionFormViewModel
         {
-            var quiz = await uow.Quizzes.GetWithQuestionsAsync(q.Id, ct).ConfigureAwait(false);
-            var question = quiz?.Questions.FirstOrDefault(qq => qq.Id == questionId);
-            if (question is null) continue;
-
-            var lesson = await uow.Lessons.GetByIdAsync(quiz!.LessonId, ct).ConfigureAwait(false);
-            var section = lesson is not null
-                ? await uow.Sections.GetByIdAsync(lesson.SectionId, ct).ConfigureAwait(false)
-                : null;
-            var course = section is not null
-                ? await uow.Courses.GetByIdAsync(section.CourseId, ct).ConfigureAwait(false)
-                : null;
-
-            return new QuestionFormViewModel
+            Id = question.Id,
+            QuizId = question.Quiz.Id,
+            Content = question.Content,
+            Type = question.Type,
+            Points = question.Points,
+            SortOrder = question.SortOrder,
+            CorrectAnswer = question.CorrectAnswer,
+            CourseId = course?.Id,
+            Options = question.Options.Select(o => new OptionFormViewModel
             {
-                Id = question.Id,
-                QuizId = quiz.Id,
-                Content = question.Content,
-                Type = question.Type,
-                Points = question.Points,
-                SortOrder = question.SortOrder,
-                CorrectAnswer = question.CorrectAnswer,
-                CourseId = course?.Id,
-                Options = question.Options.Select(o => new OptionFormViewModel
-                {
-                    Id = o.Id,
-                    Content = o.Content,
-                    IsCorrect = o.IsCorrect,
-                    SortOrder = o.SortOrder
-                }).ToList()
-            };
-        }
-
-        return null;
+                Id = o.Id,
+                Content = o.Content,
+                IsCorrect = o.IsCorrect,
+                SortOrder = o.SortOrder
+            }).ToList()
+        };
     }
 
     public async Task<ServiceResult<int>> AddQuestionAsync(QuestionFormViewModel vm, CancellationToken ct = default)

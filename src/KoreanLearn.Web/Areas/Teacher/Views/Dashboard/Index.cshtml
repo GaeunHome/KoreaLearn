@@ -1,0 +1,75 @@
+@model KoreanLearn.Service.ViewModels.Teacher.TeacherDashboardViewModel
+@{ ViewData["Title"] = "教師儀表板"; }
+
+<h2 class="mb-4"><i class="bi bi-person-workspace me-2"></i>教師儀表板</h2>
+
+<div class="row g-4 mb-4">
+    <div class="col-md-4">
+        <div class="card shadow-sm" style="border-left: 4px solid var(--kl-primary);">
+            <div class="card-body">
+                <h6 class="text-muted"><i class="bi bi-book me-1"></i>我的課程</h6>
+                <p class="display-6 mb-0">@Model.TotalCourses</p>
+                <small class="text-muted">已發佈 @Model.PublishedCourses 門</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card shadow-sm" style="border-left: 4px solid var(--kl-success);">
+            <div class="card-body">
+                <h6 class="text-muted"><i class="bi bi-people me-1"></i>學生人數</h6>
+                <p class="display-6 mb-0">@Model.TotalStudents</p>
+                <small class="text-muted">已選課學生</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card shadow-sm" style="border-left: 4px solid var(--kl-accent);">
+            <div class="card-body text-center py-4">
+                <a asp-area="Teacher" asp-controller="Course" asp-action="Create" class="btn btn-primary">
+                    <i class="bi bi-plus-lg me-1"></i>建立新課程
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<h4 class="mb-3"><i class="bi bi-clock-history me-2"></i>最近課程</h4>
+@if (Model.RecentCourses.Any())
+{
+    <div class="table-responsive">
+        <table class="table table-hover align-middle">
+            <thead class="table-light">
+                <tr><th>課程名稱</th><th>等級</th><th class="text-end">售價</th><th>章節</th><th>單元</th><th>狀態</th><th></th></tr>
+            </thead>
+            <tbody>
+                @foreach (var c in Model.RecentCourses)
+                {
+                    <tr>
+                        <td><a asp-area="Teacher" asp-controller="Course" asp-action="Detail" asp-route-id="@c.Id" class="text-decoration-none fw-semibold">@c.Title</a></td>
+                        <td><span class="badge bg-info">@c.LevelDisplay</span></td>
+                        <td class="text-end">NT$ @c.Price.ToString("N0")</td>
+                        <td>@c.SectionCount</td>
+                        <td>@c.LessonCount</td>
+                        <td>
+                            @if (c.IsPublished)
+                            { <span class="badge bg-success">已發佈</span> }
+                            else
+                            { <span class="badge bg-secondary">草稿</span> }
+                        </td>
+                        <td><a asp-area="Teacher" asp-controller="Course" asp-action="Edit" asp-route-id="@c.Id" class="btn btn-sm btn-outline-primary">編輯</a></td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+}
+else
+{
+    <div class="card text-center py-5">
+        <div class="card-body">
+            <i class="bi bi-book display-1 text-muted"></i>
+            <h5 class="mt-3">尚未建立課程</h5>
+            <p class="text-muted">點擊上方「建立新課程」開始建立你的第一堂課！</p>
+        </div>
+    </div>
+}

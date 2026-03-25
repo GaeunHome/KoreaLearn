@@ -4,6 +4,7 @@ namespace KoreanLearn.Service.Services.Interfaces;
 
 public interface IDiscussionService
 {
+    Task<PagedResult<DiscussionListItem>> GetAllAsync(int page, int pageSize, CancellationToken ct = default);
     Task<PagedResult<DiscussionListItem>> GetByCourseAsync(int courseId, int page, int pageSize, CancellationToken ct = default);
     Task<DiscussionDetailViewModel?> GetDetailAsync(int id, CancellationToken ct = default);
     Task<ServiceResult<int>> CreateAsync(string userId, int courseId, string title, string content, CancellationToken ct = default);
@@ -16,6 +17,8 @@ public class DiscussionListItem
     public int Id { get; set; }
     public string Title { get; set; } = string.Empty;
     public string AuthorName { get; set; } = string.Empty;
+    public int CourseId { get; set; }
+    public string? CourseName { get; set; }
     public DateTime CreatedAt { get; set; }
     public int ReplyCount { get; set; }
 }

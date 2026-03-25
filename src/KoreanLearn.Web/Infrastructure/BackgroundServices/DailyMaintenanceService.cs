@@ -1,5 +1,4 @@
-using KoreanLearn.Data;
-using Microsoft.EntityFrameworkCore;
+using KoreanLearn.Service.Services.Interfaces;
 
 namespace KoreanLearn.Web.Infrastructure.BackgroundServices;
 
@@ -35,28 +34,12 @@ public class DailyMaintenanceService(
     private async Task DoWorkAsync(CancellationToken ct)
     {
         using var scope = scopeFactory.CreateScope();
-        var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+        var maintenanceService = scope.ServiceProvider.GetRequiredService<IMaintenanceService>();
 
-        // 1. Check expired subscriptions
-        var expiredSubs = await db.Set<KoreanLearn.Data.Entities.UserSubscription>()
-            .Where(s => s.IsActive && s.EndDate <= DateTime.UtcNow)
-            .ToListAsync(ct);
-
-        foreach (var sub in expiredSubs)
-        {
-            sub.IsActive = false;
-            logger.LogInformation("訂閱到期 | UserId={UserId} | PlanId={PlanId}", sub.UserId, sub.PlanId);
-        }
-
-        // 2. Log flashcard review stats
-        var dueCards = await db.Set<KoreanLearn.Data.Entities.FlashcardLog>()
-            .Where(l => l.NextReviewDate <= DateTime.UtcNow)
-            .CountAsync(ct);
+        var dueCards = await maintenanceService.CountDueFlashcardReviewsAsync(ct);
         logger.LogInformation("今日待複習字卡總數：{Count}", dueCards);
 
-        if (expiredSubs.Count > 0)
-            await db.SaveChangesAsync(ct);
-
-        logger.LogInformation("DailyMaintenanceService 完成 | 過期訂閱={ExpiredCount}", expiredSubs.Count);
+        var expiredCount = await maintenanceService.DeactivateExpiredSubscriptionsAsync(ct);
+        logger.LogInformation("DailyMaintenanceService 完成 | 過期訂閱={ExpiredCount}", expiredCount);
     }
 }

@@ -15,10 +15,25 @@
 ```
 KoreanLearn/
 ├── src/
-│   ├── KoreanLearn.Data/           # 資料存取層（Entities, Repositories, UoW, DbContext, Migrations）
-│   ├── KoreanLearn.Service/        # 商業邏輯層（Services, ViewModels, Constants, Mapper）
+│   ├── KoreanLearn.Data/           # 資料存取層
+│   │   ├── Entities/               #   Entity + Fluent API Configuration（同檔）
+│   │   ├── Repositories/           #   Interfaces/ + Implementation/
+│   │   ├── UnitOfWork/             #   IUnitOfWork + UnitOfWork
+│   │   ├── Migrations/             #   EF Core Migrations
+│   │   ├── ApplicationDbContext.cs #   軟刪除攔截 + Global Query Filter
+│   │   ├── DbInitializer.cs        #   種子資料
+│   │   └── DependencyInjection.cs  #   Data 層 DI 註冊
+│   ├── KoreanLearn.Service/        # 商業邏輯層
+│   │   ├── Services/               #   Interfaces/ + Implementation/（含 AuthService）
+│   │   ├── ViewModels/             #   按功能分目錄（Admin/, Course/, Learn/, Teacher/）
+│   │   └── Mapper/                 #   AutoMapper Profiles
 │   ├── KoreanLearn.Library/        # 共用工具庫（Helpers, Enums）— 無框架相依
-│   └── KoreanLearn.Web/            # 展示層（Controllers, Areas, Views, Infrastructure, wwwroot）
+│   └── KoreanLearn.Web/            # 展示層
+│       ├── Areas/                  #   Admin（管理員）/ Teacher（教師）/ Learn（學習）/ Identity（登入）
+│       ├── Controllers/            #   公開頁面 Controller
+│       ├── Views/                  #   Razor Views
+│       ├── Infrastructure/         #   Middleware, Extensions, BackgroundServices
+│       └── wwwroot/                #   CSS, JS, uploads
 ├── tests/KoreanLearn.Tests/        # Unit / Integration / E2E / Fixtures
 ├── docs/specs/                     # 功能 spec 文件
 └── CLAUDE.md
@@ -97,7 +112,11 @@ Step 20  進行下一個功能
 
 拆 Area 流程：建資料夾 → Controller 加 `[Area("...")]` → 確認路由 → View 連結加 `asp-area` → 更新文件
 
-**目前已定義的 Area：** `Admin`（需 `[Authorize(Roles = "Admin")]`）
+**目前已定義的 Area：**
+- `Admin`（需 `[Authorize(Roles = "Admin")]`）— 管理員後台
+- `Teacher`（需 `[Authorize(Roles = "Teacher")]`）— 教師管理面板
+- `Learn`（需 `[Authorize]`）— 沉浸式學習
+- `Identity` — 登入 / 註冊 / 登出（Razor Pages）
 
 ### 2-4 禁止動作
 
@@ -106,9 +125,10 @@ Step 20  進行下一個功能
 | Controller 直接用 `ApplicationDbContext` | 必須透過 UoW → Repository |
 | Controller 直接用 Repository | 必須透過 Service 層 |
 | Entity 直接傳入 View | 必須透過 ViewModel + AutoMapper |
+| Web 層直接用 `SignInManager`/`UserManager` | 必須透過 `IAuthService`（Service 層） |
 | 使用 `.Result` / `.Wait()` | 造成 deadlock |
 | 測試未通過時 git commit | 不提交紅燈程式碼 |
-| 跨層引用（Web → Data，Service → Web） | 違反相依方向 |
+| 跨層引用（Web → Data，Service → Web） | 違反相依方向（僅 DI 註冊例外） |
 | 修改 `CLAUDE.md` 本身 | 需人工維護 |
 | 硬刪除 ISoftDeletable Entity | 必須軟刪除 |
 | 刪除已套用的 Migration | 會破壞資料庫狀態 |
@@ -225,7 +245,8 @@ lsof -ti:5154 | xargs kill -9 2>/dev/null
 
 ### Entity 設定
 - 使用 Fluent API（`IEntityTypeConfiguration<T>`），Entity 上不加 DataAnnotations
-- 設定檔放 `Data/Configurations/`，DbContext 用 `ApplyConfigurationsFromAssembly` 自動載入
+- Configuration 類別與 Entity 同檔（放在 `Data/Entities/` 內，Entity class 下方）
+- DbContext 用 `ApplyConfigurationsFromAssembly` 自動掃描載入
 
 ### Repository Pattern
 - `IRepository<T>` 提供 CRUD 基本操作（GetById, GetAll, GetPaged, Add, Update, Remove）
@@ -252,6 +273,7 @@ lsof -ti:5154 | xargs kill -9 2>/dev/null
 
 - Service 用 primary constructor 注入 `IUnitOfWork`, `IMapper`, `ILogger<T>`
 - 回傳 `ServiceResult<T>` 或 `PagedResult<ViewModel>`
+- **`IAuthService`** 封裝所有 Identity 操作（Login/Register/Logout/IsSignedIn），Web 層不直接碰 Identity
 - ViewModel 用 DataAnnotations 做驗證（Required, StringLength, Range, Display）
 - ViewModel 放 `Service/ViewModels/{Feature}/`，命名：`CreateXxxViewModel`, `XxxListViewModel`
 - AutoMapper Profile 放 `Service/Mapper/`，一個 Entity 一個 Profile
@@ -261,8 +283,16 @@ lsof -ti:5154 | xargs kill -9 2>/dev/null
 
 ## 八、展示層規則（KoreanLearn.Web）
 
+### 三種角色
+| 角色 | Area | 說明 |
+|------|------|------|
+| Admin | `Areas/Admin` | 系統管理、用戶管理、所有課程 |
+| Teacher | `Areas/Teacher` | 管理自己的課程、章節、單元 |
+| Student | `Areas/Learn` | 學習、進度追蹤、測驗 |
+
 ### Controller 規則
 - 後台一律 `[Area("Admin")]` + `[Authorize(Roles = "Admin")]`
+- 教師一律 `[Area("Teacher")]` + `[Authorize(Roles = "Teacher")]`
 - POST 一律 `[ValidateAntiForgeryToken]`
 - 用 `TempData["Success"]` / `TempData["Error"]` 傳遞單次訊息
 - 永遠不在 Controller 直接呼叫 Repository 或 DbContext
@@ -450,7 +480,7 @@ subject：繁體中文，動詞開頭
 - [ ] **P1-01** 建立解決方案與四個專案（KoreanLearn.Data / .Service / .Library / .Web）、設定相依關係
 - [ ] **P1-02** 設計並建立所有 Entity（User, Course, Section, Lesson, VideoLesson, ArticleLesson, PdfLesson, Enrollment, Order, Progress）+ ISoftDeletable + BaseEntity + Migration
 - [ ] **P1-03** 建立 ApplicationDbContext（含軟刪除攔截、Global Query Filter）+ DbInitializer 種子資料（Admin 帳號、範例課程）
-- [ ] **P1-04** 實作 ASP.NET Core Identity 整合（AppUser 繼承 IdentityUser、角色：Admin / Student）
+- [ ] **P1-04** 實作 ASP.NET Core Identity 整合（AppUser 繼承 IdentityUser、角色：Admin / Teacher / Student）
 - [ ] **P1-05** 實作所有 Repository Interface + Implementation + UnitOfWork
 - [ ] **P1-06** 建立 Areas/Admin 和 Areas/Learn，設定各自的 Layout（_AdminLayout / _LearnLayout）
 - [ ] **P1-07** 前台首頁：課程列表、課程詳情頁（未登入可瀏覽）

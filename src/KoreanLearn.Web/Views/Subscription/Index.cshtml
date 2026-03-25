@@ -5,15 +5,18 @@
 }
 
 <div class="text-center mb-5">
-    <h2><i class="bi bi-star me-2"></i>訂閱方案</h2>
-    <p class="text-muted fs-5">訂閱後解鎖所有課程，暢學無限</p>
+    <h2 style="color: var(--kl-primary-dark);">訂閱方案</h2>
+    <p class="text-muted mx-auto" style="max-width: 500px;">
+        一次訂閱即可解鎖平台上所有課程，包含字卡練習、發音練習、測驗等完整學習工具。
+    </p>
 </div>
 
 @if (currentSub is not null)
 {
     <div class="alert alert-success text-center mb-4">
         <i class="bi bi-check-circle-fill me-2"></i>
-        您目前訂閱：<strong>@currentSub.PlanName</strong>（到期：@currentSub.EndDate.ToString("yyyy-MM-dd")，剩餘 @currentSub.RemainingDays 天）
+        您目前訂閱：<strong>@currentSub.PlanName</strong>
+        （到期：@currentSub.EndDate.ToString("yyyy-MM-dd")，剩餘 @currentSub.RemainingDays 天）
     </div>
 }
 
@@ -23,38 +26,62 @@
 }
 else
 {
-    <div class="row justify-content-center">
-        @foreach (var plan in Model)
+    <div class="row justify-content-center g-4">
+        @for (var i = 0; i < Model.Count; i++)
         {
-            <div class="col-md-4 mb-4">
-                <div class="card shadow-sm h-100 text-center">
-                    <div class="card-body py-5">
-                        <h4 class="card-title">@plan.Name</h4>
+            var plan = Model[i];
+            var isPopular = i == 1;
+            <div class="col-md-4">
+                <div class="card h-100 text-center @(isPopular ? "border-primary" : "")"
+                     style="border-radius: var(--kl-radius-lg); @(isPopular ? "border-width: 2px;" : "")">
+                    @if (isPopular)
+                    {
+                        <div class="py-1 text-white text-center small fw-semibold"
+                             style="background: var(--kl-primary); border-radius: var(--kl-radius-lg) var(--kl-radius-lg) 0 0;">
+                            最受歡迎
+                        </div>
+                    }
+                    <div class="card-body py-5 px-4">
+                        <h5 class="card-title mb-1">@plan.Name</h5>
+                        <p class="text-muted small">@plan.DurationMonths 個月</p>
                         @if (!string.IsNullOrEmpty(plan.Description))
                         {
-                            <p class="text-muted">@plan.Description</p>
+                            <p class="text-muted small mb-4">@plan.Description</p>
                         }
-                        <div class="display-4 fw-bold text-primary my-3">
-                            NT$ @plan.MonthlyPrice.ToString("N0")
+                        <div class="mb-1">
+                            <span class="fw-bold" style="font-size: 2.5rem; color: var(--kl-primary-dark);">
+                                NT$ @plan.MonthlyPrice.ToString("N0")
+                            </span>
                         </div>
-                        <p class="text-muted">/ @plan.DurationMonths 個月</p>
+                        <p class="text-muted small">每月</p>
+
+                        <ul class="list-unstyled text-start mt-4 mb-0 small">
+                            <li class="mb-2"><i class="bi bi-check-circle-fill text-success me-2"></i>所有課程無限觀看</li>
+                            <li class="mb-2"><i class="bi bi-check-circle-fill text-success me-2"></i>字卡與發音練習</li>
+                            <li class="mb-2"><i class="bi bi-check-circle-fill text-success me-2"></i>測驗與結業證書</li>
+                            <li><i class="bi bi-check-circle-fill text-success me-2"></i>討論區完整功能</li>
+                        </ul>
                     </div>
-                    <div class="card-footer py-3">
+                    <div class="card-footer py-3 px-4" style="background: transparent; border-top: 1px solid var(--kl-border);">
                         @if (currentSub is not null)
                         {
-                            <button class="btn btn-secondary btn-lg w-100" disabled>已訂閱</button>
+                            <button class="btn btn-secondary w-100" disabled>已訂閱</button>
                         }
                         else if (User.Identity?.IsAuthenticated == true)
                         {
                             <form asp-controller="Subscription" asp-action="Subscribe" method="post">
                                 @Html.AntiForgeryToken()
                                 <input type="hidden" name="planId" value="@plan.Id" />
-                                <button type="submit" class="btn btn-primary btn-lg w-100">立即訂閱</button>
+                                <button type="submit"
+                                        class="btn @(isPopular ? "btn-primary" : "btn-outline-primary") w-100"
+                                        data-confirm="確定要訂閱「@plan.Name」嗎？（NT$ @(plan.MonthlyPrice * plan.DurationMonths) / @plan.DurationMonths 個月）">
+                                    立即訂閱
+                                </button>
                             </form>
                         }
                         else
                         {
-                            <a asp-area="Identity" asp-page="/Account/Login" class="btn btn-outline-primary btn-lg w-100">登入後訂閱</a>
+                            <a asp-area="Identity" asp-page="/Account/Login" class="btn btn-outline-primary w-100">登入後訂閱</a>
                         }
                     </div>
                 </div>

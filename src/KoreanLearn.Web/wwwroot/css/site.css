@@ -28,8 +28,6 @@
 
 html {
   font-size: 15px;
-  position: relative;
-  min-height: 100%;
 }
 
 body {
@@ -37,7 +35,10 @@ body {
   color: var(--kl-text);
   background: var(--kl-bg);
   line-height: 1.6;
-  margin-bottom: 0;
+  margin: 0;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
 }
 
 a {
@@ -289,7 +290,6 @@ h1, h2, h3, h4, h5, h6 {
   background: linear-gradient(135deg, var(--kl-primary) 0%, var(--kl-primary-light) 100%);
   color: #fff;
   padding: 4rem 0;
-  border-radius: 0 0 var(--kl-radius-lg) var(--kl-radius-lg);
 }
 
 .kl-hero h1 {
@@ -313,8 +313,26 @@ h1, h2, h3, h4, h5, h6 {
 .kl-footer {
   background: var(--kl-primary-dark);
   color: rgba(255,255,255,0.7);
-  padding: 1.5rem 0;
+  padding: 2rem 0;
   font-size: 0.88rem;
+  margin-top: auto;
+}
+
+.kl-footer a {
+  color: rgba(255,255,255,0.85);
+}
+
+.kl-footer a:hover {
+  color: #fff;
+}
+
+.kl-footer-links {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  gap: 1.5rem;
+  justify-content: center;
 }
 
 /* ─── Progress Bar ────────────────────────── */
@@ -370,7 +388,42 @@ h1, h2, h3, h4, h5, h6 {
   line-height: 1;
 }
 
-/* ─── Utility ─────────────────────────────── */
+/* ─── Auth Pages ──────────────────────────── */
+
+.kl-auth-wrapper {
+  min-height: calc(100vh - 120px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem 0;
+}
+
+.kl-auth-card {
+  width: 100%;
+  max-width: 420px;
+  border-radius: var(--kl-radius-lg);
+  box-shadow: var(--kl-shadow-md);
+}
+
+.kl-auth-card .card-body {
+  padding: 2rem;
+}
+
+.kl-auth-header {
+  text-align: center;
+  padding: 2rem 2rem 0;
+}
+
+.kl-auth-header h3 {
+  margin-bottom: 0.3rem;
+}
+
+.kl-auth-header p {
+  color: var(--kl-text-muted);
+  font-size: 0.9rem;
+}
+
+/* ─── Section Title ──────────────────────── */
 
 .kl-section-title {
   font-size: 1.1rem;
@@ -382,8 +435,32 @@ h1, h2, h3, h4, h5, h6 {
   display: inline-block;
 }
 
+/* ─── Feature Grid ───────────────────────── */
+
+.kl-feature-icon {
+  width: 56px;
+  height: 56px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.5rem;
+  flex-shrink: 0;
+}
+
+/* ─── Stats Card ──────────────────────────── */
+
+.kl-stat-number {
+  font-size: 2rem;
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+/* ─── Responsive ──────────────────────────── */
+
 @media (max-width: 767.98px) {
   html { font-size: 14px; }
   .kl-hero { padding: 2.5rem 0; }
   .kl-hero h1 { font-size: 1.8rem; }
+  .kl-footer-links { flex-direction: column; gap: 0.5rem; align-items: center; }
 }

@@ -13,6 +13,10 @@ public class ProgressService(
     public async Task<ServiceResult<int>> SaveVideoProgressAsync(
         string userId, int lessonId, int progressSeconds, CancellationToken ct = default)
     {
+        // 權限檢查
+        var accessCheck = await CheckLessonAccessAsync(userId, lessonId, ct).ConfigureAwait(false);
+        if (!accessCheck.IsSuccess) return ServiceResult<int>.Failure(accessCheck.ErrorMessage!);
+
         var progress = await uow.Progresses.GetByUserAndLessonAsync(userId, lessonId, ct).ConfigureAwait(false);
 
         if (progress is null)
@@ -41,6 +45,10 @@ public class ProgressService(
     public async Task<ServiceResult> MarkLessonCompleteAsync(
         string userId, int lessonId, CancellationToken ct = default)
     {
+        // 權限檢查
+        var accessCheck = await CheckLessonAccessAsync(userId, lessonId, ct).ConfigureAwait(false);
+        if (!accessCheck.IsSuccess) return accessCheck;
+
         var progress = await uow.Progresses.GetByUserAndLessonAsync(userId, lessonId, ct).ConfigureAwait(false);
 
         if (progress is null)
@@ -67,10 +75,43 @@ public class ProgressService(
         return ServiceResult.Success();
     }
 
+    public async Task<ServiceResult> UndoLessonCompleteAsync(
+        string userId, int lessonId, CancellationToken ct = default)
+    {
+        var accessCheck = await CheckLessonAccessAsync(userId, lessonId, ct).ConfigureAwait(false);
+        if (!accessCheck.IsSuccess) return accessCheck;
+
+        var progress = await uow.Progresses.GetByUserAndLessonAsync(userId, lessonId, ct).ConfigureAwait(false);
+        if (progress is null || !progress.IsCompleted)
+            return ServiceResult.Failure("此單元尚未標記完成");
+
+        progress.IsCompleted = false;
+        progress.CompletedAt = null;
+        uow.Progresses.Update(progress);
+        await uow.SaveChangesAsync(ct).ConfigureAwait(false);
+
+        logger.LogInformation("取消完成標記 | UserId={UserId} | LessonId={LessonId}", userId, lessonId);
+        return ServiceResult.Success();
+    }
+
     public async Task<int> GetVideoProgressAsync(
         string userId, int lessonId, CancellationToken ct = default)
     {
         var progress = await uow.Progresses.GetByUserAndLessonAsync(userId, lessonId, ct).ConfigureAwait(false);
         return progress?.VideoProgressSeconds ?? 0;
+    }
+
+    private async Task<ServiceResult> CheckLessonAccessAsync(
+        string userId, int lessonId, CancellationToken ct)
+    {
+        var lesson = await uow.Lessons.GetByIdAsync(lessonId, ct).ConfigureAwait(false);
+        if (lesson is null) return ServiceResult.Failure("單元不存在");
+        if (lesson.IsFreePreview) return ServiceResult.Success();
+
+        var section = await uow.Sections.GetByIdAsync(lesson.SectionId, ct).ConfigureAwait(false);
+        if (section is null) return ServiceResult.Failure("章節不存在");
+
+        var hasAccess = await uow.Enrollments.HasActiveAccessAsync(userId, section.CourseId, ct).ConfigureAwait(false);
+        return hasAccess ? ServiceResult.Success() : ServiceResult.Failure("您尚未購買此課程");
     }
 }

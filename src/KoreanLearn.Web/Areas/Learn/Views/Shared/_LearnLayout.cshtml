@@ -39,11 +39,11 @@
                             <i class="bi bi-house-door"></i> 首頁
                         </a>
                     </li>
-                    <li class="nav-item">
+                    <li class="nav-item d-flex align-items-center">
                         <form asp-area="Identity" asp-page="/Account/Logout"
                               asp-route-returnUrl="@Url.Action("Index", "Home", new { area = "" })"
-                              method="post" class="d-inline">
-                            <button type="submit" class="nav-link btn btn-link text-light p-0">
+                              method="post" class="mb-0">
+                            <button type="submit" class="nav-link border-0 bg-transparent text-light px-2">
                                 <i class="bi bi-box-arrow-right"></i> 登出
                             </button>
                         </form>
@@ -53,21 +53,9 @@
         </div>
     </nav>
 
-    <div class="container py-4">
-        @if (TempData["Success"] is string success)
-        {
-            <div class="alert alert-success alert-dismissible fade show" role="alert">
-                @success
-                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-            </div>
-        }
-        @if (TempData["Error"] is string error)
-        {
-            <div class="alert alert-danger alert-dismissible fade show" role="alert">
-                @error
-                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-            </div>
-        }
+    <partial name="/Views/Shared/_TempDataNotifications.cshtml" />
+
+    <div class="container py-4 flex-grow-1">
         <main role="main">
             @RenderBody()
         </main>
@@ -81,6 +69,7 @@
 
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script src="~/js/site.js" asp-append-version="true"></script>
     @await RenderSectionAsync("Scripts", required: false)
 </body>

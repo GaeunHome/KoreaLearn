@@ -1,0 +1,165 @@
+@model KoreanLearn.Service.ViewModels.Admin.Course.CourseDetailAdminViewModel
+@{
+    ViewData["Title"] = Model.Title;
+}
+
+<div class="mb-4">
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a asp-area="Teacher" asp-controller="Course" asp-action="Index">課程管理</a></li>
+            <li class="breadcrumb-item active">@Model.Title</li>
+        </ol>
+    </nav>
+
+    <div class="d-flex justify-content-between align-items-start">
+        <div>
+            <h2>@Model.Title</h2>
+            <div class="d-flex gap-2 mt-1">
+                <span class="badge bg-secondary">@Model.LevelDisplay</span>
+                @if (Model.IsPublished)
+                {
+                    <span class="badge bg-success">已發佈</span>
+                }
+                else
+                {
+                    <span class="badge bg-warning text-dark">草稿</span>
+                }
+                <span class="text-muted">NT$ @Model.Price.ToString("N0")</span>
+            </div>
+        </div>
+        <div class="d-flex gap-2">
+            <a asp-area="Teacher" asp-controller="Course" asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-outline-primary">
+                <i class="bi bi-pencil me-1"></i>編輯課程
+            </a>
+            <a asp-area="Teacher" asp-controller="Section" asp-action="Create"
+               asp-route-courseId="@Model.Id" asp-route-courseTitle="@Model.Title"
+               class="btn btn-primary">
+                <i class="bi bi-plus-lg me-1"></i>新增章節
+            </a>
+        </div>
+    </div>
+</div>
+
+@if (!string.IsNullOrEmpty(Model.Description))
+{
+    <div class="card shadow-sm mb-4">
+        <div class="card-body">
+            <h5 class="card-title">課程介紹</h5>
+            <p class="card-text">@Model.Description</p>
+        </div>
+    </div>
+}
+
+@if (!Model.Sections.Any())
+{
+    <div class="alert alert-info">
+        <i class="bi bi-info-circle me-2"></i>此課程尚無章節，請點擊「新增章節」開始建立課程內容。
+    </div>
+}
+else
+{
+    <div class="accordion" id="sectionsAccordion">
+        @for (var i = 0; i < Model.Sections.Count; i++)
+        {
+            var sec = Model.Sections[i];
+            var collapseId = $"collapse-{sec.Id}";
+            <div class="accordion-item">
+                <h2 class="accordion-header">
+                    <button class="accordion-button @(i > 0 ? "collapsed" : "")" type="button"
+                            data-bs-toggle="collapse" data-bs-target="#@collapseId">
+                        <span class="fw-semibold">
+                            第 @(i + 1) 章：@sec.Title
+                            <span class="badge bg-info ms-2">@sec.Lessons.Count 個單元</span>
+                        </span>
+                    </button>
+                </h2>
+                <div id="@collapseId" class="accordion-collapse collapse @(i == 0 ? "show" : "")"
+                     data-bs-parent="#sectionsAccordion">
+                    <div class="accordion-body">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <p class="text-muted mb-0">@sec.Description</p>
+                            <div class="d-flex gap-2">
+                                <a asp-area="Teacher" asp-controller="Section" asp-action="Edit" asp-route-id="@sec.Id"
+                                   class="btn btn-sm btn-outline-primary">
+                                    <i class="bi bi-pencil"></i> 編輯
+                                </a>
+                                <a asp-area="Teacher" asp-controller="Lesson" asp-action="Create"
+                                   asp-route-sectionId="@sec.Id" asp-route-courseId="@Model.Id"
+                                   asp-route-sectionTitle="@sec.Title" asp-route-courseTitle="@Model.Title"
+                                   class="btn btn-sm btn-primary">
+                                    <i class="bi bi-plus-lg"></i> 新增單元
+                                </a>
+                                <form asp-area="Teacher" asp-controller="Section" asp-action="Delete"
+                                      asp-route-id="@sec.Id" asp-route-courseId="@Model.Id"
+                                      method="post" class="d-inline">
+                                    @Html.AntiForgeryToken()
+                                    <button type="submit" class="btn btn-sm btn-outline-danger"
+                                            data-confirm="確定要刪除章節「@sec.Title」嗎？該章節下的所有單元也會一併刪除。">
+                                        <i class="bi bi-trash"></i> 刪除
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+
+                        @if (sec.Lessons.Any())
+                        {
+                            <table class="table table-sm table-hover align-middle mb-0">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th style="width:40px">#</th>
+                                        <th>單元標題</th>
+                                        <th class="text-center" style="width:80px">類型</th>
+                                        <th class="text-center" style="width:80px">免費試看</th>
+                                        <th class="text-center" style="width:60px">排序</th>
+                                        <th style="width:150px">操作</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var lesson in sec.Lessons)
+                                    {
+                                        <tr>
+                                            <td class="text-muted">@lesson.Id</td>
+                                            <td>
+                                                <i class="bi @lesson.TypeIcon me-1 text-primary"></i>
+                                                @lesson.Title
+                                            </td>
+                                            <td class="text-center">
+                                                <span class="badge bg-light text-dark">@lesson.TypeDisplay</span>
+                                            </td>
+                                            <td class="text-center">
+                                                @if (lesson.IsFreePreview)
+                                                {
+                                                    <i class="bi bi-check-circle-fill text-success"></i>
+                                                }
+                                            </td>
+                                            <td class="text-center">@lesson.SortOrder</td>
+                                            <td>
+                                                <a asp-area="Teacher" asp-controller="Lesson" asp-action="Edit" asp-route-id="@lesson.Id"
+                                                   class="btn btn-sm btn-outline-primary me-1">
+                                                    <i class="bi bi-pencil"></i>
+                                                </a>
+                                                <form asp-area="Teacher" asp-controller="Lesson" asp-action="Delete"
+                                                      asp-route-id="@lesson.Id" asp-route-courseId="@Model.Id"
+                                                      method="post" class="d-inline">
+                                                    @Html.AntiForgeryToken()
+                                                    <button type="submit" class="btn btn-sm btn-outline-danger"
+                                                            data-confirm="確定要刪除單元「@lesson.Title」嗎？">
+                                                        <i class="bi bi-trash"></i>
+                                                    </button>
+                                                </form>
+                                            </td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        }
+                        else
+                        {
+                            <p class="text-muted mb-0"><i class="bi bi-info-circle me-1"></i>此章節尚無單元</p>
+                        }
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+}

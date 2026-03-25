@@ -1,23 +1,36 @@
 @{ ViewData["Title"] = "發起討論"; var courseId = (int)ViewBag.CourseId; }
 
-<h2 class="mb-4"><i class="bi bi-plus-circle me-2"></i>發起討論</h2>
-<div class="row"><div class="col-lg-8">
-    <div class="card shadow-sm"><div class="card-body">
-        <form asp-controller="Discussion" asp-action="Create" method="post">
-            @Html.AntiForgeryToken()
-            <input type="hidden" name="courseId" value="@courseId" />
-            <div class="mb-3">
-                <label class="form-label">標題 <span class="text-danger">*</span></label>
-                <input name="title" class="form-control" required maxlength="200" />
+<nav aria-label="breadcrumb" class="mb-3">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a asp-controller="Discussion" asp-action="Index" asp-route-courseId="@courseId">討論區</a></li>
+        <li class="breadcrumb-item active">發起討論</li>
+    </ol>
+</nav>
+
+<div class="row justify-content-center">
+    <div class="col-lg-7">
+        <div class="card">
+            <div class="card-body p-4">
+                <h4 class="mb-4"><i class="bi bi-plus-circle me-2"></i>發起新討論</h4>
+                <form asp-controller="Discussion" asp-action="Create" method="post">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" name="courseId" value="@courseId" />
+                    <div class="mb-3">
+                        <label class="form-label">標題 <span class="text-danger">*</span></label>
+                        <input name="title" class="form-control" required maxlength="200" placeholder="簡短描述你的問題或想法" />
+                    </div>
+                    <div class="mb-4">
+                        <label class="form-label">內容 <span class="text-danger">*</span></label>
+                        <textarea name="content" class="form-control" rows="6" required placeholder="詳細說明..."></textarea>
+                    </div>
+                    <div class="d-flex gap-2">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-check-lg me-1"></i>發佈
+                        </button>
+                        <a asp-controller="Discussion" asp-action="Index" asp-route-courseId="@courseId" class="btn btn-outline-secondary">取消</a>
+                    </div>
+                </form>
             </div>
-            <div class="mb-3">
-                <label class="form-label">內容 <span class="text-danger">*</span></label>
-                <textarea name="content" class="form-control" rows="5" required></textarea>
-            </div>
-            <div class="d-flex gap-2">
-                <button type="submit" class="btn btn-primary"><i class="bi bi-check-lg me-1"></i>發佈</button>
-                <a asp-controller="Discussion" asp-action="Index" asp-route-courseId="@courseId" class="btn btn-outline-secondary">取消</a>
-            </div>
-        </form>
-    </div></div>
-</div></div>
+        </div>
+    </div>
+</div>

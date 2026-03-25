@@ -54,9 +54,9 @@
                     <div>
                         @if (Model.IsCompleted)
                         {
-                            <span class="badge bg-success fs-6" id="completeBadge">
+                            <button class="btn btn-success btn-sm" id="completeBadge" onclick="undoComplete()" title="點擊取消完成">
                                 <i class="bi bi-check-circle-fill me-1"></i>已完成
-                            </span>
+                            </button>
                         }
                         else
                         {
@@ -74,6 +74,8 @@
                 }
             </div>
         </div>
+
+        @await Html.PartialAsync("_LessonAttachments", Model.Attachments)
     </div>
 
     <!-- Sidebar: Navigation -->
@@ -199,20 +201,33 @@
             window.markComplete = function () {
                 fetch('@Url.Action("Complete", "Lesson", new { area = "Learn" })' + '/' + lessonId, {
                     method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]')?.value || ''
-                    }
+                    headers: { 'Content-Type': 'application/json' }
                 })
                     .then(r => r.json())
                     .then(data => {
                         if (data.success) {
-                            const btn = document.getElementById('btnComplete');
-                            if (btn) {
-                                btn.outerHTML = '<span class="badge bg-success fs-6" id="completeBadge"><i class="bi bi-check-circle-fill me-1"></i>已完成</span>';
-                            }
+                            showToast('已標記完成', 'success');
+                            var btn = document.getElementById('btnComplete');
+                            if (btn) btn.outerHTML = '<button class="btn btn-success btn-sm" id="completeBadge" onclick="undoComplete()" title="點擊取消完成"><i class="bi bi-check-circle-fill me-1"></i>已完成</button>';
                         }
                     });
+            };
+
+            window.undoComplete = function () {
+                showConfirm('確定要取消此單元的完成狀態嗎？', '取消完成', function () {
+                    fetch('@Url.Action("UndoComplete", "Lesson", new { area = "Learn" })' + '/' + lessonId, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' }
+                    })
+                        .then(r => r.json())
+                        .then(data => {
+                            if (data.success) {
+                                showToast('已取消完成標記', 'info');
+                                var el = document.getElementById('completeBadge');
+                                if (el) el.outerHTML = '<button class="btn btn-outline-success btn-sm" id="btnComplete" onclick="markComplete()"><i class="bi bi-check-circle me-1"></i>標記完成</button>';
+                            }
+                        });
+                });
             };
         })();
     </script>

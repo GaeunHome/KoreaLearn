@@ -1,0 +1,81 @@
+@model KoreanLearn.Library.Helpers.PagedResult<KoreanLearn.Service.ViewModels.Admin.Course.CourseAdminListViewModel>
+@{ ViewData["Title"] = "我的課程"; }
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2><i class="bi bi-book me-2"></i>我的課程</h2>
+    <a asp-area="Teacher" asp-controller="Course" asp-action="Create" class="btn btn-primary">
+        <i class="bi bi-plus-lg me-1"></i>新增課程
+    </a>
+</div>
+
+@if (!Model.Items.Any())
+{
+    <div class="card text-center py-5">
+        <div class="card-body">
+            <i class="bi bi-book display-1 text-muted"></i>
+            <h5 class="mt-3">尚未建立課程</h5>
+            <p class="text-muted">開始建立你的第一堂韓語課程吧！</p>
+        </div>
+    </div>
+}
+else
+{
+    <div class="table-responsive">
+        <table class="table table-hover align-middle">
+            <thead class="table-light">
+                <tr>
+                    <th>標題</th><th>難度</th><th class="text-end">售價</th>
+                    <th class="text-center">章節</th><th class="text-center">單元</th>
+                    <th class="text-center">狀態</th><th style="width:200px">操作</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var course in Model.Items)
+                {
+                    <tr>
+                        <td>
+                            <a asp-area="Teacher" asp-controller="Course" asp-action="Detail" asp-route-id="@course.Id"
+                               class="text-decoration-none fw-semibold">@course.Title</a>
+                        </td>
+                        <td><span class="badge bg-info">@course.LevelDisplay</span></td>
+                        <td class="text-end">NT$ @course.Price.ToString("N0")</td>
+                        <td class="text-center">@course.SectionCount</td>
+                        <td class="text-center">@course.LessonCount</td>
+                        <td class="text-center">
+                            @if (course.IsPublished)
+                            { <span class="badge bg-success">已發佈</span> }
+                            else
+                            { <span class="badge bg-warning text-dark">草稿</span> }
+                        </td>
+                        <td>
+                            <a asp-area="Teacher" asp-controller="Course" asp-action="Edit" asp-route-id="@course.Id"
+                               class="btn btn-sm btn-outline-primary me-1"><i class="bi bi-pencil"></i> 編輯</a>
+                            <form asp-area="Teacher" asp-controller="Course" asp-action="Delete" asp-route-id="@course.Id"
+                                  method="post" class="d-inline">
+                                @Html.AntiForgeryToken()
+                                <button type="submit" class="btn btn-sm btn-outline-danger"
+                                        data-confirm="確定要刪除「@course.Title」嗎？">
+                                    <i class="bi bi-trash"></i> 刪除
+                                </button>
+                            </form>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+
+    @if (Model.TotalPages > 1)
+    {
+        <nav>
+            <ul class="pagination justify-content-center">
+                @for (var i = 1; i <= Model.TotalPages; i++)
+                {
+                    <li class="page-item @(i == Model.Page ? "active" : "")">
+                        <a class="page-link" asp-area="Teacher" asp-controller="Course" asp-action="Index" asp-route-page="@i">@i</a>
+                    </li>
+                }
+            </ul>
+        </nav>
+    }
+}

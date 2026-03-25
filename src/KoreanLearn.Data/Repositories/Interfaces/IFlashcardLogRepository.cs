@@ -6,4 +6,5 @@ public interface IFlashcardLogRepository : IRepository<FlashcardLog>
 {
     Task<FlashcardLog?> GetByUserAndCardAsync(string userId, int flashcardId, CancellationToken ct = default);
     Task<IReadOnlyList<FlashcardLog>> GetDueCardsAsync(string userId, int deckId, CancellationToken ct = default);
+    Task<IReadOnlyList<FlashcardLog>> GetByUserAndDeckAsync(string userId, int deckId, CancellationToken ct = default);
 }

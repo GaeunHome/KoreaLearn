@@ -1,3 +1,4 @@
+using System.Threading.RateLimiting;
 using KoreanLearn.Data;
 using KoreanLearn.Web.Infrastructure.Extensions;
 using KoreanLearn.Web.Infrastructure.Middleware;
@@ -34,6 +35,46 @@ try
 
     builder.Services.AddHostedService<KoreanLearn.Web.Infrastructure.BackgroundServices.DailyMaintenanceService>();
 
+    // Rate Limiting
+    builder.Services.AddRateLimiter(opts =>
+    {
+        opts.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
+
+        opts.AddPolicy("auth", context =>
+            RateLimitPartition.GetFixedWindowLimiter(
+                context.Connection.RemoteIpAddress?.ToString() ?? "unknown",
+                _ => new FixedWindowRateLimiterOptions
+                {
+                    PermitLimit = 10,
+                    Window = TimeSpan.FromMinutes(1),
+                    QueueLimit = 0
+                }));
+
+        opts.GlobalLimiter = PartitionedRateLimiter.Create<HttpContext, string>(context =>
+            RateLimitPartition.GetSlidingWindowLimiter(
+                context.Connection.RemoteIpAddress?.ToString() ?? "unknown",
+                _ => new SlidingWindowRateLimiterOptions
+                {
+                    PermitLimit = 100,
+                    Window = TimeSpan.FromMinutes(1),
+                    SegmentsPerWindow = 4
+                }));
+    });
+
+    // Cookie 安全設定
+    builder.Services.ConfigureApplicationCookie(opts =>
+    {
+        opts.Cookie.HttpOnly = true;
+        opts.Cookie.SameSite = SameSiteMode.Lax;
+        opts.Cookie.SecurePolicy = CookieSecurePolicy.SameAsRequest;
+        opts.Cookie.Name = "KoreanLearn.Auth";
+        opts.ExpireTimeSpan = TimeSpan.FromHours(2);
+        opts.SlidingExpiration = true;
+        opts.LoginPath = "/Identity/Account/Login";
+        opts.LogoutPath = "/Identity/Account/Logout";
+        opts.AccessDeniedPath = "/Error/403";
+    });
+
     builder.Services.AddControllersWithViews();
     builder.Services.AddRazorPages();
 
@@ -46,9 +87,11 @@ try
     }
 
     app.UseStatusCodePagesWithReExecute("/Error/{0}");
+    app.UseSecurityHeaders();
     app.UseHttpsRedirection();
     app.UseStaticFiles();
     app.UseRouting();
+    app.UseRateLimiter();
     app.UseAuthentication();
     app.UseAuthorization();
 

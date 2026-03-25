@@ -15,4 +15,5 @@ public class PdfPlayerViewModel
     public string? CourseTitle { get; set; }
     public int? PreviousLessonId { get; set; }
     public int? NextLessonId { get; set; }
+    public IReadOnlyList<LessonAttachmentViewModel> Attachments { get; set; } = [];
 }

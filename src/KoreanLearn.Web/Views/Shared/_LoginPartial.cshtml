@@ -1,16 +1,22 @@
-@using Microsoft.AspNetCore.Identity
-@using KoreanLearn.Data.Entities
-@inject SignInManager<AppUser> SignInManager
-@inject UserManager<AppUser> UserManager
+@using KoreanLearn.Service.Services.Interfaces
+@inject IAuthService AuthService
 
-@if (SignInManager.IsSignedIn(User))
+@if (AuthService.IsSignedIn(User))
 {
     <ul class="navbar-nav">
-        @if (User.IsInRole("Admin"))
+        @if (AuthService.IsInRole(User, "Admin"))
         {
             <li class="nav-item">
                 <a class="nav-link" asp-area="Admin" asp-controller="Dashboard" asp-action="Index">
                     <i class="bi bi-gear"></i> 後台管理
+                </a>
+            </li>
+        }
+        @if (AuthService.IsInRole(User, "Teacher"))
+        {
+            <li class="nav-item">
+                <a class="nav-link" asp-area="Teacher" asp-controller="Dashboard" asp-action="Index">
+                    <i class="bi bi-person-workspace"></i> 教師管理
                 </a>
             </li>
         }
@@ -21,14 +27,14 @@
         </li>
         <li class="nav-item">
             <span class="nav-link text-light">
-                <i class="bi bi-person-circle"></i> @UserManager.GetUserName(User)
+                <i class="bi bi-person-circle"></i> @AuthService.GetUserName(User)
             </span>
         </li>
-        <li class="nav-item">
+        <li class="nav-item d-flex align-items-center">
             <form asp-area="Identity" asp-page="/Account/Logout"
                   asp-route-returnUrl="@Url.Action("Index", "Home", new { area = "" })"
-                  method="post" class="d-inline">
-                <button type="submit" class="nav-link btn btn-link text-white">
+                  method="post" class="mb-0">
+                <button type="submit" class="nav-link border-0 bg-transparent text-white px-2">
                     <i class="bi bi-box-arrow-right"></i> 登出
                 </button>
             </form>
