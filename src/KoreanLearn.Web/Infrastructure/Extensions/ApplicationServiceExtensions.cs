@@ -19,6 +19,7 @@ public static class ApplicationServiceExtensions
         services.AddScoped<ICourseAdminService, CourseAdminService>();
         services.AddScoped<IProgressService, ProgressService>();
         services.AddScoped<ILessonPlayerService, LessonPlayerService>();
+        services.AddScoped<IQuizAdminService, QuizAdminService>();
 
         return services;
     }

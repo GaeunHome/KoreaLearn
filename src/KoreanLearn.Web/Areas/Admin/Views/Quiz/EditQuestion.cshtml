@@ -1,0 +1,107 @@
+@model KoreanLearn.Service.ViewModels.Admin.Quiz.QuestionFormViewModel
+@{
+    ViewData["Title"] = "編輯題目";
+}
+
+<div class="mb-4">
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a asp-area="Admin" asp-controller="Quiz" asp-action="Detail" asp-route-id="@Model.QuizId">測驗</a></li>
+            <li class="breadcrumb-item active">編輯題目</li>
+        </ol>
+    </nav>
+    <h2><i class="bi bi-pencil me-2"></i>編輯題目</h2>
+</div>
+
+<div class="row">
+    <div class="col-lg-8">
+        <div class="card shadow-sm">
+            <div class="card-body">
+                <form asp-area="Admin" asp-controller="Quiz" asp-action="EditQuestion" method="post">
+                    @Html.AntiForgeryToken()
+                    <input asp-for="Id" type="hidden" />
+                    <input asp-for="QuizId" type="hidden" />
+                    <input asp-for="CourseId" type="hidden" />
+                    <div asp-validation-summary="ModelOnly" class="alert alert-danger" style="display:none;"></div>
+
+                    <div class="mb-3">
+                        <label asp-for="Content" class="form-label">題目內容 <span class="text-danger">*</span></label>
+                        <textarea asp-for="Content" class="form-control" rows="3"></textarea>
+                        <span asp-validation-for="Content" class="text-danger"></span>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-4 mb-3">
+                            <label asp-for="Type" class="form-label">題型 <span class="text-danger">*</span></label>
+                            <select asp-for="Type" asp-items="Html.GetEnumSelectList<QuestionType>()" class="form-select" id="questionType">
+                            </select>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label asp-for="Points" class="form-label">配分</label>
+                            <input asp-for="Points" class="form-control" type="number" min="1" max="100" />
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label asp-for="SortOrder" class="form-label">排序</label>
+                            <input asp-for="SortOrder" class="form-control" type="number" min="0" />
+                        </div>
+                    </div>
+
+                    <!-- Fill-in-blank answer -->
+                    <div id="fillInBlankFields" style="display:none;">
+                        <div class="mb-3">
+                            <label asp-for="CorrectAnswer" class="form-label">正確答案 <span class="text-danger">*</span></label>
+                            <input asp-for="CorrectAnswer" class="form-control" />
+                        </div>
+                    </div>
+
+                    <!-- Choice options -->
+                    <div id="choiceFields" style="display:none;">
+                        <hr />
+                        <h5 class="text-primary"><i class="bi bi-list-check me-1"></i>選項</h5>
+                        @for (var i = 0; i < Model.Options.Count; i++)
+                        {
+                            <div class="row mb-2 align-items-center">
+                                <div class="col-md-8">
+                                    <input asp-for="Options[i].Content" class="form-control" placeholder="選項 @(i + 1)" />
+                                </div>
+                                <div class="col-md-2">
+                                    <div class="form-check">
+                                        <input asp-for="Options[i].IsCorrect" class="form-check-input" />
+                                        <label class="form-check-label">正確</label>
+                                    </div>
+                                </div>
+                                <div class="col-md-2">
+                                    <input asp-for="Options[i].SortOrder" type="hidden" value="@i" />
+                                    <input asp-for="Options[i].Id" type="hidden" />
+                                </div>
+                            </div>
+                        }
+                    </div>
+
+                    <hr />
+                    <div class="d-flex gap-2">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-check-lg me-1"></i>儲存變更
+                        </button>
+                        <a asp-area="Admin" asp-controller="Quiz" asp-action="Detail" asp-route-id="@Model.QuizId" class="btn btn-outline-secondary">
+                            <i class="bi bi-arrow-left me-1"></i>返回測驗
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script>
+        document.getElementById('questionType').addEventListener('change', function () {
+            var isFillInBlank = this.value === '2';
+            var isChoice = this.value === '0' || this.value === '1';
+            document.getElementById('fillInBlankFields').style.display = isFillInBlank ? 'block' : 'none';
+            document.getElementById('choiceFields').style.display = isChoice ? 'block' : 'none';
+        });
+        document.getElementById('questionType').dispatchEvent(new Event('change'));
+    </script>
+}

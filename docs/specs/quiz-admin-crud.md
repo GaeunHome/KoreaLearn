@@ -1,8 +1,8 @@
 # [Quiz] 後台測驗題目管理
 
-> **狀態**：🔲 待實作
+> **狀態**：✅ 完成
 > **建立時間**：2026-03-25
-> **完成時間**：－
+> **完成時間**：2026-03-25
 
 ## 功能描述
 
@@ -37,4 +37,9 @@
 
 ## 實際產出
 
-<!-- 實作完成後填寫 -->
+- **Service**：IQuizAdminService / QuizAdminService（Quiz/Question CRUD）
+- **ViewModel**：QuizFormViewModel, QuizDetailViewModel, QuestionFormViewModel, QuestionViewModel, OptionFormViewModel, OptionViewModel
+- **Controller**：Admin/QuizController（Create, Detail, Edit, Delete, AddQuestion, EditQuestion, DeleteQuestion）
+- **View**：Quiz/Create, Detail, Edit, AddQuestion, EditQuestion
+- **HTTP 驗證**：200/302/404 全部通過
+- **UX 審查**：✅ 通過

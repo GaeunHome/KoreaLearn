@@ -1,5 +1,10 @@
 # KoreanLearn 韓文線上學習平台
 
+[![.NET](https://img.shields.io/badge/.NET-10.0-512BD4)](https://dotnet.microsoft.com/)
+[![ASP.NET Core](https://img.shields.io/badge/ASP.NET%20Core-MVC-512BD4)](https://docs.microsoft.com/aspnet/core/)
+[![EF Core](https://img.shields.io/badge/EF%20Core-10.0-512BD4)](https://docs.microsoft.com/ef/core/)
+[![SQL Server](https://img.shields.io/badge/SQL%20Server-2019+-CC2927)](https://www.microsoft.com/sql-server/)
+
 韓文線上學習平台，提供課程瀏覽、後台管理、學習進度追蹤等功能。
 
 ## 技術棧
@@ -98,7 +103,7 @@ dotnet test --collect:"XPlat Code Coverage"
 - [x] **P2-03** 文字教材（Quill.js 富文字編輯器 + 前台閱讀頁）
 - [x] **P2-04** PDF 教材上傳與下載（預覽 + 下載 + 完成標記）
 - [x] **P2-05** 學習進度追蹤（課程進度百分比 + 單元完成標記）
-- [ ] **P2-06** 測驗系統 Entity + 後台題目管理
+- [x] **P2-06** 測驗系統 Entity + 後台題目管理（選擇題 + 填空題 + 選項管理）
 - [ ] **P2-07** 測驗作答介面 + 成績計算
 - [ ] **P2-08** 字卡系統 + 後台管理
 - [ ] **P2-09** 字卡學習介面 + SM-2 間隔重複
