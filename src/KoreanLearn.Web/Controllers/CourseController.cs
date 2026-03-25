@@ -1,3 +1,4 @@
+using System.Security.Claims;
 using KoreanLearn.Service.Services.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 
@@ -21,7 +22,8 @@ public class CourseController(
     {
         logger.LogInformation("課程詳情 | CourseId={CourseId} | User={User}",
             id, User.Identity?.Name ?? "Anonymous");
-        var course = await courseService.GetCourseDetailAsync(id, ct);
+        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        var course = await courseService.GetCourseDetailAsync(id, userId, ct);
         if (course is null)
         {
             logger.LogWarning("課程不存在或未發佈 | CourseId={CourseId}", id);

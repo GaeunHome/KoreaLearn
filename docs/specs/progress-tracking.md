@@ -1,8 +1,8 @@
 # [Progress] 學習進度追蹤
 
-> **狀態**：🔲 待實作
+> **狀態**：✅ 完成
 > **建立時間**：2026-03-25
-> **完成時間**：－
+> **完成時間**：2026-03-25
 
 ## 功能描述
 
@@ -22,4 +22,9 @@
 
 ## 實際產出
 
-<!-- 實作完成後填寫 -->
+- **Service**：CourseService.GetCourseDetailAsync 擴充 userId 參數，查詢 Progress 填入完成狀態
+- **ViewModel**：CourseDetailViewModel 新增 CompletedLessons / ProgressPercent、LessonSummaryViewModel 新增 IsCompleted
+- **Controller**：CourseController 傳入 userId
+- **View**：Course/Detail.cshtml 顯示進度條 + 完成圖示 + 登入使用者可點擊單元連結
+- **HTTP 驗證**：200（匿名/登入）
+- **UX 審查**：✅ 通過

@@ -35,7 +35,7 @@ public class CourseService(
     }
 
     public async Task<CourseDetailViewModel?> GetCourseDetailAsync(
-        int id, CancellationToken ct = default)
+        int id, string? userId = null, CancellationToken ct = default)
     {
         logger.LogInformation("查詢課程詳情 | CourseId={CourseId}", id);
         var course = await uow.Courses.GetWithSectionsAndLessonsAsync(id, ct).ConfigureAwait(false);
@@ -54,7 +54,23 @@ public class CourseService(
 
         logger.LogInformation("取得課程詳情 | CourseId={CourseId} | Title={Title} | Sections={SectionCount}",
             id, course.Title, course.Sections.Count);
-        return mapper.Map<CourseDetailViewModel>(course);
+        var vm = mapper.Map<CourseDetailViewModel>(course);
+
+        // Fill in progress data if user is logged in
+        if (!string.IsNullOrEmpty(userId))
+        {
+            var progresses = await uow.Progresses.GetByUserAndCourseAsync(userId, id, ct).ConfigureAwait(false);
+            var completedLessonIds = progresses.Where(p => p.IsCompleted).Select(p => p.LessonId).ToHashSet();
+            foreach (var sec in vm.Sections)
+            {
+                foreach (var lesson in sec.Lessons)
+                {
+                    lesson.IsCompleted = completedLessonIds.Contains(lesson.Id);
+                }
+            }
+        }
+
+        return vm;
     }
 
     public async Task<HomeViewModel> GetHomeViewModelAsync(CancellationToken ct = default)

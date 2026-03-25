@@ -19,6 +19,24 @@
             <span class="text-muted ms-2">@Model.Sections.Count 章節</span>
         </div>
 
+        @if (Model.CompletedLessons > 0)
+        {
+            <div class="card mb-4 border-success">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <h6 class="mb-0"><i class="bi bi-graph-up me-1"></i>學習進度</h6>
+                        <span class="fw-bold text-success">@Model.ProgressPercent%</span>
+                    </div>
+                    <div class="progress" style="height: 10px;">
+                        <div class="progress-bar bg-success" role="progressbar"
+                             style="width: @Model.ProgressPercent%" aria-valuenow="@Model.ProgressPercent"
+                             aria-valuemin="0" aria-valuemax="100"></div>
+                    </div>
+                    <small class="text-muted mt-1 d-block">@Model.CompletedLessons / @Model.TotalLessons 堂已完成</small>
+                </div>
+            </div>
+        }
+
         @if (!string.IsNullOrEmpty(Model.Description))
         {
             <div class="card mb-4">
@@ -39,12 +57,17 @@
                 {
                     var sec = Model.Sections[i];
                     var collapseId = $"section{sec.Id}";
+                    var completedInSection = sec.Lessons.Count(l => l.IsCompleted);
                     <div class="accordion-item">
                         <h2 class="accordion-header">
                             <button class="accordion-button @(i > 0 ? "collapsed" : "")" type="button"
                                     data-bs-toggle="collapse" data-bs-target="#@collapseId">
                                 <strong>@sec.Title</strong>
                                 <span class="badge bg-secondary ms-2">@sec.Lessons.Count 堂</span>
+                                @if (completedInSection > 0)
+                                {
+                                    <span class="badge bg-success ms-1">@completedInSection 已完成</span>
+                                }
                             </button>
                         </h2>
                         <div id="@collapseId" class="accordion-collapse collapse @(i == 0 ? "show" : "")"
@@ -53,10 +76,34 @@
                                 <ul class="list-group list-group-flush">
                                     @foreach (var lesson in sec.Lessons)
                                     {
+                                        var lessonAction = lesson.Type switch
+                                        {
+                                            LessonType.Video => "Video",
+                                            LessonType.Article => "Article",
+                                            LessonType.Pdf => "Pdf",
+                                            _ => "Article"
+                                        };
                                         <li class="list-group-item d-flex justify-content-between align-items-center">
                                             <span>
-                                                <i class="bi @lesson.TypeIcon me-2 text-muted"></i>
-                                                @lesson.Title
+                                                @if (lesson.IsCompleted)
+                                                {
+                                                    <i class="bi bi-check-circle-fill me-2 text-success"></i>
+                                                }
+                                                else
+                                                {
+                                                    <i class="bi @lesson.TypeIcon me-2 text-muted"></i>
+                                                }
+                                                @if (User.Identity?.IsAuthenticated == true)
+                                                {
+                                                    <a asp-area="Learn" asp-controller="Lesson" asp-action="@lessonAction" asp-route-id="@lesson.Id"
+                                                       class="text-decoration-none">
+                                                        @lesson.Title
+                                                    </a>
+                                                }
+                                                else
+                                                {
+                                                    @lesson.Title
+                                                }
                                                 @if (lesson.IsFreePreview)
                                                 {
                                                     <span class="badge bg-success ms-1">免費試看</span>

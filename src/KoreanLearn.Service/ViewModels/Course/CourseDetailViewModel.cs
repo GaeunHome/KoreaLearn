@@ -22,6 +22,8 @@ public class CourseDetailViewModel
     };
 
     public int TotalLessons => Sections.Sum(s => s.Lessons.Count);
+    public int CompletedLessons => Sections.Sum(s => s.Lessons.Count(l => l.IsCompleted));
+    public int ProgressPercent => TotalLessons > 0 ? CompletedLessons * 100 / TotalLessons : 0;
 }
 
 public class SectionViewModel
@@ -38,6 +40,7 @@ public class LessonSummaryViewModel
     public string Title { get; set; } = string.Empty;
     public LessonType Type { get; set; }
     public bool IsFreePreview { get; set; }
+    public bool IsCompleted { get; set; }
 
     public string TypeIcon => Type switch
     {
