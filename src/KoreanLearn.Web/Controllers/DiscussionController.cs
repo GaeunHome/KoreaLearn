@@ -5,10 +5,12 @@ using KoreanLearn.Service.Services.Interfaces;
 
 namespace KoreanLearn.Web.Controllers;
 
+/// <summary>討論區 Controller，提供討論列表、詳情、發文、回覆與刪除功能</summary>
 public class DiscussionController(
     IDiscussionService discussionService,
     ICourseService courseService) : Controller
 {
+    /// <summary>討論列表頁（支援依課程篩選與分頁），無指定課程時顯示全站討論</summary>
     public async Task<IActionResult> Index(int? courseId, int page = 1, CancellationToken ct = default)
     {
         ViewBag.CourseId = courseId;
@@ -24,6 +26,7 @@ public class DiscussionController(
         return View(all);
     }
 
+    /// <summary>討論詳情頁，顯示主題內容與所有回覆；找不到時回傳 404</summary>
     public async Task<IActionResult> Detail(int id, CancellationToken ct = default)
     {
         var vm = await discussionService.GetDetailAsync(id, ct);
@@ -31,6 +34,7 @@ public class DiscussionController(
         return View(vm);
     }
 
+    /// <summary>新增討論表單頁（GET），未帶 courseId 時先顯示課程選擇頁</summary>
     [Authorize]
     public async Task<IActionResult> Create(int? courseId, CancellationToken ct = default)
     {
@@ -46,6 +50,7 @@ public class DiscussionController(
         return View();
     }
 
+    /// <summary>新增討論（POST），發佈成功後導向討論詳情頁</summary>
     [Authorize]
     [HttpPost]
     [ValidateAntiForgeryToken]
@@ -63,6 +68,7 @@ public class DiscussionController(
         return View();
     }
 
+    /// <summary>回覆討論（POST），回覆後導回討論詳情頁</summary>
     [Authorize]
     [HttpPost]
     [ValidateAntiForgeryToken]
@@ -77,6 +83,7 @@ public class DiscussionController(
         return RedirectToAction(nameof(Detail), new { id = discussionId });
     }
 
+    /// <summary>刪除討論（POST，軟刪除），作者或管理員可執行，完成後導回列表</summary>
     [Authorize]
     [HttpPost]
     [ValidateAntiForgeryToken]

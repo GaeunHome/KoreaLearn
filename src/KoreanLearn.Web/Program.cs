@@ -5,7 +5,7 @@ using KoreanLearn.Web.Infrastructure.Middleware;
 using Serilog;
 using Serilog.Events;
 
-// Serilog 結構化日誌設定
+// ── Serilog 結構化日誌設定 ──
 Log.Logger = new LoggerConfiguration()
     .MinimumLevel.Information()
     .MinimumLevel.Override("Microsoft", LogEventLevel.Warning)
@@ -29,17 +29,20 @@ try
     var builder = WebApplication.CreateBuilder(args);
     builder.Host.UseSerilog();
 
+    // ── 服務註冊 ──
     builder.Services
-        .AddDataServices(builder.Configuration)
-        .AddApplicationServices();
+        .AddDataServices(builder.Configuration)   // 資料層：DbContext、Repository、UoW、Identity
+        .AddApplicationServices();                 // 應用層：AutoMapper、所有 Service
 
+    // 背景服務：每日維護任務（字卡複習統計、過期訂閱停用）
     builder.Services.AddHostedService<KoreanLearn.Web.Infrastructure.BackgroundServices.DailyMaintenanceService>();
 
-    // Rate Limiting
+    // ── 速率限制 ──
     builder.Services.AddRateLimiter(opts =>
     {
         opts.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
 
+        // 認證端點：每 IP 每分鐘最多 10 次請求
         opts.AddPolicy("auth", context =>
             RateLimitPartition.GetFixedWindowLimiter(
                 context.Connection.RemoteIpAddress?.ToString() ?? "unknown",
@@ -50,6 +53,7 @@ try
                     QueueLimit = 0
                 }));
 
+        // 全域限流：每 IP 每分鐘最多 100 次請求（滑動視窗）
         opts.GlobalLimiter = PartitionedRateLimiter.Create<HttpContext, string>(context =>
             RateLimitPartition.GetSlidingWindowLimiter(
                 context.Connection.RemoteIpAddress?.ToString() ?? "unknown",
@@ -61,7 +65,7 @@ try
                 }));
     });
 
-    // Cookie 安全設定
+    // ── Cookie 安全設定 ──
     builder.Services.ConfigureApplicationCookie(opts =>
     {
         opts.Cookie.HttpOnly = true;
@@ -80,34 +84,38 @@ try
 
     var app = builder.Build();
 
+    // ── HTTP 請求管線設定 ──
     if (!app.Environment.IsDevelopment())
     {
         app.UseExceptionHandler("/Error");
         app.UseHsts();
     }
 
-    app.UseStatusCodePagesWithReExecute("/Error/{0}");
-    app.UseSecurityHeaders();
+    app.UseStatusCodePagesWithReExecute("/Error/{0}");  // HTTP 狀態碼錯誤頁面
+    app.UseSecurityHeaders();                            // 安全標頭（CSP、X-Frame-Options 等）
     app.UseHttpsRedirection();
     app.UseStaticFiles();
     app.UseRouting();
-    app.UseRateLimiter();
-    app.UseAuthentication();
-    app.UseAuthorization();
+    app.UseRateLimiter();                                // 速率限制
+    app.UseAuthentication();                             // 身份驗證
+    app.UseAuthorization();                              // 授權
 
+    // Serilog 請求日誌
     app.UseSerilogRequestLogging(options =>
     {
         options.MessageTemplate =
             "HTTP {RequestMethod} {RequestPath} responded {StatusCode} in {Elapsed:0.000}ms";
     });
 
+    // 全域例外處理中介軟體
     app.UseMiddleware<GlobalExceptionMiddleware>();
 
+    // ── 路由設定 ──
     app.MapControllerRoute("areas", "{area:exists}/{controller=Dashboard}/{action=Index}/{id?}");
     app.MapControllerRoute("default", "{controller=Home}/{action=Index}/{id?}");
     app.MapRazorPages();
 
-    // Seed data
+    // ── 種子資料初始化 ──
     await DbInitializer.InitializeAsync(app.Services);
 
     Log.Information("KoreanLearn 應用程式已啟動");

@@ -5,20 +5,24 @@ using KoreanLearn.Service.ViewModels.Admin.Flashcard;
 
 namespace KoreanLearn.Web.Areas.Admin.Controllers;
 
+/// <summary>後台字卡牌組管理 Controller，提供牌組與字卡的 CRUD 操作</summary>
 [Area("Admin")]
 [Authorize(Roles = "Admin")]
 public class FlashcardDeckController(IFlashcardAdminService flashcardAdminService) : Controller
 {
     private const int PageSize = 20;
 
+    /// <summary>牌組列表頁（分頁），顯示所有字卡牌組</summary>
     public async Task<IActionResult> Index(int page = 1, CancellationToken ct = default)
     {
         var result = await flashcardAdminService.GetDecksPagedAsync(page, PageSize, ct);
         return View(result);
     }
 
+    /// <summary>新增牌組表單頁（GET）</summary>
     public IActionResult Create() => View(new DeckFormViewModel());
 
+    /// <summary>新增牌組（POST），成功後導向牌組詳情頁</summary>
     [HttpPost]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Create(DeckFormViewModel vm, CancellationToken ct = default)
@@ -34,6 +38,7 @@ public class FlashcardDeckController(IFlashcardAdminService flashcardAdminServic
         return View(vm);
     }
 
+    /// <summary>牌組詳情頁，顯示牌組資訊與所有字卡</summary>
     public async Task<IActionResult> Detail(int id, CancellationToken ct = default)
     {
         var vm = await flashcardAdminService.GetDeckDetailAsync(id, ct);
@@ -41,6 +46,7 @@ public class FlashcardDeckController(IFlashcardAdminService flashcardAdminServic
         return View(vm);
     }
 
+    /// <summary>編輯牌組表單頁（GET），載入現有牌組資料</summary>
     public async Task<IActionResult> Edit(int id, CancellationToken ct = default)
     {
         var vm = await flashcardAdminService.GetDeckForEditAsync(id, ct);
@@ -48,6 +54,7 @@ public class FlashcardDeckController(IFlashcardAdminService flashcardAdminServic
         return View(vm);
     }
 
+    /// <summary>更新牌組（POST），成功後導回牌組詳情頁</summary>
     [HttpPost]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Edit(DeckFormViewModel vm, CancellationToken ct = default)
@@ -63,6 +70,7 @@ public class FlashcardDeckController(IFlashcardAdminService flashcardAdminServic
         return View(vm);
     }
 
+    /// <summary>刪除牌組（POST，軟刪除），完成後導回列表</summary>
     [HttpPost]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Delete(int id, CancellationToken ct = default)
@@ -72,13 +80,15 @@ public class FlashcardDeckController(IFlashcardAdminService flashcardAdminServic
         return RedirectToAction(nameof(Index));
     }
 
-    // ── Card ──
+    // ── 字卡管理 ──
 
+    /// <summary>新增字卡表單頁（GET），預帶所屬牌組資訊</summary>
     public IActionResult AddCard(int deckId, string? deckTitle)
     {
         return View(new CardFormViewModel { DeckId = deckId, DeckTitle = deckTitle });
     }
 
+    /// <summary>新增字卡（POST），成功後導回牌組詳情頁</summary>
     [HttpPost]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> AddCard(CardFormViewModel vm, CancellationToken ct = default)
@@ -94,6 +104,7 @@ public class FlashcardDeckController(IFlashcardAdminService flashcardAdminServic
         return View(vm);
     }
 
+    /// <summary>編輯字卡表單頁（GET），載入現有字卡資料</summary>
     public async Task<IActionResult> EditCard(int id, CancellationToken ct = default)
     {
         var vm = await flashcardAdminService.GetCardForEditAsync(id, ct);
@@ -101,6 +112,7 @@ public class FlashcardDeckController(IFlashcardAdminService flashcardAdminServic
         return View(vm);
     }
 
+    /// <summary>更新字卡（POST），成功後導回牌組詳情頁</summary>
     [HttpPost]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> EditCard(CardFormViewModel vm, CancellationToken ct = default)
@@ -116,6 +128,7 @@ public class FlashcardDeckController(IFlashcardAdminService flashcardAdminServic
         return View(vm);
     }
 
+    /// <summary>刪除字卡（POST），完成後導回牌組詳情頁</summary>
     [HttpPost]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> DeleteCard(int id, int deckId, CancellationToken ct = default)

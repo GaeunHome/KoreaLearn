@@ -5,9 +5,11 @@ using KoreanLearn.Service.Services.Interfaces;
 
 namespace KoreanLearn.Web.Controllers;
 
+/// <summary>證書 Controller，提供完課資格檢查與 PDF 證書下載</summary>
 [Authorize]
 public class CertificateController(ICertificateService certificateService) : Controller
 {
+    /// <summary>檢查完課資格，顯示各項條件（課程完成度、測驗分數）是否達標</summary>
     public async Task<IActionResult> Check(int courseId, CancellationToken ct = default)
     {
         var userId = User.FindFirstValue(ClaimTypes.NameIdentifier)!;
@@ -16,6 +18,7 @@ public class CertificateController(ICertificateService certificateService) : Con
         return View(eligibility);
     }
 
+    /// <summary>下載 PDF 證書，未滿足條件時導回資格檢查頁</summary>
     public async Task<IActionResult> Download(int courseId, CancellationToken ct = default)
     {
         var userId = User.FindFirstValue(ClaimTypes.NameIdentifier)!;

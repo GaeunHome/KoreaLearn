@@ -6,12 +6,14 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace KoreanLearn.Data;
 
+/// <summary>資料層 DI 擴充方法，註冊 DbContext、Repository 與 UnitOfWork</summary>
 public static class DependencyInjection
 {
+    /// <summary>將資料層所有服務註冊至 DI 容器</summary>
     public static IServiceCollection AddDataLayer(
         this IServiceCollection services, string connectionString)
     {
-        // DbContext
+        // ── DbContext ────────────────────────────────────
         services.AddDbContext<ApplicationDbContext>(opts =>
             opts.UseSqlServer(connectionString,
                 sql => sql.EnableRetryOnFailure(maxRetryCount: 3)));
@@ -22,7 +24,7 @@ public static class DependencyInjection
                 sql => sql.EnableRetryOnFailure(maxRetryCount: 3)),
             lifetime: ServiceLifetime.Scoped);
 
-        // Repositories
+        // ── Repositories ─────────────────────────────────
         services.AddScoped<ICourseRepository, CourseRepository>();
         services.AddScoped<ISectionRepository, SectionRepository>();
         services.AddScoped<ILessonRepository, LessonRepository>();
@@ -40,7 +42,7 @@ public static class DependencyInjection
         services.AddScoped<IDiscussionRepository, DiscussionRepository>();
         services.AddScoped<ILessonAttachmentRepository, LessonAttachmentRepository>();
 
-        // UnitOfWork
+        // ── UnitOfWork ───────────────────────────────────
         services.AddScoped<IUnitOfWork, UnitOfWork.UnitOfWork>();
 
         return services;

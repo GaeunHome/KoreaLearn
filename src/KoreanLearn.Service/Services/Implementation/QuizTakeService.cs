@@ -8,15 +8,18 @@ using Microsoft.Extensions.Logging;
 
 namespace KoreanLearn.Service.Services.Implementation;
 
+/// <summary>前台測驗作答業務邏輯實作，處理測驗取得、答案提交與成績計算</summary>
 public class QuizTakeService(
     IUnitOfWork uow,
     ILogger<QuizTakeService> logger) : IQuizTakeService
 {
+    /// <inheritdoc />
     public async Task<QuizTakeViewModel?> GetQuizForTakeAsync(int quizId, CancellationToken ct = default)
     {
         var quiz = await uow.Quizzes.GetWithQuestionsAsync(quizId, ct).ConfigureAwait(false);
         if (quiz is null) return null;
 
+        // 反查所屬課程資訊以供頁面導覽
         var lesson = await uow.Lessons.GetByIdAsync(quiz.LessonId, ct).ConfigureAwait(false);
         var sec = lesson is not null
             ? await uow.Sections.GetByIdAsync(lesson.SectionId, ct).ConfigureAwait(false)
@@ -52,6 +55,7 @@ public class QuizTakeService(
         };
     }
 
+    /// <inheritdoc />
     public async Task<ServiceResult<int>> SubmitQuizAsync(
         string userId, QuizSubmitModel model, CancellationToken ct = default)
     {
@@ -72,6 +76,7 @@ public class QuizTakeService(
         var totalScore = 0;
         var totalPoints = 0;
 
+        // 逐題批改
         foreach (var question in quiz.Questions)
         {
             totalPoints += question.Points;
@@ -82,6 +87,7 @@ public class QuizTakeService(
 
             switch (question.Type)
             {
+                // 單選題：比對使用者選擇的選項 ID 與正確選項
                 case QuestionType.SingleChoice:
                     if (int.TryParse(userAnswer, out var optId))
                     {
@@ -91,14 +97,15 @@ public class QuizTakeService(
                     }
                     break;
 
+                // 填空題：不分大小寫比對使用者答案與正確答案
                 case QuestionType.FillInBlank:
                     isCorrect = !string.IsNullOrWhiteSpace(question.CorrectAnswer) &&
                                 string.Equals(userAnswer.Trim(), question.CorrectAnswer.Trim(),
                                     StringComparison.OrdinalIgnoreCase);
                     break;
 
+                // 多選題：使用者選擇的選項集合必須與正確選項集合完全一致
                 case QuestionType.MultipleChoice:
-                    // For multiple choice, answer is comma-separated option IDs
                     var selectedIds = userAnswer.Split(',')
                         .Where(s => int.TryParse(s, out _))
                         .Select(int.Parse)
@@ -134,6 +141,7 @@ public class QuizTakeService(
         return ServiceResult<int>.Success(attempt.Id);
     }
 
+    /// <inheritdoc />
     public async Task<QuizResultViewModel?> GetResultAsync(
         int attemptId, string userId, CancellationToken ct = default)
     {

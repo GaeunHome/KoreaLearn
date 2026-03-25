@@ -5,23 +5,27 @@ using KoreanLearn.Service.ViewModels.Admin.Course;
 
 namespace KoreanLearn.Web.Areas.Admin.Controllers;
 
+/// <summary>後台課程管理 Controller，提供課程的 CRUD 操作（含封面圖上傳）</summary>
 [Area("Admin")]
 [Authorize(Roles = "Admin")]
 public class CourseController(ICourseAdminService courseAdminService) : Controller
 {
     private const int PageSize = 20;
 
+    /// <summary>課程列表頁（分頁），顯示所有課程的管理清單</summary>
     public async Task<IActionResult> Index(int page = 1, CancellationToken ct = default)
     {
         var result = await courseAdminService.GetCoursesPagedAsync(page, PageSize, ct);
         return View(result);
     }
 
+    /// <summary>新增課程表單頁（GET）</summary>
     public IActionResult Create()
     {
         return View(new CreateCourseViewModel());
     }
 
+    /// <summary>新增課程（POST），建立課程並儲存封面圖片，成功後導回列表</summary>
     [HttpPost]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Create(CreateCourseViewModel vm, CancellationToken ct = default)
@@ -44,6 +48,7 @@ public class CourseController(ICourseAdminService courseAdminService) : Controll
         return View(vm);
     }
 
+    /// <summary>課程詳情頁，顯示課程完整資訊與章節結構</summary>
     public async Task<IActionResult> Detail(int id, CancellationToken ct = default)
     {
         var vm = await courseAdminService.GetCourseDetailAsync(id, ct);
@@ -51,6 +56,7 @@ public class CourseController(ICourseAdminService courseAdminService) : Controll
         return View(vm);
     }
 
+    /// <summary>編輯課程表單頁（GET），載入現有課程資料</summary>
     public async Task<IActionResult> Edit(int id, CancellationToken ct = default)
     {
         var vm = await courseAdminService.GetCourseForEditAsync(id, ct);
@@ -58,6 +64,7 @@ public class CourseController(ICourseAdminService courseAdminService) : Controll
         return View(vm);
     }
 
+    /// <summary>更新課程（POST），更新課程資料與封面圖片，成功後導回詳情頁</summary>
     [HttpPost]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Edit(EditCourseViewModel vm, CancellationToken ct = default)
@@ -81,6 +88,7 @@ public class CourseController(ICourseAdminService courseAdminService) : Controll
         return View(vm);
     }
 
+    /// <summary>刪除課程（POST，軟刪除），完成後導回列表</summary>
     [HttpPost]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Delete(int id, CancellationToken ct = default)
@@ -94,6 +102,7 @@ public class CourseController(ICourseAdminService courseAdminService) : Controll
         return RedirectToAction(nameof(Index));
     }
 
+    /// <summary>儲存封面圖片至 wwwroot/uploads/covers/，回傳相對路徑</summary>
     private async Task<string> SaveCoverImageAsync(IFormFile file)
     {
         var uploadsDir = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "uploads", "covers");

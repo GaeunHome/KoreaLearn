@@ -10,13 +10,15 @@ using Microsoft.Extensions.Logging;
 
 namespace KoreanLearn.Service.Services.Implementation;
 
+/// <summary>後台課程管理業務邏輯實作，處理課程、章節、單元的 CRUD（Admin 專用）</summary>
 public class CourseAdminService(
     IUnitOfWork uow,
     IMapper mapper,
     ILogger<CourseAdminService> logger) : ICourseAdminService
 {
-    // ── Course ──────────────────────────────────────────────
+    // ── 課程 ──────────────────────────────────────────────
 
+    /// <inheritdoc />
     public async Task<PagedResult<CourseAdminListViewModel>> GetCoursesPagedAsync(
         int page, int pageSize, CancellationToken ct = default)
     {
@@ -26,6 +28,7 @@ public class CourseAdminService(
         return new PagedResult<CourseAdminListViewModel>(items, result.TotalCount, result.Page, result.PageSize);
     }
 
+    /// <inheritdoc />
     public async Task<CourseDetailAdminViewModel?> GetCourseDetailAsync(
         int id, CancellationToken ct = default)
     {
@@ -39,6 +42,7 @@ public class CourseAdminService(
         return mapper.Map<CourseDetailAdminViewModel>(course);
     }
 
+    /// <inheritdoc />
     public async Task<EditCourseViewModel?> GetCourseForEditAsync(
         int id, CancellationToken ct = default)
     {
@@ -47,6 +51,7 @@ public class CourseAdminService(
         return mapper.Map<EditCourseViewModel>(course);
     }
 
+    /// <inheritdoc />
     public async Task<ServiceResult<int>> CreateCourseAsync(
         CreateCourseViewModel vm, CancellationToken ct = default)
     {
@@ -66,6 +71,7 @@ public class CourseAdminService(
         return ServiceResult<int>.Success(course.Id);
     }
 
+    /// <inheritdoc />
     public async Task<ServiceResult> UpdateCourseAsync(
         EditCourseViewModel vm, CancellationToken ct = default)
     {
@@ -92,6 +98,7 @@ public class CourseAdminService(
         return ServiceResult.Success();
     }
 
+    /// <inheritdoc />
     public async Task<ServiceResult> DeleteCourseAsync(
         int id, CancellationToken ct = default)
     {
@@ -111,6 +118,7 @@ public class CourseAdminService(
         return ServiceResult.Success();
     }
 
+    /// <inheritdoc />
     public async Task<ServiceResult> UpdateCourseImageAsync(
         int courseId, string imageUrl, CancellationToken ct = default)
     {
@@ -124,8 +132,9 @@ public class CourseAdminService(
         return ServiceResult.Success();
     }
 
-    // ── Section ─────────────────────────────────────────────
+    // ── 章節 ─────────────────────────────────────────────
 
+    /// <inheritdoc />
     public async Task<SectionFormViewModel?> GetSectionForEditAsync(
         int id, CancellationToken ct = default)
     {
@@ -138,6 +147,7 @@ public class CourseAdminService(
         return vm;
     }
 
+    /// <inheritdoc />
     public async Task<ServiceResult<int>> CreateSectionAsync(
         SectionFormViewModel vm, CancellationToken ct = default)
     {
@@ -155,6 +165,7 @@ public class CourseAdminService(
         return ServiceResult<int>.Success(section.Id);
     }
 
+    /// <inheritdoc />
     public async Task<ServiceResult> UpdateSectionAsync(
         SectionFormViewModel vm, CancellationToken ct = default)
     {
@@ -175,6 +186,7 @@ public class CourseAdminService(
         return ServiceResult.Success();
     }
 
+    /// <inheritdoc />
     public async Task<ServiceResult> DeleteSectionAsync(
         int id, CancellationToken ct = default)
     {
@@ -191,8 +203,9 @@ public class CourseAdminService(
         return ServiceResult.Success();
     }
 
-    // ── Lesson ──────────────────────────────────────────────
+    // ── 單元 ──────────────────────────────────────────────
 
+    /// <inheritdoc />
     public async Task<LessonFormViewModel?> GetLessonForEditAsync(
         int id, CancellationToken ct = default)
     {
@@ -214,6 +227,7 @@ public class CourseAdminService(
         return vm;
     }
 
+    /// <inheritdoc />
     public async Task<ServiceResult<int>> CreateLessonAsync(
         LessonFormViewModel vm, CancellationToken ct = default)
     {
@@ -236,6 +250,7 @@ public class CourseAdminService(
         return ServiceResult<int>.Success(lesson.Id);
     }
 
+    /// <inheritdoc />
     public async Task<ServiceResult> UpdateLessonAsync(
         LessonFormViewModel vm, CancellationToken ct = default)
     {
@@ -268,6 +283,7 @@ public class CourseAdminService(
         return ServiceResult.Success();
     }
 
+    /// <inheritdoc />
     public async Task<ServiceResult> DeleteLessonAsync(
         int id, CancellationToken ct = default)
     {

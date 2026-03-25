@@ -8,15 +8,18 @@ using Microsoft.Extensions.Logging;
 
 namespace KoreanLearn.Service.Services.Implementation;
 
+/// <summary>後台測驗管理業務邏輯實作，處理測驗與題目（單選、多選、填空）的 CRUD</summary>
 public class QuizAdminService(
     IUnitOfWork uow,
     ILogger<QuizAdminService> logger) : IQuizAdminService
 {
+    /// <inheritdoc />
     public async Task<QuizDetailViewModel?> GetQuizDetailAsync(int quizId, CancellationToken ct = default)
     {
         var quiz = await uow.Quizzes.GetWithQuestionsAsync(quizId, ct).ConfigureAwait(false);
         if (quiz is null) return null;
 
+        // 反查所屬單元、章節、課程名稱，用於頁面導覽
         var lesson = await uow.Lessons.GetByIdAsync(quiz.LessonId, ct).ConfigureAwait(false);
         var section = lesson is not null
             ? await uow.Sections.GetByIdAsync(lesson.SectionId, ct).ConfigureAwait(false)
@@ -62,6 +65,7 @@ public class QuizAdminService(
         };
     }
 
+    /// <inheritdoc />
     public async Task<QuizFormViewModel?> GetQuizForEditAsync(int quizId, CancellationToken ct = default)
     {
         var quiz = await uow.Quizzes.GetByIdAsync(quizId, ct).ConfigureAwait(false);
@@ -89,6 +93,7 @@ public class QuizAdminService(
         };
     }
 
+    /// <inheritdoc />
     public async Task<QuizFormViewModel> PrepareCreateFormAsync(int lessonId, CancellationToken ct = default)
     {
         var lesson = await uow.Lessons.GetByIdAsync(lessonId, ct).ConfigureAwait(false);
@@ -109,10 +114,12 @@ public class QuizAdminService(
         };
     }
 
+    /// <inheritdoc />
     public async Task<ServiceResult<int>> CreateQuizAsync(QuizFormViewModel vm, CancellationToken ct = default)
     {
         logger.LogInformation("建立測驗 | LessonId={LessonId} | Title={Title}", vm.LessonId, vm.Title);
 
+        // 一個單元只能有一個測驗
         var existing = await uow.Quizzes.GetByLessonIdAsync(vm.LessonId, ct).ConfigureAwait(false);
         if (existing is not null)
             return ServiceResult<int>.Failure("此單元已有測驗");
@@ -133,6 +140,7 @@ public class QuizAdminService(
         return ServiceResult<int>.Success(quiz.Id);
     }
 
+    /// <inheritdoc />
     public async Task<ServiceResult> UpdateQuizAsync(QuizFormViewModel vm, CancellationToken ct = default)
     {
         var quiz = await uow.Quizzes.GetByIdAsync(vm.Id, ct).ConfigureAwait(false);
@@ -148,6 +156,7 @@ public class QuizAdminService(
         return ServiceResult.Success();
     }
 
+    /// <inheritdoc />
     public async Task<ServiceResult> DeleteQuizAsync(int quizId, CancellationToken ct = default)
     {
         var quiz = await uow.Quizzes.GetByIdAsync(quizId, ct).ConfigureAwait(false);
@@ -160,8 +169,9 @@ public class QuizAdminService(
         return ServiceResult.Success();
     }
 
-    // ── Question ──────────────────────────────────────
+    // ── 題目管理 ──────────────────────────────────────
 
+    /// <inheritdoc />
     public async Task<QuestionFormViewModel?> GetQuestionForEditAsync(int questionId, CancellationToken ct = default)
     {
         var question = await uow.Quizzes.GetQuestionByIdAsync(questionId, ct).ConfigureAwait(false);
@@ -195,6 +205,7 @@ public class QuizAdminService(
         };
     }
 
+    /// <inheritdoc />
     public async Task<ServiceResult<int>> AddQuestionAsync(QuestionFormViewModel vm, CancellationToken ct = default)
     {
         logger.LogInformation("新增題目 | QuizId={QuizId} | Type={Type}", vm.QuizId, vm.Type);
@@ -212,6 +223,7 @@ public class QuizAdminService(
             CorrectAnswer = vm.Type == QuestionType.FillInBlank ? vm.CorrectAnswer : null
         };
 
+        // 選擇題需建立選項
         if (vm.Type is QuestionType.SingleChoice or QuestionType.MultipleChoice)
         {
             foreach (var opt in vm.Options.Where(o => !string.IsNullOrWhiteSpace(o.Content)))
@@ -232,6 +244,7 @@ public class QuizAdminService(
         return ServiceResult<int>.Success(question.Id);
     }
 
+    /// <inheritdoc />
     public async Task<ServiceResult> UpdateQuestionAsync(QuestionFormViewModel vm, CancellationToken ct = default)
     {
         var quiz = await uow.Quizzes.GetWithQuestionsAsync(vm.QuizId, ct).ConfigureAwait(false);
@@ -246,13 +259,11 @@ public class QuizAdminService(
         question.SortOrder = vm.SortOrder;
         question.CorrectAnswer = vm.Type == QuestionType.FillInBlank ? vm.CorrectAnswer : null;
 
-        // Update options for choice questions
+        // 選擇題：清除舊選項後重新建立
         if (vm.Type is QuestionType.SingleChoice or QuestionType.MultipleChoice)
         {
-            // Remove old options
             question.Options.Clear();
 
-            // Add new options
             foreach (var opt in vm.Options.Where(o => !string.IsNullOrWhiteSpace(o.Content)))
             {
                 question.Options.Add(new QuizOption
@@ -268,9 +279,10 @@ public class QuizAdminService(
         return ServiceResult.Success();
     }
 
+    /// <inheritdoc />
     public async Task<ServiceResult> DeleteQuestionAsync(int questionId, CancellationToken ct = default)
     {
-        // Find the quiz containing this question
+        // 逐一搜尋所有測驗以找到包含此題目的測驗
         var allQuizzes = await uow.Quizzes.GetAllAsync(ct).ConfigureAwait(false);
         foreach (var q in allQuizzes)
         {

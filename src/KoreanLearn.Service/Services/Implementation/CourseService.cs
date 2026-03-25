@@ -8,11 +8,13 @@ using Microsoft.Extensions.Logging;
 
 namespace KoreanLearn.Service.Services.Implementation;
 
+/// <summary>前台課程業務邏輯實作，處理課程瀏覽、搜尋與首頁資料載入</summary>
 public class CourseService(
     IUnitOfWork uow,
     IMapper mapper,
     ILogger<CourseService> logger) : ICourseService
 {
+    /// <inheritdoc />
     public async Task<IReadOnlyList<CourseListViewModel>> GetPublishedCoursesAsync(
         CancellationToken ct = default)
     {
@@ -22,6 +24,7 @@ public class CourseService(
         return mapper.Map<IReadOnlyList<CourseListViewModel>>(courses);
     }
 
+    /// <inheritdoc />
     public async Task<PagedResult<CourseListViewModel>> SearchCoursesAsync(
         string? keyword, int page, int pageSize, CancellationToken ct = default)
     {
@@ -34,6 +37,7 @@ public class CourseService(
         return new PagedResult<CourseListViewModel>(items, result.TotalCount, result.Page, result.PageSize);
     }
 
+    /// <inheritdoc />
     public async Task<CourseDetailViewModel?> GetCourseDetailAsync(
         int id, string? userId = null, CancellationToken ct = default)
     {
@@ -57,7 +61,7 @@ public class CourseService(
         var vm = mapper.Map<CourseDetailViewModel>(course);
         vm.TeacherName = course.Teacher?.DisplayName;
 
-        // Fill in enrollment status and progress data if user is logged in
+        // 若使用者已登入，填入選課狀態與學習進度
         if (!string.IsNullOrEmpty(userId))
         {
             vm.IsEnrolled = await uow.Enrollments.HasActiveAccessAsync(userId, id, ct).ConfigureAwait(false);
@@ -79,6 +83,7 @@ public class CourseService(
         return vm;
     }
 
+    /// <inheritdoc />
     public async Task<HomeViewModel> GetHomeViewModelAsync(CancellationToken ct = default)
     {
         logger.LogInformation("載入首頁資料");

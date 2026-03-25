@@ -5,10 +5,12 @@ using KoreanLearn.Service.ViewModels.Admin.Section;
 
 namespace KoreanLearn.Web.Areas.Admin.Controllers;
 
+/// <summary>後台章節管理 Controller，提供課程章節的新增、編輯與刪除</summary>
 [Area("Admin")]
 [Authorize(Roles = "Admin")]
 public class SectionController(ICourseAdminService courseAdminService) : Controller
 {
+    /// <summary>新增章節表單頁（GET），預帶所屬課程資訊</summary>
     public IActionResult Create(int courseId, string? courseTitle)
     {
         var vm = new SectionFormViewModel
@@ -19,6 +21,7 @@ public class SectionController(ICourseAdminService courseAdminService) : Control
         return View(vm);
     }
 
+    /// <summary>新增章節（POST），成功後導回課程詳情頁</summary>
     [HttpPost]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Create(SectionFormViewModel vm, CancellationToken ct = default)
@@ -36,6 +39,7 @@ public class SectionController(ICourseAdminService courseAdminService) : Control
         return View(vm);
     }
 
+    /// <summary>編輯章節表單頁（GET），載入現有章節資料</summary>
     public async Task<IActionResult> Edit(int id, CancellationToken ct = default)
     {
         var vm = await courseAdminService.GetSectionForEditAsync(id, ct);
@@ -43,6 +47,7 @@ public class SectionController(ICourseAdminService courseAdminService) : Control
         return View(vm);
     }
 
+    /// <summary>更新章節（POST），成功後導回課程詳情頁</summary>
     [HttpPost]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Edit(SectionFormViewModel vm, CancellationToken ct = default)
@@ -60,6 +65,7 @@ public class SectionController(ICourseAdminService courseAdminService) : Control
         return View(vm);
     }
 
+    /// <summary>刪除章節（POST，軟刪除），完成後導回課程詳情頁</summary>
     [HttpPost]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Delete(int id, int courseId, CancellationToken ct = default)

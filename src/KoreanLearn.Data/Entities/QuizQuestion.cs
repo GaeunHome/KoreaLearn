@@ -4,20 +4,34 @@ using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 namespace KoreanLearn.Data.Entities;
 
+/// <summary>測驗題目實體，支援選擇題與填空題兩種題型</summary>
 public class QuizQuestion : BaseEntity
 {
+    /// <summary>所屬測驗 ID</summary>
     public int QuizId { get; set; }
-    public string Content { get; set; } = string.Empty;
-    public QuestionType Type { get; set; }
-    public int Points { get; set; } = 1;
-    public int SortOrder { get; set; }
-    public string? CorrectAnswer { get; set; } // FillInBlank 的正確答案
 
-    // Navigation
+    /// <summary>題目內容</summary>
+    public string Content { get; set; } = string.Empty;
+
+    /// <summary>題目類型（選擇題/填空題）</summary>
+    public QuestionType Type { get; set; }
+
+    /// <summary>配分</summary>
+    public int Points { get; set; } = 1;
+
+    /// <summary>排序順序</summary>
+    public int SortOrder { get; set; }
+
+    /// <summary>填空題的正確答案（僅 QuestionType.FillInBlank 使用）</summary>
+    public string? CorrectAnswer { get; set; }
+
+    // ── 導覽屬性 ─────────────────────────────────────────
     public Quiz Quiz { get; set; } = null!;
     public ICollection<QuizOption> Options { get; set; } = [];
 }
 
+// ── EF Core Fluent API 設定 ─────────────────────────────
+/// <summary>QuizQuestion 的資料庫欄位與關聯設定</summary>
 public class QuizQuestionConfiguration : IEntityTypeConfiguration<QuizQuestion>
 {
     public void Configure(EntityTypeBuilder<QuizQuestion> builder)

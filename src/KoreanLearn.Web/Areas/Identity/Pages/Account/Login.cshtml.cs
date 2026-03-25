@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.RateLimiting;
 
 namespace KoreanLearn.Web.Areas.Identity.Pages.Account;
 
+/// <summary>登入頁面 PageModel，處理使用者帳號密碼登入（含速率限制）</summary>
 [EnableRateLimiting("auth")]
 public class LoginModel(IAuthService authService) : PageModel
 {
@@ -14,6 +15,7 @@ public class LoginModel(IAuthService authService) : PageModel
 
     public string? ReturnUrl { get; set; }
 
+    /// <summary>登入表單輸入模型</summary>
     public class InputModel
     {
         [Required(ErrorMessage = "請輸入電子信箱")]
@@ -30,11 +32,13 @@ public class LoginModel(IAuthService authService) : PageModel
         public bool RememberMe { get; set; }
     }
 
+    /// <summary>載入登入頁面，設定 ReturnUrl</summary>
     public void OnGet(string? returnUrl = null)
     {
         ReturnUrl = returnUrl ?? Url.Content("~/");
     }
 
+    /// <summary>處理登入表單提交，驗證成功後導向 ReturnUrl</summary>
     public async Task<IActionResult> OnPostAsync(string? returnUrl = null)
     {
         returnUrl ??= Url.Content("~/");

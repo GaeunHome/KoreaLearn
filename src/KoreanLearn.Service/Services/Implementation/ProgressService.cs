@@ -6,14 +6,16 @@ using Microsoft.Extensions.Logging;
 
 namespace KoreanLearn.Service.Services.Implementation;
 
+/// <summary>學習進度追蹤業務邏輯實作，管理影片播放進度與單元完成標記</summary>
 public class ProgressService(
     IUnitOfWork uow,
     ILogger<ProgressService> logger) : IProgressService
 {
+    /// <inheritdoc />
     public async Task<ServiceResult<int>> SaveVideoProgressAsync(
         string userId, int lessonId, int progressSeconds, CancellationToken ct = default)
     {
-        // 權限檢查
+        // 權限檢查：確認使用者有存取此單元的權限
         var accessCheck = await CheckLessonAccessAsync(userId, lessonId, ct).ConfigureAwait(false);
         if (!accessCheck.IsSuccess) return ServiceResult<int>.Failure(accessCheck.ErrorMessage!);
 
@@ -42,10 +44,11 @@ public class ProgressService(
         return ServiceResult<int>.Success(progressSeconds);
     }
 
+    /// <inheritdoc />
     public async Task<ServiceResult> MarkLessonCompleteAsync(
         string userId, int lessonId, CancellationToken ct = default)
     {
-        // 權限檢查
+        // 權限檢查：確認使用者有存取此單元的權限
         var accessCheck = await CheckLessonAccessAsync(userId, lessonId, ct).ConfigureAwait(false);
         if (!accessCheck.IsSuccess) return accessCheck;
 
@@ -75,6 +78,7 @@ public class ProgressService(
         return ServiceResult.Success();
     }
 
+    /// <inheritdoc />
     public async Task<ServiceResult> UndoLessonCompleteAsync(
         string userId, int lessonId, CancellationToken ct = default)
     {
@@ -94,6 +98,7 @@ public class ProgressService(
         return ServiceResult.Success();
     }
 
+    /// <inheritdoc />
     public async Task<int> GetVideoProgressAsync(
         string userId, int lessonId, CancellationToken ct = default)
     {
@@ -101,6 +106,7 @@ public class ProgressService(
         return progress?.VideoProgressSeconds ?? 0;
     }
 
+    /// <summary>檢查使用者是否有存取單元的權限（免費試看或已購買課程）</summary>
     private async Task<ServiceResult> CheckLessonAccessAsync(
         string userId, int lessonId, CancellationToken ct)
     {

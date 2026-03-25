@@ -1,7 +1,9 @@
 namespace KoreanLearn.Web.Infrastructure.Middleware;
 
+/// <summary>安全標頭中介軟體，為所有回應加入安全性 HTTP 標頭（CSP、X-Frame-Options 等）</summary>
 public class SecurityHeadersMiddleware(RequestDelegate next)
 {
+    /// <summary>在回應中注入安全標頭後繼續管線處理</summary>
     public async Task InvokeAsync(HttpContext context)
     {
         var headers = context.Response.Headers;
@@ -27,8 +29,10 @@ public class SecurityHeadersMiddleware(RequestDelegate next)
     }
 }
 
+/// <summary>SecurityHeadersMiddleware 的擴充方法，提供簡潔的管線註冊語法</summary>
 public static class SecurityHeadersExtensions
 {
+    /// <summary>將安全標頭中介軟體加入 HTTP 請求管線</summary>
     public static IApplicationBuilder UseSecurityHeaders(this IApplicationBuilder app)
         => app.UseMiddleware<SecurityHeadersMiddleware>();
 }

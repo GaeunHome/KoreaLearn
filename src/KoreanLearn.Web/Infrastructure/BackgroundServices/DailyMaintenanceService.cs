@@ -2,10 +2,12 @@ using KoreanLearn.Service.Services.Interfaces;
 
 namespace KoreanLearn.Web.Infrastructure.BackgroundServices;
 
+/// <summary>每日維護背景服務，於每日 UTC 02:00 執行定期維護任務（字卡複習統計、過期訂閱停用）</summary>
 public class DailyMaintenanceService(
     IServiceScopeFactory scopeFactory,
     ILogger<DailyMaintenanceService> logger) : BackgroundService
 {
+    /// <summary>背景服務主迴圈，定時排程執行維護任務</summary>
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
         logger.LogInformation("DailyMaintenanceService 啟動");
@@ -31,6 +33,7 @@ public class DailyMaintenanceService(
         }
     }
 
+    /// <summary>執行維護任務：統計待複習字卡數量、停用過期訂閱</summary>
     private async Task DoWorkAsync(CancellationToken ct)
     {
         using var scope = scopeFactory.CreateScope();

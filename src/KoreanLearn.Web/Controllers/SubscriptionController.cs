@@ -5,8 +5,10 @@ using KoreanLearn.Service.Services.Interfaces;
 
 namespace KoreanLearn.Web.Controllers;
 
+/// <summary>訂閱方案 Controller，提供方案列表瀏覽與訂閱功能</summary>
 public class SubscriptionController(ISubscriptionService subscriptionService) : Controller
 {
+    /// <summary>訂閱方案列表頁，顯示所有啟用中的方案與使用者目前的訂閱狀態</summary>
     public async Task<IActionResult> Index(CancellationToken ct = default)
     {
         var plans = await subscriptionService.GetActivePlansAsync(ct);
@@ -17,6 +19,7 @@ public class SubscriptionController(ISubscriptionService subscriptionService) : 
         return View(plans);
     }
 
+    /// <summary>訂閱方案（POST），訂閱成功後解鎖所有課程並導回方案列表</summary>
     [Authorize]
     [HttpPost]
     [ValidateAntiForgeryToken]

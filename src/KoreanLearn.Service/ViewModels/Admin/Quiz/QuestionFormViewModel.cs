@@ -3,9 +3,13 @@ using KoreanLearn.Library.Enums;
 
 namespace KoreanLearn.Service.ViewModels.Admin.Quiz;
 
+/// <summary>建立/編輯題目表單 ViewModel（支援單選、多選、填空）</summary>
 public class QuestionFormViewModel
 {
+    /// <summary>題目 ID（編輯時使用）</summary>
     public int Id { get; set; }
+
+    /// <summary>所屬測驗 ID</summary>
     public int QuizId { get; set; }
 
     [Required(ErrorMessage = "題目內容為必填")]
@@ -28,15 +32,17 @@ public class QuestionFormViewModel
     [MaxLength(500)]
     public string? CorrectAnswer { get; set; }
 
-    // Options for choice questions
+    /// <summary>選擇題的選項列表</summary>
     public List<OptionFormViewModel> Options { get; set; } = [];
 
-    // Context
+    /// <summary>所屬課程 ID（導覽用）</summary>
     public int? CourseId { get; set; }
 }
 
+/// <summary>建立/編輯選項表單 ViewModel</summary>
 public class OptionFormViewModel
 {
+    /// <summary>選項 ID（編輯時使用）</summary>
     public int Id { get; set; }
 
     [Required(ErrorMessage = "選項內容為必填")]

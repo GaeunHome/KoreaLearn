@@ -3,19 +3,31 @@ using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 namespace KoreanLearn.Data.Entities;
 
+/// <summary>完課證書實體，記錄學生完成課程後獲頒的證書</summary>
 public class Certificate : BaseEntity
 {
+    /// <summary>持有人 ID</summary>
     public string UserId { get; set; } = string.Empty;
+
+    /// <summary>完成的課程 ID</summary>
     public int CourseId { get; set; }
+
+    /// <summary>證書編號（唯一）</summary>
     public string CertificateNumber { get; set; } = string.Empty;
+
+    /// <summary>頒發日期</summary>
     public DateTime IssuedAt { get; set; }
+
+    /// <summary>證書 PDF 檔案路徑</summary>
     public string? PdfUrl { get; set; }
 
-    // Navigation
+    // ── 導覽屬性 ─────────────────────────────────────────
     public AppUser User { get; set; } = null!;
     public Course Course { get; set; } = null!;
 }
 
+// ── EF Core Fluent API 設定 ─────────────────────────────
+/// <summary>Certificate 的資料庫欄位與關聯設定</summary>
 public class CertificateConfiguration : IEntityTypeConfiguration<Certificate>
 {
     public void Configure(EntityTypeBuilder<Certificate> builder)

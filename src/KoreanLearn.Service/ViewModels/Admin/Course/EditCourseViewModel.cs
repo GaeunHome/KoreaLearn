@@ -4,8 +4,10 @@ using Microsoft.AspNetCore.Http;
 
 namespace KoreanLearn.Service.ViewModels.Admin.Course;
 
+/// <summary>編輯課程表單 ViewModel</summary>
 public class EditCourseViewModel
 {
+    /// <summary>課程 ID</summary>
     public int Id { get; set; }
 
     [Required(ErrorMessage = "標題為必填")]
@@ -36,5 +38,6 @@ public class EditCourseViewModel
     [Display(Name = "排序")]
     public int SortOrder { get; set; }
 
+    /// <summary>現有封面圖片網址（編輯時顯示預覽用）</summary>
     public string? ExistingCoverImageUrl { get; set; }
 }

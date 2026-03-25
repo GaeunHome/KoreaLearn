@@ -7,17 +7,19 @@ using Microsoft.Extensions.Logging;
 
 namespace KoreanLearn.Service.Services.Implementation;
 
+/// <summary>訂單業務邏輯實作，處理訂單建立、模擬付款（自動建立選課紀錄）與訂單查詢</summary>
 public class OrderService(
     IUnitOfWork uow,
     ILogger<OrderService> logger) : IOrderService
 {
+    /// <inheritdoc />
     public async Task<ServiceResult<int>> CreateOrderAsync(
         string userId, int courseId, CancellationToken ct = default)
     {
         var course = await uow.Courses.GetByIdAsync(courseId, ct).ConfigureAwait(false);
         if (course is null) return ServiceResult<int>.Failure("課程不存在");
 
-        // Check if already enrolled
+        // 檢查是否已選過此課程
         if (await uow.Enrollments.IsEnrolledAsync(userId, courseId, ct).ConfigureAwait(false))
             return ServiceResult<int>.Failure("您已購買此課程");
 
@@ -38,6 +40,7 @@ public class OrderService(
         return ServiceResult<int>.Success(order.Id);
     }
 
+    /// <inheritdoc />
     public async Task<ServiceResult> SimulatePaymentAsync(
         int orderId, string userId, CancellationToken ct = default)
     {
@@ -47,11 +50,12 @@ public class OrderService(
         if (order.Status != OrderStatus.Pending)
             return ServiceResult.Failure("訂單狀態不正確");
 
+        // 模擬付款成功：更新訂單狀態
         order.Status = OrderStatus.Completed;
         order.PaymentStatus = PaymentStatus.Completed;
         uow.Orders.Update(order);
 
-        // Create enrollments for each course in the order
+        // 付款成功後自動為每筆訂單項目建立選課紀錄
         foreach (var item in order.OrderItems)
         {
             var existing = await uow.Enrollments.GetByUserAndCourseAsync(userId, item.CourseId, ct).ConfigureAwait(false);
@@ -71,6 +75,7 @@ public class OrderService(
         return ServiceResult.Success();
     }
 
+    /// <inheritdoc />
     public async Task<PagedResult<OrderListViewModel>> GetUserOrdersAsync(
         string userId, int page, int pageSize, CancellationToken ct = default)
     {
@@ -80,6 +85,7 @@ public class OrderService(
         return new PagedResult<OrderListViewModel>(items, total, page, pageSize);
     }
 
+    /// <inheritdoc />
     public async Task<OrderDetailViewModel?> GetOrderDetailAsync(
         int orderId, string userId, CancellationToken ct = default)
     {
@@ -103,6 +109,7 @@ public class OrderService(
         };
     }
 
+    /// <inheritdoc />
     public async Task<PagedResult<OrderListViewModel>> GetAllOrdersPagedAsync(
         int page, int pageSize, CancellationToken ct = default)
     {
@@ -111,6 +118,7 @@ public class OrderService(
         return new PagedResult<OrderListViewModel>(items, result.TotalCount, result.Page, result.PageSize);
     }
 
+    /// <summary>將 Order Entity 轉換為列表 ViewModel</summary>
     private static OrderListViewModel MapToList(Order o) => new()
     {
         Id = o.Id,

@@ -7,8 +7,10 @@ using Microsoft.Extensions.Logging;
 
 namespace KoreanLearn.Data;
 
+/// <summary>資料庫初始化器，負責執行 Migration 並植入種子資料（角色、帳號、範例課程等）</summary>
 public static class DbInitializer
 {
+    /// <summary>執行資料庫初始化：套用 Migration + 植入種子資料</summary>
     public static async Task InitializeAsync(IServiceProvider serviceProvider)
     {
         using var scope = serviceProvider.CreateScope();
@@ -29,6 +31,7 @@ public static class DbInitializer
         logger.LogInformation("資料庫初始化完成");
     }
 
+    // ── 角色種子資料 ──────────────────────────────────────
     private static async Task SeedRolesAsync(RoleManager<IdentityRole> roleManager, ILogger logger)
     {
         string[] roles = ["Admin", "Student", "Teacher"];
@@ -43,6 +46,7 @@ public static class DbInitializer
         }
     }
 
+    // ── 使用者種子資料（Admin / Student / Teacher）────────
     private static async Task SeedUsersAsync(UserManager<AppUser> userManager, ILogger logger)
     {
         if (await userManager.FindByEmailAsync("admin@koreanlearn.com").ConfigureAwait(false) is null)
@@ -94,6 +98,7 @@ public static class DbInitializer
         }
     }
 
+    // ── 課程種子資料（範例課程含章節與單元）────────────────
     private static async Task SeedCoursesAsync(ApplicationDbContext db, ILogger logger)
     {
         if (await db.Courses.AnyAsync().ConfigureAwait(false))
@@ -890,6 +895,7 @@ public static class DbInitializer
         logger.LogInformation("建立 {Count} 門範例課程", courses.Count);
     }
 
+    // ── 公告種子資料 ──────────────────────────────────────
     private static async Task SeedAnnouncementsAsync(ApplicationDbContext db, ILogger logger)
     {
         if (await db.Announcements.AnyAsync().ConfigureAwait(false))
@@ -918,6 +924,7 @@ public static class DbInitializer
         logger.LogInformation("建立範例公告");
     }
 
+    // ── 訂閱方案種子資料 ──────────────────────────────────
     private static async Task SeedSubscriptionPlansAsync(ApplicationDbContext db, ILogger logger)
     {
         if (await db.SubscriptionPlans.AnyAsync().ConfigureAwait(false))

@@ -3,20 +3,49 @@
    ═══════════════════════════════════════════════ */
 
 // ─── SweetAlert2 通知封裝 ────────────────────────
+
+/**
+ * 顯示成功通知對話框
+ * @param {string} message - 通知訊息內容
+ * @param {string} [title] - 對話框標題，預設為「成功」
+ */
 window.showSuccess = function (message, title) {
     Swal.fire({ icon: 'success', title: title || '成功', text: message, confirmButtonColor: '#2B3A67' });
 };
+
+/**
+ * 顯示錯誤通知對話框
+ * @param {string} message - 錯誤訊息內容
+ * @param {string} [title] - 對話框標題，預設為「錯誤」
+ */
 window.showError = function (message, title) {
     Swal.fire({ icon: 'error', title: title || '錯誤', text: message, confirmButtonColor: '#2B3A67' });
 };
+
+/**
+ * 顯示警告通知對話框
+ * @param {string} message - 警告訊息內容
+ * @param {string} [title] - 對話框標題，預設為「警告」
+ */
 window.showWarning = function (message, title) {
     Swal.fire({ icon: 'warning', title: title || '警告', text: message, confirmButtonColor: '#2B3A67' });
 };
+
+/**
+ * 顯示提示通知對話框
+ * @param {string} message - 提示訊息內容
+ * @param {string} [title] - 對話框標題，預設為「提示」
+ */
 window.showInfo = function (message, title) {
     Swal.fire({ icon: 'info', title: title || '提示', text: message, confirmButtonColor: '#2B3A67' });
 };
 
-// 確認對話框
+/**
+ * 顯示確認對話框（含確定/取消按鈕）
+ * @param {string} message - 確認訊息內容
+ * @param {string} [title] - 對話框標題，預設為「確認」
+ * @param {Function} [onConfirm] - 使用者點擊確定後的回呼函式
+ */
 window.showConfirm = function (message, title, onConfirm) {
     Swal.fire({
         icon: 'question', title: title || '確認', text: message,
@@ -25,7 +54,11 @@ window.showConfirm = function (message, title, onConfirm) {
     }).then(function (result) { if (result.isConfirmed && onConfirm) onConfirm(); });
 };
 
-// 刪除確認
+/**
+ * 顯示刪除確認對話框（紅色警告樣式）
+ * @param {string} itemName - 要刪除的項目名稱
+ * @param {Function} [onConfirm] - 使用者確認刪除後的回呼函式
+ */
 window.showDeleteConfirm = function (itemName, onConfirm) {
     Swal.fire({
         icon: 'warning',
@@ -36,7 +69,9 @@ window.showDeleteConfirm = function (itemName, onConfirm) {
     }).then(function (result) { if (result.isConfirmed && onConfirm) onConfirm(); });
 };
 
-// 需要登入
+/**
+ * 顯示需要登入提示，使用者確認後導向登入頁面
+ */
 window.showLoginRequired = function () {
     Swal.fire({
         icon: 'info', title: '請先登入',
@@ -48,7 +83,11 @@ window.showLoginRequired = function () {
     });
 };
 
-// Toast（輕量通知，右下角自動消失）
+/**
+ * 顯示 Toast 輕量通知（右下角自動消失）
+ * @param {string} message - 通知訊息
+ * @param {string} [type='success'] - 通知類型（success/error/warning/info）
+ */
 window.showToast = function (message, type) {
     type = type || 'success';
     Swal.fire({
@@ -58,7 +97,7 @@ window.showToast = function (message, type) {
     });
 };
 
-// ─── TempData 自動偵測 ───────────────────────────
+// ─── TempData 自動偵測：頁面載入時自動顯示 TempData 通知 ───
 document.addEventListener('DOMContentLoaded', function () {
     var s = document.querySelector('[data-tempdata-success]');
     if (s) showToast(s.getAttribute('data-tempdata-success'), 'success');
@@ -70,7 +109,7 @@ document.addEventListener('DOMContentLoaded', function () {
     if (i) showToast(i.getAttribute('data-tempdata-info'), 'info');
 });
 
-// ─── 通用確認操作（data-confirm） ────────────────
+// ─── 通用確認操作：攔截含 data-confirm 屬性的按鈕，顯示確認對話框 ───
 document.addEventListener('click', function (e) {
     var btn = e.target.closest('[data-confirm]');
     if (!btn) return;
@@ -101,7 +140,7 @@ document.addEventListener('click', function (e) {
     });
 });
 
-// ─── 通用刪除確認（data-confirm-delete） ─────────
+// ─── 通用刪除確認：攔截含 data-confirm-delete 屬性的按鈕，顯示刪除確認對話框 ───
 document.addEventListener('click', function (e) {
     var btn = e.target.closest('[data-confirm-delete]');
     if (!btn) return;
@@ -122,7 +161,7 @@ document.addEventListener('click', function (e) {
     });
 });
 
-// ─── 需要登入（data-require-auth） ───────────────
+// ─── 需要登入：攔截含 data-require-auth 屬性的按鈕，顯示登入提示 ───
 document.addEventListener('click', function (e) {
     var btn = e.target.closest('[data-require-auth]');
     if (!btn) return;
@@ -131,7 +170,7 @@ document.addEventListener('click', function (e) {
     showLoginRequired();
 });
 
-// ─── 密碼顯示/隱藏切換 ──────────────────────────
+// ─── 密碼顯示/隱藏切換：點擊 .kl-toggle-pw 按鈕切換密碼欄位可見性 ───
 document.addEventListener('click', function (e) {
     var btn = e.target.closest('.kl-toggle-pw');
     if (!btn) return;
@@ -147,7 +186,7 @@ document.addEventListener('click', function (e) {
     }
 });
 
-// ─── 表單送出防重複提交 ─────────────────────────
+// ─── 表單送出防重複提交：送出後暫時停用按鈕並顯示載入動畫 ───
 document.addEventListener('submit', function (e) {
     var form = e.target;
     if (form.getAttribute('data-no-disable')) return;

@@ -4,8 +4,10 @@ using Microsoft.AspNetCore.Identity;
 
 namespace KoreanLearn.Web.Infrastructure.Extensions;
 
+/// <summary>資料層服務註冊擴充方法，註冊 DbContext、Repository、UoW 與 ASP.NET Core Identity</summary>
 public static class DataServiceExtensions
 {
+    /// <summary>註冊資料層服務（DbContext、Repository、UoW）與 Identity 認證系統</summary>
     public static IServiceCollection AddDataServices(
         this IServiceCollection services, IConfiguration config)
     {

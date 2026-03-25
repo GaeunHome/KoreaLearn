@@ -7,10 +7,12 @@ using Microsoft.Extensions.Logging;
 
 namespace KoreanLearn.Service.Services.Implementation;
 
+/// <summary>前台單元播放器業務邏輯實作，依單元類型組裝播放器所需的 ViewModel（含導覽、進度、附件）</summary>
 public class LessonPlayerService(
     IUnitOfWork uow,
     ILogger<LessonPlayerService> logger) : ILessonPlayerService
 {
+    /// <inheritdoc />
     public async Task<VideoPlayerViewModel?> GetVideoPlayerAsync(
         int lessonId, string userId, CancellationToken ct = default)
     {
@@ -44,6 +46,7 @@ public class LessonPlayerService(
         };
     }
 
+    /// <inheritdoc />
     public async Task<ArticlePlayerViewModel?> GetArticlePlayerAsync(
         int lessonId, string userId, CancellationToken ct = default)
     {
@@ -75,6 +78,7 @@ public class LessonPlayerService(
         };
     }
 
+    /// <inheritdoc />
     public async Task<PdfPlayerViewModel?> GetPdfPlayerAsync(
         int lessonId, string userId, CancellationToken ct = default)
     {
@@ -107,7 +111,7 @@ public class LessonPlayerService(
         };
     }
 
-    /// <summary>取得課程上下文，同時檢查用戶是否有存取權限。無權限時回傳 null。</summary>
+    /// <summary>取得單元的上下文資訊（章節、課程、學習進度、前後單元 ID），同時檢查存取權限</summary>
     private async Task<(Section? section, Course? course, Progress? progress, int? prevId, int? nextId)?>
         GetLessonContextAsync(Lesson lesson, string userId, CancellationToken ct)
     {
@@ -130,6 +134,7 @@ public class LessonPlayerService(
 
         var progress = await uow.Progresses.GetByUserAndLessonAsync(userId, lesson.Id, ct).ConfigureAwait(false);
 
+        // 計算同章節內的前後單元 ID，用於播放器導覽
         int? prevId = null;
         int? nextId = null;
         if (section is not null)
@@ -144,6 +149,7 @@ public class LessonPlayerService(
         return (section, course, progress, prevId, nextId);
     }
 
+    /// <summary>取得單元的附件列表並轉換檔案大小為可讀格式</summary>
     private async Task<IReadOnlyList<LessonAttachmentViewModel>> GetAttachmentsAsync(
         int lessonId, CancellationToken ct)
     {

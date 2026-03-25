@@ -5,10 +5,12 @@ using KoreanLearn.Service.ViewModels.Admin.Lesson;
 
 namespace KoreanLearn.Web.Areas.Admin.Controllers;
 
+/// <summary>後台單元管理 Controller，提供課程單元的新增、編輯與刪除（含影片/PDF 檔案上傳）</summary>
 [Area("Admin")]
 [Authorize(Roles = "Admin")]
 public class LessonController(ICourseAdminService courseAdminService) : Controller
 {
+    /// <summary>新增單元表單頁（GET），預帶所屬章節與課程資訊</summary>
     public IActionResult Create(int sectionId, int courseId, string? sectionTitle, string? courseTitle)
     {
         var vm = new LessonFormViewModel
@@ -21,6 +23,7 @@ public class LessonController(ICourseAdminService courseAdminService) : Controll
         return View(vm);
     }
 
+    /// <summary>新增單元（POST），處理檔案上傳後建立單元，成功導回課程詳情</summary>
     [HttpPost]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Create(LessonFormViewModel vm, CancellationToken ct = default)
@@ -40,6 +43,7 @@ public class LessonController(ICourseAdminService courseAdminService) : Controll
         return View(vm);
     }
 
+    /// <summary>編輯單元表單頁（GET），載入現有單元資料</summary>
     public async Task<IActionResult> Edit(int id, CancellationToken ct = default)
     {
         var vm = await courseAdminService.GetLessonForEditAsync(id, ct);
@@ -47,6 +51,7 @@ public class LessonController(ICourseAdminService courseAdminService) : Controll
         return View(vm);
     }
 
+    /// <summary>更新單元（POST），處理檔案上傳後更新單元，成功導回課程詳情</summary>
     [HttpPost]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Edit(LessonFormViewModel vm, CancellationToken ct = default)
@@ -66,6 +71,7 @@ public class LessonController(ICourseAdminService courseAdminService) : Controll
         return View(vm);
     }
 
+    /// <summary>刪除單元（POST，軟刪除），完成後導回課程詳情頁</summary>
     [HttpPost]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Delete(int id, int courseId, CancellationToken ct = default)
@@ -79,6 +85,7 @@ public class LessonController(ICourseAdminService courseAdminService) : Controll
         return RedirectToAction("Detail", "Course", new { area = "Admin", id = courseId });
     }
 
+    /// <summary>處理影片與 PDF 檔案上傳，將檔案存入對應資料夾並更新 ViewModel 的 URL</summary>
     private async Task HandleFileUploadsAsync(LessonFormViewModel vm)
     {
         if (vm.VideoFile is not null)
@@ -95,6 +102,7 @@ public class LessonController(ICourseAdminService courseAdminService) : Controll
         }
     }
 
+    /// <summary>儲存上傳檔案至 wwwroot/uploads/{folder}/，回傳相對路徑</summary>
     private static async Task<string> SaveFileAsync(IFormFile file, string folder)
     {
         var uploadsDir = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "uploads", folder);

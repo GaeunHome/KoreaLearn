@@ -7,10 +7,12 @@ using Microsoft.Extensions.Logging;
 
 namespace KoreanLearn.Service.Services.Implementation;
 
+/// <summary>發音練習業務邏輯實作，處理後台管理（CRUD）與前台練習（錄音上傳）</summary>
 public class PronunciationService(
     IUnitOfWork uow,
     ILogger<PronunciationService> logger) : IPronunciationService
 {
+    /// <inheritdoc />
     public async Task<PagedResult<PronunciationListViewModel>> GetPagedAsync(
         int page, int pageSize, CancellationToken ct = default)
     {
@@ -23,6 +25,7 @@ public class PronunciationService(
         return new PagedResult<PronunciationListViewModel>(items, result.TotalCount, result.Page, result.PageSize);
     }
 
+    /// <inheritdoc />
     public async Task<PronunciationFormViewModel?> GetForEditAsync(int id, CancellationToken ct = default)
     {
         var p = await uow.Pronunciations.GetByIdAsync(id, ct).ConfigureAwait(false);
@@ -34,6 +37,7 @@ public class PronunciationService(
         };
     }
 
+    /// <inheritdoc />
     public async Task<ServiceResult<int>> CreateAsync(
         PronunciationFormViewModel vm, string audioUrl, CancellationToken ct = default)
     {
@@ -48,6 +52,7 @@ public class PronunciationService(
         return ServiceResult<int>.Success(entity.Id);
     }
 
+    /// <inheritdoc />
     public async Task<ServiceResult> UpdateAsync(
         PronunciationFormViewModel vm, string? newAudioUrl, CancellationToken ct = default)
     {
@@ -65,6 +70,7 @@ public class PronunciationService(
         return ServiceResult.Success();
     }
 
+    /// <inheritdoc />
     public async Task<ServiceResult> DeleteAsync(int id, CancellationToken ct = default)
     {
         var entity = await uow.Pronunciations.GetByIdAsync(id, ct).ConfigureAwait(false);
@@ -74,6 +80,7 @@ public class PronunciationService(
         return ServiceResult.Success();
     }
 
+    /// <inheritdoc />
     public async Task<IReadOnlyList<PronunciationListViewModel>> GetAllForPracticeAsync(
         CancellationToken ct = default)
     {
@@ -85,6 +92,7 @@ public class PronunciationService(
         }).ToList();
     }
 
+    /// <inheritdoc />
     public async Task<ServiceResult> SaveAttemptAsync(
         string userId, int exerciseId, string recordingUrl, CancellationToken ct = default)
     {

@@ -6,10 +6,12 @@ using Microsoft.Extensions.Logging;
 
 namespace KoreanLearn.Service.Services.Implementation;
 
+/// <summary>討論區業務邏輯實作，處理討論主題與回覆的建立、查詢與刪除</summary>
 public class DiscussionService(
     IUnitOfWork uow,
     ILogger<DiscussionService> logger) : IDiscussionService
 {
+    /// <inheritdoc />
     public async Task<PagedResult<DiscussionListItem>> GetAllAsync(
         int page, int pageSize, CancellationToken ct = default)
     {
@@ -25,6 +27,7 @@ public class DiscussionService(
         return new PagedResult<DiscussionListItem>(items, result.TotalCount, result.Page, result.PageSize);
     }
 
+    /// <inheritdoc />
     public async Task<PagedResult<DiscussionListItem>> GetByCourseAsync(
         int courseId, int page, int pageSize, CancellationToken ct = default)
     {
@@ -40,6 +43,7 @@ public class DiscussionService(
         return new PagedResult<DiscussionListItem>(items, result.TotalCount, result.Page, result.PageSize);
     }
 
+    /// <inheritdoc />
     public async Task<DiscussionDetailViewModel?> GetDetailAsync(int id, CancellationToken ct = default)
     {
         var d = await uow.Discussions.GetWithRepliesAsync(id, ct).ConfigureAwait(false);
@@ -58,6 +62,7 @@ public class DiscussionService(
         };
     }
 
+    /// <inheritdoc />
     public async Task<ServiceResult<int>> CreateAsync(
         string userId, int courseId, string title, string content, CancellationToken ct = default)
     {
@@ -80,6 +85,7 @@ public class DiscussionService(
         return ServiceResult<int>.Success(discussion.Id);
     }
 
+    /// <inheritdoc />
     public async Task<ServiceResult> ReplyAsync(
         string userId, int discussionId, string content, CancellationToken ct = default)
     {
@@ -94,6 +100,7 @@ public class DiscussionService(
         return ServiceResult.Success();
     }
 
+    /// <inheritdoc />
     public async Task<ServiceResult> DeleteAsync(
         int id, string userId, bool isAdmin, CancellationToken ct = default)
     {

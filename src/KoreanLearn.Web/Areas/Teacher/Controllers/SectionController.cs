@@ -6,17 +6,20 @@ using KoreanLearn.Service.ViewModels.Admin.Section;
 
 namespace KoreanLearn.Web.Areas.Teacher.Controllers;
 
+/// <summary>教師章節管理 Controller，提供教師自有課程章節的新增、編輯與刪除</summary>
 [Area("Teacher")]
 [Authorize(Roles = "Teacher")]
 public class SectionController(ITeacherCourseService teacherService) : Controller
 {
     private string TeacherId => User.FindFirstValue(ClaimTypes.NameIdentifier)!;
 
+    /// <summary>新增章節表單頁（GET），預帶所屬課程資訊</summary>
     public IActionResult Create(int courseId, string? courseTitle)
     {
         return View(new SectionFormViewModel { CourseId = courseId, CourseTitle = courseTitle });
     }
 
+    /// <summary>新增章節（POST），驗證教師身份後建立章節，成功導回課程詳情</summary>
     [HttpPost]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Create(SectionFormViewModel vm, CancellationToken ct = default)
@@ -34,6 +37,7 @@ public class SectionController(ITeacherCourseService teacherService) : Controlle
         return View(vm);
     }
 
+    /// <summary>編輯章節表單頁（GET），載入教師自有課程的章節資料</summary>
     public async Task<IActionResult> Edit(int id, CancellationToken ct = default)
     {
         var vm = await teacherService.GetSectionForEditAsync(id, TeacherId, ct);
@@ -41,6 +45,7 @@ public class SectionController(ITeacherCourseService teacherService) : Controlle
         return View(vm);
     }
 
+    /// <summary>更新章節（POST），驗證教師身份後更新章節，成功導回課程詳情</summary>
     [HttpPost]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Edit(SectionFormViewModel vm, CancellationToken ct = default)
@@ -58,6 +63,7 @@ public class SectionController(ITeacherCourseService teacherService) : Controlle
         return View(vm);
     }
 
+    /// <summary>刪除章節（POST，軟刪除），驗證教師身份後刪除，完成導回課程詳情</summary>
     [HttpPost]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Delete(int id, int courseId, CancellationToken ct = default)

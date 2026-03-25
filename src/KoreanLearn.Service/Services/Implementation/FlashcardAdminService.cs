@@ -7,10 +7,12 @@ using Microsoft.Extensions.Logging;
 
 namespace KoreanLearn.Service.Services.Implementation;
 
+/// <summary>後台字卡管理業務邏輯實作，處理牌組與字卡（韓文/中文/羅馬拼音）的 CRUD</summary>
 public class FlashcardAdminService(
     IUnitOfWork uow,
     ILogger<FlashcardAdminService> logger) : IFlashcardAdminService
 {
+    /// <inheritdoc />
     public async Task<PagedResult<DeckListViewModel>> GetDecksPagedAsync(
         int page, int pageSize, CancellationToken ct = default)
     {
@@ -32,6 +34,7 @@ public class FlashcardAdminService(
         return new PagedResult<DeckListViewModel>(items, result.TotalCount, result.Page, result.PageSize);
     }
 
+    /// <inheritdoc />
     public async Task<DeckDetailViewModel?> GetDeckDetailAsync(int id, CancellationToken ct = default)
     {
         var deck = await uow.FlashcardDecks.GetWithCardsAsync(id, ct).ConfigureAwait(false);
@@ -55,6 +58,7 @@ public class FlashcardAdminService(
         };
     }
 
+    /// <inheritdoc />
     public async Task<DeckFormViewModel?> GetDeckForEditAsync(int id, CancellationToken ct = default)
     {
         var deck = await uow.FlashcardDecks.GetByIdAsync(id, ct).ConfigureAwait(false);
@@ -68,6 +72,7 @@ public class FlashcardAdminService(
         };
     }
 
+    /// <inheritdoc />
     public async Task<ServiceResult<int>> CreateDeckAsync(DeckFormViewModel vm, CancellationToken ct = default)
     {
         logger.LogInformation("建立字卡牌組 | Title={Title}", vm.Title);
@@ -83,6 +88,7 @@ public class FlashcardAdminService(
         return ServiceResult<int>.Success(deck.Id);
     }
 
+    /// <inheritdoc />
     public async Task<ServiceResult> UpdateDeckAsync(DeckFormViewModel vm, CancellationToken ct = default)
     {
         var deck = await uow.FlashcardDecks.GetByIdAsync(vm.Id, ct).ConfigureAwait(false);
@@ -96,6 +102,7 @@ public class FlashcardAdminService(
         return ServiceResult.Success();
     }
 
+    /// <inheritdoc />
     public async Task<ServiceResult> DeleteDeckAsync(int id, CancellationToken ct = default)
     {
         var deck = await uow.FlashcardDecks.GetByIdAsync(id, ct).ConfigureAwait(false);
@@ -106,8 +113,9 @@ public class FlashcardAdminService(
         return ServiceResult.Success();
     }
 
-    // ── Card ──────────────────────────────────────
+    // ── 字卡管理 ──────────────────────────────────────
 
+    /// <inheritdoc />
     public async Task<CardFormViewModel?> GetCardForEditAsync(int cardId, CancellationToken ct = default)
     {
         var card = await uow.FlashcardDecks.GetCardByIdAsync(cardId, ct).ConfigureAwait(false);
@@ -126,6 +134,7 @@ public class FlashcardAdminService(
         };
     }
 
+    /// <inheritdoc />
     public async Task<ServiceResult<int>> AddCardAsync(CardFormViewModel vm, CancellationToken ct = default)
     {
         logger.LogInformation("新增字卡 | DeckId={DeckId} | Korean={Korean}", vm.DeckId, vm.Korean);
@@ -147,6 +156,7 @@ public class FlashcardAdminService(
         return ServiceResult<int>.Success(card.Id);
     }
 
+    /// <inheritdoc />
     public async Task<ServiceResult> UpdateCardAsync(CardFormViewModel vm, CancellationToken ct = default)
     {
         var deck = await uow.FlashcardDecks.GetWithCardsAsync(vm.DeckId, ct).ConfigureAwait(false);
@@ -162,6 +172,7 @@ public class FlashcardAdminService(
         return ServiceResult.Success();
     }
 
+    /// <inheritdoc />
     public async Task<ServiceResult> DeleteCardAsync(int cardId, int deckId, CancellationToken ct = default)
     {
         var deck = await uow.FlashcardDecks.GetWithCardsAsync(deckId, ct).ConfigureAwait(false);

@@ -5,14 +5,17 @@ using Microsoft.Extensions.Logging;
 
 namespace KoreanLearn.Service.Services.Implementation;
 
+/// <summary>系統維護業務邏輯實作，供背景排程服務使用（使用 IDbContextFactory 確保 thread-safe）</summary>
 public class MaintenanceService(
     IDbContextFactory<ApplicationDbContext> dbFactory,
     ILogger<MaintenanceService> logger) : IMaintenanceService
 {
+    /// <inheritdoc />
     public async Task<int> DeactivateExpiredSubscriptionsAsync(CancellationToken ct = default)
     {
         await using var db = await dbFactory.CreateDbContextAsync(ct).ConfigureAwait(false);
 
+        // 查詢所有已到期但仍為啟用狀態的訂閱
         var expiredSubs = await db.UserSubscriptions
             .Where(s => s.IsActive && s.EndDate <= DateTime.UtcNow)
             .ToListAsync(ct)
@@ -30,10 +33,12 @@ public class MaintenanceService(
         return expiredSubs.Count;
     }
 
+    /// <inheritdoc />
     public async Task<int> CountDueFlashcardReviewsAsync(CancellationToken ct = default)
     {
         await using var db = await dbFactory.CreateDbContextAsync(ct).ConfigureAwait(false);
 
+        // 統計所有已到複習時間的字卡學習紀錄
         return await db.FlashcardLogs
             .Where(l => l.NextReviewDate <= DateTime.UtcNow)
             .CountAsync(ct)

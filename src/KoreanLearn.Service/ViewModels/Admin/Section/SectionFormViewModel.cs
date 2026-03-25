@@ -2,10 +2,13 @@ using System.ComponentModel.DataAnnotations;
 
 namespace KoreanLearn.Service.ViewModels.Admin.Section;
 
+/// <summary>建立/編輯章節表單 ViewModel</summary>
 public class SectionFormViewModel
 {
+    /// <summary>章節 ID（編輯時使用）</summary>
     public int Id { get; set; }
 
+    /// <summary>所屬課程 ID</summary>
     public int CourseId { get; set; }
 
     [Required(ErrorMessage = "章節標題為必填")]
@@ -20,6 +23,6 @@ public class SectionFormViewModel
     [Display(Name = "排序")]
     public int SortOrder { get; set; }
 
-    // 顯示用
+    /// <summary>所屬課程標題（顯示用）</summary>
     public string? CourseTitle { get; set; }
 }

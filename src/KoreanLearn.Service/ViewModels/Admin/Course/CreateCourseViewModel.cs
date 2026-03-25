@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Http;
 
 namespace KoreanLearn.Service.ViewModels.Admin.Course;
 
+/// <summary>建立課程表單 ViewModel</summary>
 public class CreateCourseViewModel
 {
     [Required(ErrorMessage = "標題為必填")]

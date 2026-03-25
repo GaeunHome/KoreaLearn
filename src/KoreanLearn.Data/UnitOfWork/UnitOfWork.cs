@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore.Storage;
 
 namespace KoreanLearn.Data.UnitOfWork;
 
+/// <summary>Unit of Work 實作，透過 primary constructor 注入所有 Repository</summary>
 public class UnitOfWork(
     ApplicationDbContext db,
     ICourseRepository courses,
@@ -24,6 +25,7 @@ public class UnitOfWork(
 {
     private IDbContextTransaction? _transaction;
 
+    // ── Repository 屬性 ──────────────────────────────────
     public ICourseRepository Courses => courses;
     public ISectionRepository Sections => sections;
     public ILessonRepository Lessons => lessons;
@@ -41,6 +43,7 @@ public class UnitOfWork(
     public IDiscussionRepository Discussions => discussions;
     public ILessonAttachmentRepository LessonAttachments => lessonAttachments;
 
+    // ── 持久化與交易控制 ─────────────────────────────────
     public Task<int> SaveChangesAsync(CancellationToken ct = default)
         => db.SaveChangesAsync(ct);
 

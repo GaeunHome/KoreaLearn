@@ -6,9 +6,11 @@ using Microsoft.EntityFrameworkCore;
 
 namespace KoreanLearn.Data;
 
+/// <summary>應用程式資料庫上下文，繼承 IdentityDbContext 並整合軟刪除與時間戳記自動化</summary>
 public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options)
     : IdentityDbContext<AppUser>(options)
 {
+    // ── DbSet 定義 ───────────────────────────────────────
     public DbSet<Course> Courses => Set<Course>();
     public DbSet<Section> Sections => Set<Section>();
     public DbSet<Lesson> Lessons => Set<Lesson>();
@@ -33,13 +35,14 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
     public DbSet<Announcement> Announcements => Set<Announcement>();
     public DbSet<Certificate> Certificates => Set<Certificate>();
 
+    // ── 模型建構：Fluent API 設定與 Global Query Filter ──
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
 
         modelBuilder.ApplyConfigurationsFromAssembly(Assembly.GetExecutingAssembly());
 
-        // Global Query Filter：軟刪除（所有 ISoftDeletable 自動過濾）
+        // Global Query Filter：為所有 ISoftDeletable 實體自動加上 IsDeleted == false 過濾
         foreach (var entityType in modelBuilder.Model.GetEntityTypes())
         {
             if (!typeof(ISoftDeletable).IsAssignableFrom(entityType.ClrType)) continue;
@@ -55,9 +58,10 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
         }
     }
 
+    // ── 覆寫 SaveChangesAsync：軟刪除攔截與時間戳記自動化 ──
     public override Task<int> SaveChangesAsync(CancellationToken ct = default)
     {
-        // 軟刪除攔截
+        // 軟刪除攔截：將 Deleted 狀態轉為 Modified 並設定 IsDeleted/DeletedAt
         foreach (var entry in ChangeTracker.Entries<ISoftDeletable>()
                      .Where(e => e.State == EntityState.Deleted))
         {

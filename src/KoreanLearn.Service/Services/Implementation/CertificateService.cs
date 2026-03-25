@@ -7,10 +7,12 @@ using QuestPDF.Infrastructure;
 
 namespace KoreanLearn.Service.Services.Implementation;
 
+/// <summary>修課證書業務邏輯實作，負責資格檢查與使用 QuestPDF 產生 PDF 證書</summary>
 public class CertificateService(
     IUnitOfWork uow,
     ILogger<CertificateService> logger) : ICertificateService
 {
+    /// <inheritdoc />
     public async Task<CertificateEligibility> CheckEligibilityAsync(
         string userId, int courseId, CancellationToken ct = default)
     {
@@ -18,18 +20,17 @@ public class CertificateService(
         if (course is null)
             return new CertificateEligibility { Reason = "課程不存在" };
 
+        // 計算單元完成狀況
         var totalLessons = course.Sections.SelectMany(s => s.Lessons).Count();
         var progresses = await uow.Progresses.GetByUserAndCourseAsync(userId, courseId, ct).ConfigureAwait(false);
         var completedLessons = progresses.Count(p => p.IsCompleted);
 
         var allCompleted = completedLessons >= totalLessons && totalLessons > 0;
 
-        // Check quiz score (best attempt)
+        // 檢查測驗成績（取最高分的作答紀錄）
         int? bestScore = null;
         var passingScore = 70;
-        var quizLessons = course.Sections.SelectMany(s => s.Lessons).Where(l => l.Quiz is not null);
-        // Simplified: check if any quiz attempt passed
-        var quizPassed = true; // Default pass if no quiz
+        var quizPassed = true; // 若課程無測驗則預設通過
 
         foreach (var lesson in course.Sections.SelectMany(s => s.Lessons))
         {
@@ -64,9 +65,11 @@ public class CertificateService(
         };
     }
 
+    /// <inheritdoc />
     public async Task<byte[]?> GenerateCertificateAsync(
         string userId, int courseId, CancellationToken ct = default)
     {
+        // 先確認資格
         var eligibility = await CheckEligibilityAsync(userId, courseId, ct).ConfigureAwait(false);
         if (!eligibility.IsEligible) return null;
 
@@ -75,6 +78,7 @@ public class CertificateService(
 
         QuestPDF.Settings.License = LicenseType.Community;
 
+        // 使用 QuestPDF 產生橫式 A4 證書
         var document = Document.Create(container =>
         {
             container.Page(page =>

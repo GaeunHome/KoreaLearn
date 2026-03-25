@@ -6,11 +6,12 @@ using KoreanLearn.Service.ViewModels.Admin.Section;
 
 namespace KoreanLearn.Service.Mapper;
 
+/// <summary>後台課程管理 AutoMapper 設定檔（Course / Section / Lesson 的 Entity ↔ ViewModel 映射）</summary>
 public class CourseAdminProfile : Profile
 {
     public CourseAdminProfile()
     {
-        // Course
+        // ── 課程映射 ──
         CreateMap<Course, CourseAdminListViewModel>()
             .ForMember(d => d.SectionCount, o => o.MapFrom(s => s.Sections.Count))
             .ForMember(d => d.LessonCount, o => o.MapFrom(s => s.Sections.SelectMany(sec => sec.Lessons).Count()));
@@ -25,7 +26,7 @@ public class CourseAdminProfile : Profile
         CreateMap<CreateCourseViewModel, Course>()
             .ForMember(d => d.CoverImageUrl, o => o.Ignore());
 
-        // Section
+        // ── 章節映射 ──
         CreateMap<Section, SectionAdminViewModel>()
             .ForMember(d => d.Lessons, o => o.MapFrom(s => s.Lessons.OrderBy(l => l.SortOrder)));
 
@@ -36,7 +37,7 @@ public class CourseAdminProfile : Profile
             .ForMember(d => d.Course, o => o.Ignore())
             .ForMember(d => d.Lessons, o => o.Ignore());
 
-        // Lesson
+        // ── 單元映射 ──
         CreateMap<Lesson, LessonAdminViewModel>();
 
         CreateMap<Lesson, LessonFormViewModel>()

@@ -6,10 +6,12 @@ using KoreanLearn.Service.ViewModels.Learn;
 
 namespace KoreanLearn.Web.Areas.Learn.Controllers;
 
+/// <summary>測驗作答 Controller，提供測驗作答介面、提交答案與成績檢視</summary>
 [Area("Learn")]
 [Authorize]
 public class QuizController(IQuizTakeService quizTakeService) : Controller
 {
+    /// <summary>測驗作答頁面，顯示所有題目（選擇題/填空題）供學生作答</summary>
     public async Task<IActionResult> Take(int id, CancellationToken ct = default)
     {
         var vm = await quizTakeService.GetQuizForTakeAsync(id, ct);
@@ -17,6 +19,7 @@ public class QuizController(IQuizTakeService quizTakeService) : Controller
         return View(vm);
     }
 
+    /// <summary>提交測驗答案（POST），計算成績後導向成績頁</summary>
     [HttpPost]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Submit(int id, IFormCollection form, CancellationToken ct = default)
@@ -40,6 +43,7 @@ public class QuizController(IQuizTakeService quizTakeService) : Controller
         return RedirectToAction(nameof(Take), new { id });
     }
 
+    /// <summary>測驗成績頁面，顯示得分、答對率與各題詳細結果</summary>
     public async Task<IActionResult> Result(int id, CancellationToken ct = default)
     {
         var userId = User.FindFirstValue(ClaimTypes.NameIdentifier)!;

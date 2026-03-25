@@ -7,11 +7,13 @@ using Microsoft.Extensions.Logging;
 
 namespace KoreanLearn.Service.Services.Implementation;
 
+/// <summary>身份驗證業務邏輯實作，封裝 ASP.NET Core Identity 的登入、註冊與使用者資訊查詢</summary>
 public class AuthService(
     UserManager<AppUser> userManager,
     SignInManager<AppUser> signInManager,
     ILogger<AuthService> logger) : IAuthService
 {
+    /// <inheritdoc />
     public async Task<ServiceResult> LoginAsync(
         string email, string password, bool rememberMe, CancellationToken ct = default)
     {
@@ -33,6 +35,7 @@ public class AuthService(
         return ServiceResult.Failure("帳號或密碼錯誤。");
     }
 
+    /// <inheritdoc />
     public async Task<ServiceResult> RegisterAsync(
         RegisterRequest request, CancellationToken ct = default)
     {
@@ -50,6 +53,7 @@ public class AuthService(
         var result = await userManager.CreateAsync(user, request.Password).ConfigureAwait(false);
         if (!result.Succeeded)
         {
+            // 將 Identity 錯誤碼轉換為中文訊息
             var msg = string.Join("；", result.Errors.Select(e => e.Code switch
             {
                 "DuplicateEmail" or "DuplicateUserName" => "此電子信箱已被註冊",
@@ -59,6 +63,7 @@ public class AuthService(
             return ServiceResult.Failure(msg);
         }
 
+        // 新註冊使用者預設為 Student 角色
         await userManager.AddToRoleAsync(user, "Student").ConfigureAwait(false);
         logger.LogInformation("新使用者註冊成功 | Email={Email}", request.Email);
         await signInManager.SignInAsync(user, isPersistent: false).ConfigureAwait(false);
@@ -66,26 +71,32 @@ public class AuthService(
         return ServiceResult.Success();
     }
 
+    /// <inheritdoc />
     public async Task LogoutAsync()
     {
         await signInManager.SignOutAsync().ConfigureAwait(false);
     }
 
+    /// <inheritdoc />
     public bool IsSignedIn(ClaimsPrincipal user)
         => signInManager.IsSignedIn(user);
 
+    /// <inheritdoc />
     public string? GetUserName(ClaimsPrincipal user)
         => user.Identity?.Name;
 
+    /// <inheritdoc />
     public string? GetUserId(ClaimsPrincipal user)
         => userManager.GetUserId(user);
 
+    /// <inheritdoc />
     public async Task<IList<string>> GetRolesAsync(ClaimsPrincipal user)
     {
         var appUser = await userManager.GetUserAsync(user).ConfigureAwait(false);
         return appUser is null ? [] : await userManager.GetRolesAsync(appUser).ConfigureAwait(false);
     }
 
+    /// <inheritdoc />
     public bool IsInRole(ClaimsPrincipal user, string role)
         => user.IsInRole(role);
 }

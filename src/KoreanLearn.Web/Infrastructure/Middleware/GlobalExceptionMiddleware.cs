@@ -2,10 +2,18 @@ using KoreanLearn.Library.Helpers;
 
 namespace KoreanLearn.Web.Infrastructure.Middleware;
 
+/// <summary>全域例外處理中介軟體，攔截未處理的例外並依類型導向對應錯誤頁面</summary>
+/// <remarks>
+/// 處理邏輯：
+/// - NotFoundException → 404 導向 /Error/NotFound
+/// - BusinessException → 422（JSON）或導向 /Error
+/// - 其他 Exception → 500 導向 /Error
+/// </remarks>
 public class GlobalExceptionMiddleware(
     RequestDelegate next,
     ILogger<GlobalExceptionMiddleware> logger)
 {
+    /// <summary>執行中介軟體管線，攔截例外並記錄結構化日誌</summary>
     public async Task InvokeAsync(HttpContext context)
     {
         try

@@ -4,10 +4,13 @@ using Microsoft.AspNetCore.Http;
 
 namespace KoreanLearn.Service.ViewModels.Admin.Lesson;
 
+/// <summary>建立/編輯單元表單 ViewModel（支援影片、文章、PDF 三種類型）</summary>
 public class LessonFormViewModel
 {
+    /// <summary>單元 ID（編輯時使用）</summary>
     public int Id { get; set; }
 
+    /// <summary>所屬章節 ID</summary>
     public int SectionId { get; set; }
 
     [Required(ErrorMessage = "單元標題為必填")]
@@ -29,25 +32,41 @@ public class LessonFormViewModel
     [Display(Name = "免費試看")]
     public bool IsFreePreview { get; set; }
 
-    // Video
+    // ── 影片相關 ──
+
     [Display(Name = "影片檔案")]
     public IFormFile? VideoFile { get; set; }
+
+    /// <summary>現有影片網址（編輯時保留）</summary>
     public string? ExistingVideoUrl { get; set; }
+
     [Display(Name = "影片長度（秒）")]
     public int? VideoDurationSeconds { get; set; }
 
-    // Article
+    // ── 文章相關 ──
+
     [Display(Name = "文章內容")]
     public string? ArticleContent { get; set; }
 
-    // PDF
+    // ── PDF 相關 ──
+
     [Display(Name = "PDF 檔案")]
     public IFormFile? PdfFile { get; set; }
+
+    /// <summary>現有 PDF 網址（編輯時保留）</summary>
     public string? ExistingPdfUrl { get; set; }
+
+    /// <summary>現有 PDF 檔案名稱</summary>
     public string? ExistingPdfFileName { get; set; }
 
-    // 顯示用
+    // ── 頁面導覽資訊 ──
+
+    /// <summary>所屬章節標題（顯示用）</summary>
     public string? SectionTitle { get; set; }
+
+    /// <summary>所屬課程標題（顯示用）</summary>
     public string? CourseTitle { get; set; }
+
+    /// <summary>所屬課程 ID（導覽用）</summary>
     public int? CourseId { get; set; }
 }

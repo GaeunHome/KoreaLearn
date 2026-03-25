@@ -9,11 +9,13 @@ using Microsoft.Extensions.Logging;
 
 namespace KoreanLearn.Service.Services.Implementation;
 
+/// <summary>後台使用者管理業務邏輯實作，處理使用者查詢、教師角色升降級</summary>
 public class UserManagementService(
     UserManager<AppUser> userManager,
     IUnitOfWork uow,
     ILogger<UserManagementService> logger) : IUserManagementService
 {
+    /// <inheritdoc />
     public async Task<PagedResult<UserListViewModel>> GetUsersPagedAsync(
         string? search, int page, int pageSize, CancellationToken ct = default)
     {
@@ -40,6 +42,7 @@ public class UserManagementService(
         return new PagedResult<UserListViewModel>(items, total, page, pageSize);
     }
 
+    /// <inheritdoc />
     public async Task<UserDetailViewModel?> GetUserDetailAsync(
         string userId, CancellationToken ct = default)
     {
@@ -60,6 +63,7 @@ public class UserManagementService(
         };
     }
 
+    /// <inheritdoc />
     public async Task<ServiceResult> PromoteToTeacherAsync(
         string userId, CancellationToken ct = default)
     {
@@ -77,6 +81,7 @@ public class UserManagementService(
         return ServiceResult.Success();
     }
 
+    /// <inheritdoc />
     public async Task<ServiceResult> DemoteFromTeacherAsync(
         string userId, CancellationToken ct = default)
     {

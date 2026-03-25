@@ -7,11 +7,13 @@ using Microsoft.Extensions.Logging;
 
 namespace KoreanLearn.Service.Services.Implementation;
 
+/// <summary>儀表板業務邏輯實作，管理員儀表板使用 IDbContextFactory 進行平行查詢以提升效能</summary>
 public class DashboardService(
     IUnitOfWork uow,
     IDbContextFactory<ApplicationDbContext> dbFactory,
     ILogger<DashboardService> logger) : IDashboardService
 {
+    /// <inheritdoc />
     public async Task<StudentDashboardViewModel> GetStudentDashboardAsync(
         string userId, CancellationToken ct = default)
     {
@@ -20,6 +22,7 @@ public class DashboardService(
         var totalCompleted = 0;
         var totalLessons = 0;
 
+        // 逐一計算每門已選課程的學習進度
         foreach (var enrollment in enrollments)
         {
             var course = await uow.Courses.GetWithSectionsAndLessonsAsync(enrollment.CourseId, ct).ConfigureAwait(false);
@@ -52,11 +55,12 @@ public class DashboardService(
         };
     }
 
+    /// <inheritdoc />
     public async Task<AdminDashboardViewModel> GetAdminDashboardAsync(CancellationToken ct = default)
     {
         logger.LogInformation("開始載入管理員儀表板資料（平行查詢）");
 
-        // 使用 IDbContextFactory 建立獨立 DbContext 進行平行查詢
+        // 使用 IDbContextFactory 建立獨立 DbContext 進行平行查詢（DbContext 非 thread-safe）
         var courseCountTask = CountCoursesAsync(ct);
         var orderCountTask = CountOrdersAsync(ct);
         var revenueTask = CalculateRevenueAsync(ct);
@@ -76,18 +80,21 @@ public class DashboardService(
         };
     }
 
+    /// <summary>以獨立 DbContext 計算課程總數</summary>
     private async Task<int> CountCoursesAsync(CancellationToken ct)
     {
         await using var db = await dbFactory.CreateDbContextAsync(ct).ConfigureAwait(false);
         return await db.Courses.CountAsync(ct).ConfigureAwait(false);
     }
 
+    /// <summary>以獨立 DbContext 計算訂單總數</summary>
     private async Task<int> CountOrdersAsync(CancellationToken ct)
     {
         await using var db = await dbFactory.CreateDbContextAsync(ct).ConfigureAwait(false);
         return await db.Orders.CountAsync(ct).ConfigureAwait(false);
     }
 
+    /// <summary>以獨立 DbContext 計算已完成訂單的總營收</summary>
     private async Task<decimal> CalculateRevenueAsync(CancellationToken ct)
     {
         await using var db = await dbFactory.CreateDbContextAsync(ct).ConfigureAwait(false);
@@ -97,6 +104,7 @@ public class DashboardService(
             .ConfigureAwait(false);
     }
 
+    /// <summary>以獨立 DbContext 取得最近 10 筆訂單</summary>
     private async Task<IReadOnlyList<RecentOrderItem>> GetRecentOrdersAsync(CancellationToken ct)
     {
         await using var db = await dbFactory.CreateDbContextAsync(ct).ConfigureAwait(false);
@@ -114,6 +122,7 @@ public class DashboardService(
             .ConfigureAwait(false);
     }
 
+    /// <summary>以獨立 DbContext 計算使用者總數</summary>
     private async Task<int> CountUsersAsync(CancellationToken ct)
     {
         await using var db = await dbFactory.CreateDbContextAsync(ct).ConfigureAwait(false);
