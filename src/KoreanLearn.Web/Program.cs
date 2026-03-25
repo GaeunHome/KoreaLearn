@@ -32,6 +32,8 @@ try
         .AddDataServices(builder.Configuration)
         .AddApplicationServices();
 
+    builder.Services.AddHostedService<KoreanLearn.Web.Infrastructure.BackgroundServices.DailyMaintenanceService>();
+
     builder.Services.AddControllersWithViews();
     builder.Services.AddRazorPages();
 
