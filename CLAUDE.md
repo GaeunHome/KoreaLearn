@@ -141,6 +141,28 @@ dotnet format
 dotnet build -warnaserror
 ```
 
+### ⚠️ Port 佔用問題（必讀）
+
+Dev server 預設監聽 `http://localhost:5154`（由 `launchSettings.json` 定義）。
+**每次用背景啟動 server 後必須確實關閉**，否則 port 會被佔住導致下次啟動失敗。
+
+```bash
+# 啟動 server（背景）
+dotnet run --project src/KoreanLearn.Web --no-build &
+sleep 5
+
+# 做完驗證後，務必關閉
+kill %1 2>/dev/null
+
+# 若 port 仍被佔用（Address already in use），強制釋放：
+lsof -ti:5154 | xargs kill -9 2>/dev/null
+```
+
+**規則：**
+- 啟動 server 前，先執行 `lsof -ti:5154 | xargs kill -9 2>/dev/null` 確保 port 空閒
+- 驗證完畢後，立刻 `kill %1` 關閉背景 server
+- 不要在同一個 session 中同時跑多個 server instance
+
 ---
 
 ## 四、編碼規範
