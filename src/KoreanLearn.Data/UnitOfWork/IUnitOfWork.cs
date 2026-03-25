@@ -16,6 +16,8 @@ public interface IUnitOfWork : IDisposable
     IFlashcardDeckRepository FlashcardDecks { get; }
     IFlashcardLogRepository FlashcardLogs { get; }
     IPronunciationRepository Pronunciations { get; }
+    ISubscriptionPlanRepository SubscriptionPlans { get; }
+    IUserSubscriptionRepository UserSubscriptions { get; }
     IDiscussionRepository Discussions { get; }
 
     Task<int> SaveChangesAsync(CancellationToken ct = default);

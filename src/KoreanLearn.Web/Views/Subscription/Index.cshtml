@@ -1,0 +1,64 @@
+@model IReadOnlyList<KoreanLearn.Service.Services.Interfaces.SubscriptionPlanViewModel>
+@{
+    ViewData["Title"] = "訂閱方案";
+    var currentSub = ViewBag.CurrentSub as KoreanLearn.Service.Services.Interfaces.UserSubscriptionViewModel;
+}
+
+<div class="text-center mb-5">
+    <h2><i class="bi bi-star me-2"></i>訂閱方案</h2>
+    <p class="text-muted fs-5">訂閱後解鎖所有課程，暢學無限</p>
+</div>
+
+@if (currentSub is not null)
+{
+    <div class="alert alert-success text-center mb-4">
+        <i class="bi bi-check-circle-fill me-2"></i>
+        您目前訂閱：<strong>@currentSub.PlanName</strong>（到期：@currentSub.EndDate.ToString("yyyy-MM-dd")，剩餘 @currentSub.RemainingDays 天）
+    </div>
+}
+
+@if (!Model.Any())
+{
+    <div class="alert alert-info text-center">目前沒有可用的訂閱方案。</div>
+}
+else
+{
+    <div class="row justify-content-center">
+        @foreach (var plan in Model)
+        {
+            <div class="col-md-4 mb-4">
+                <div class="card shadow-sm h-100 text-center">
+                    <div class="card-body py-5">
+                        <h4 class="card-title">@plan.Name</h4>
+                        @if (!string.IsNullOrEmpty(plan.Description))
+                        {
+                            <p class="text-muted">@plan.Description</p>
+                        }
+                        <div class="display-4 fw-bold text-primary my-3">
+                            NT$ @plan.MonthlyPrice.ToString("N0")
+                        </div>
+                        <p class="text-muted">/ @plan.DurationMonths 個月</p>
+                    </div>
+                    <div class="card-footer py-3">
+                        @if (currentSub is not null)
+                        {
+                            <button class="btn btn-secondary btn-lg w-100" disabled>已訂閱</button>
+                        }
+                        else if (User.Identity?.IsAuthenticated == true)
+                        {
+                            <form asp-controller="Subscription" asp-action="Subscribe" method="post">
+                                @Html.AntiForgeryToken()
+                                <input type="hidden" name="planId" value="@plan.Id" />
+                                <button type="submit" class="btn btn-primary btn-lg w-100">立即訂閱</button>
+                            </form>
+                        }
+                        else
+                        {
+                            <a asp-area="Identity" asp-page="/Account/Login" class="btn btn-outline-primary btn-lg w-100">登入後訂閱</a>
+                        }
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+}

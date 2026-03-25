@@ -17,6 +17,8 @@ public class UnitOfWork(
     IFlashcardDeckRepository flashcardDecks,
     IFlashcardLogRepository flashcardLogs,
     IPronunciationRepository pronunciations,
+    ISubscriptionPlanRepository subscriptionPlans,
+    IUserSubscriptionRepository userSubscriptions,
     IDiscussionRepository discussions) : IUnitOfWork
 {
     private IDbContextTransaction? _transaction;
@@ -33,6 +35,8 @@ public class UnitOfWork(
     public IFlashcardDeckRepository FlashcardDecks => flashcardDecks;
     public IFlashcardLogRepository FlashcardLogs => flashcardLogs;
     public IPronunciationRepository Pronunciations => pronunciations;
+    public ISubscriptionPlanRepository SubscriptionPlans => subscriptionPlans;
+    public IUserSubscriptionRepository UserSubscriptions => userSubscriptions;
     public IDiscussionRepository Discussions => discussions;
 
     public Task<int> SaveChangesAsync(CancellationToken ct = default)

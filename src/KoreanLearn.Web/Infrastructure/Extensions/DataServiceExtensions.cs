@@ -52,6 +52,8 @@ public static class DataServiceExtensions
         services.AddScoped<IFlashcardDeckRepository, FlashcardDeckRepository>();
         services.AddScoped<IFlashcardLogRepository, FlashcardLogRepository>();
         services.AddScoped<IPronunciationRepository, PronunciationRepository>();
+        services.AddScoped<ISubscriptionPlanRepository, SubscriptionPlanRepository>();
+        services.AddScoped<IUserSubscriptionRepository, UserSubscriptionRepository>();
         services.AddScoped<IDiscussionRepository, DiscussionRepository>();
 
         // UnitOfWork
