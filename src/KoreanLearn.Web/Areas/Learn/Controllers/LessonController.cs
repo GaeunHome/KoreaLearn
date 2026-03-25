@@ -27,6 +27,14 @@ public class LessonController(
         return View(vm);
     }
 
+    public async Task<IActionResult> Pdf(int id, CancellationToken ct = default)
+    {
+        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier)!;
+        var vm = await lessonPlayerService.GetPdfPlayerAsync(id, userId, ct);
+        if (vm is null) return NotFound();
+        return View(vm);
+    }
+
     [HttpPost]
     public async Task<IActionResult> SaveProgress(
         [FromBody] SaveProgressRequest request, CancellationToken ct = default)

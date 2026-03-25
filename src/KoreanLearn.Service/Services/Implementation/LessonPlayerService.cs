@@ -69,6 +69,35 @@ public class LessonPlayerService(
         };
     }
 
+    public async Task<PdfPlayerViewModel?> GetPdfPlayerAsync(
+        int lessonId, string userId, CancellationToken ct = default)
+    {
+        var lesson = await uow.Lessons.GetByIdAsync(lessonId, ct).ConfigureAwait(false);
+        if (lesson is null || lesson.Type != LessonType.Pdf)
+        {
+            logger.LogWarning("PDF 單元不存在或類型不符 | LessonId={LessonId}", lessonId);
+            return null;
+        }
+
+        var (section, course, progress, prevId, nextId) = await GetLessonContextAsync(lesson, userId, ct).ConfigureAwait(false);
+
+        return new PdfPlayerViewModel
+        {
+            LessonId = lesson.Id,
+            Title = lesson.Title,
+            Description = lesson.Description,
+            PdfUrl = lesson.PdfUrl,
+            PdfFileName = lesson.PdfFileName,
+            IsCompleted = progress?.IsCompleted ?? false,
+            SectionId = lesson.SectionId,
+            SectionTitle = section?.Title,
+            CourseId = course?.Id ?? 0,
+            CourseTitle = course?.Title,
+            PreviousLessonId = prevId,
+            NextLessonId = nextId
+        };
+    }
+
     private async Task<(Section? section, Course? course, Progress? progress, int? prevId, int? nextId)>
         GetLessonContextAsync(Lesson lesson, string userId, CancellationToken ct)
     {
