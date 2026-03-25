@@ -1,44 +1,58 @@
+@model KoreanLearn.Service.Services.Interfaces.AdminDashboardViewModel
 @{ ViewData["Title"] = "儀表板"; }
 
-<div class="d-flex justify-content-between align-items-center mb-4">
-    <h1 class="h3">儀表板</h1>
-</div>
+<h2 class="mb-4"><i class="bi bi-speedometer2 me-2"></i>儀表板</h2>
 
-<div class="row g-4">
+<div class="row g-4 mb-4">
     <div class="col-md-3">
         <div class="card text-bg-primary shadow-sm">
             <div class="card-body">
-                <h5 class="card-title"><i class="bi bi-book me-2"></i>課程</h5>
-                <p class="card-text display-6">--</p>
-            </div>
-        </div>
-    </div>
-    <div class="col-md-3">
-        <div class="card text-bg-success shadow-sm">
-            <div class="card-body">
-                <h5 class="card-title"><i class="bi bi-people me-2"></i>用戶</h5>
-                <p class="card-text display-6">--</p>
+                <h6><i class="bi bi-book me-1"></i>課程</h6>
+                <p class="display-6 mb-0">@Model.TotalCourses</p>
             </div>
         </div>
     </div>
     <div class="col-md-3">
         <div class="card text-bg-warning shadow-sm">
             <div class="card-body">
-                <h5 class="card-title"><i class="bi bi-cart me-2"></i>訂單</h5>
-                <p class="card-text display-6">--</p>
+                <h6><i class="bi bi-cart me-1"></i>訂單</h6>
+                <p class="display-6 mb-0">@Model.TotalOrders</p>
             </div>
         </div>
     </div>
     <div class="col-md-3">
-        <div class="card text-bg-info shadow-sm">
+        <div class="card text-bg-success shadow-sm">
             <div class="card-body">
-                <h5 class="card-title"><i class="bi bi-currency-dollar me-2"></i>收入</h5>
-                <p class="card-text display-6">--</p>
+                <h6><i class="bi bi-currency-dollar me-1"></i>總收入</h6>
+                <p class="display-6 mb-0">@Model.TotalRevenue.ToString("N0")</p>
             </div>
         </div>
     </div>
 </div>
 
-<div class="mt-4">
-    <p class="text-muted">詳細統計數據將在 P3-07 實作後顯示。</p>
-</div>
+<h4 class="mb-3"><i class="bi bi-clock-history me-2"></i>最近訂單</h4>
+@if (Model.RecentOrders.Any())
+{
+    <div class="table-responsive">
+        <table class="table table-hover align-middle">
+            <thead class="table-light">
+                <tr><th>訂單編號</th><th class="text-end">金額</th><th>狀態</th><th>日期</th></tr>
+            </thead>
+            <tbody>
+                @foreach (var o in Model.RecentOrders)
+                {
+                    <tr>
+                        <td><code>@o.OrderNumber</code></td>
+                        <td class="text-end">NT$ @o.Amount.ToString("N0")</td>
+                        <td><span class="badge @(o.Status == "Completed" ? "bg-success" : "bg-warning text-dark")">@o.Status</span></td>
+                        <td class="text-muted">@o.CreatedAt.ToString("yyyy-MM-dd HH:mm")</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+}
+else
+{
+    <p class="text-muted">目前沒有訂單。</p>
+}

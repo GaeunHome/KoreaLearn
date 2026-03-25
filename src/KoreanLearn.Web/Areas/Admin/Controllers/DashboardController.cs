@@ -1,14 +1,16 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using KoreanLearn.Service.Services.Interfaces;
 
 namespace KoreanLearn.Web.Areas.Admin.Controllers;
 
 [Area("Admin")]
 [Authorize(Roles = "Admin")]
-public class DashboardController : Controller
+public class DashboardController(IDashboardService dashboardService) : Controller
 {
-    public IActionResult Index()
+    public async Task<IActionResult> Index(CancellationToken ct = default)
     {
-        return View();
+        var vm = await dashboardService.GetAdminDashboardAsync(ct);
+        return View(vm);
     }
 }

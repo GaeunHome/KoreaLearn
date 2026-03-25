@@ -26,6 +26,7 @@ public static class ApplicationServiceExtensions
         services.AddScoped<IPronunciationService, PronunciationService>();
         services.AddScoped<IOrderService, OrderService>();
         services.AddScoped<IDiscussionService, DiscussionService>();
+        services.AddScoped<IDashboardService, DashboardService>();
 
         return services;
     }
