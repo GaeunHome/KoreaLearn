@@ -22,6 +22,7 @@ public static class ApplicationServiceExtensions
         services.AddScoped<IQuizAdminService, QuizAdminService>();
         services.AddScoped<IQuizTakeService, QuizTakeService>();
         services.AddScoped<IFlashcardAdminService, FlashcardAdminService>();
+        services.AddScoped<IFlashcardLearnService, FlashcardLearnService>();
 
         return services;
     }

@@ -1,0 +1,41 @@
+@model IReadOnlyList<KoreanLearn.Service.ViewModels.Learn.FlashcardDeckListViewModel>
+@{ ViewData["Title"] = "字卡練習"; }
+
+<h2 class="mb-4"><i class="bi bi-card-text me-2"></i>字卡練習</h2>
+
+@if (!Model.Any())
+{
+    <div class="alert alert-info"><i class="bi bi-info-circle me-2"></i>目前沒有可用的字卡牌組。</div>
+}
+else
+{
+    <div class="row">
+        @foreach (var deck in Model)
+        {
+            <div class="col-md-4 mb-4">
+                <div class="card shadow-sm h-100">
+                    <div class="card-body">
+                        <h5 class="card-title">@deck.Title</h5>
+                        @if (!string.IsNullOrEmpty(deck.Description))
+                        {
+                            <p class="card-text text-muted small">@deck.Description</p>
+                        }
+                        <div class="d-flex gap-2 mb-3">
+                            <span class="badge bg-info">@deck.CardCount 張字卡</span>
+                            @if (deck.DueCount > 0)
+                            {
+                                <span class="badge bg-warning text-dark">@deck.DueCount 待複習</span>
+                            }
+                        </div>
+                    </div>
+                    <div class="card-footer">
+                        <a asp-area="Learn" asp-controller="Flashcard" asp-action="Study" asp-route-id="@deck.Id"
+                           class="btn btn-primary w-100">
+                            <i class="bi bi-play-fill me-1"></i>開始學習
+                        </a>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+}

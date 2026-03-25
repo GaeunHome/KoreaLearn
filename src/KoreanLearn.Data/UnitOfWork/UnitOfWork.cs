@@ -15,6 +15,7 @@ public class UnitOfWork(
     IQuizRepository quizzes,
     IQuizAttemptRepository quizAttempts,
     IFlashcardDeckRepository flashcardDecks,
+    IFlashcardLogRepository flashcardLogs,
     IDiscussionRepository discussions) : IUnitOfWork
 {
     private IDbContextTransaction? _transaction;
@@ -29,6 +30,7 @@ public class UnitOfWork(
     public IQuizRepository Quizzes => quizzes;
     public IQuizAttemptRepository QuizAttempts => quizAttempts;
     public IFlashcardDeckRepository FlashcardDecks => flashcardDecks;
+    public IFlashcardLogRepository FlashcardLogs => flashcardLogs;
     public IDiscussionRepository Discussions => discussions;
 
     public Task<int> SaveChangesAsync(CancellationToken ct = default)
