@@ -1,3 +1,4 @@
+using KoreanLearn.Data.Entities;
 using KoreanLearn.Data.UnitOfWork;
 using KoreanLearn.Library.Enums;
 using KoreanLearn.Service.Services.Interfaces;
@@ -20,25 +21,7 @@ public class LessonPlayerService(
             return null;
         }
 
-        var section = await uow.Sections.GetByIdAsync(lesson.SectionId, ct).ConfigureAwait(false);
-        var course = section is not null
-            ? await uow.Courses.GetByIdAsync(section.CourseId, ct).ConfigureAwait(false)
-            : null;
-
-        var progress = await uow.Progresses.GetByUserAndLessonAsync(userId, lessonId, ct).ConfigureAwait(false);
-        var videoProgress = progress?.VideoProgressSeconds ?? 0;
-
-        // Get sibling lessons for prev/next navigation
-        int? prevId = null;
-        int? nextId = null;
-        if (section is not null)
-        {
-            var siblings = await uow.Lessons.GetBySectionIdAsync(section.Id, ct).ConfigureAwait(false);
-            var sorted = siblings.OrderBy(l => l.SortOrder).ThenBy(l => l.Id).ToList();
-            var currentIndex = sorted.FindIndex(l => l.Id == lessonId);
-            if (currentIndex > 0) prevId = sorted[currentIndex - 1].Id;
-            if (currentIndex >= 0 && currentIndex < sorted.Count - 1) nextId = sorted[currentIndex + 1].Id;
-        }
+        var (section, course, progress, prevId, nextId) = await GetLessonContextAsync(lesson, userId, ct).ConfigureAwait(false);
 
         return new VideoPlayerViewModel
         {
@@ -47,7 +30,7 @@ public class LessonPlayerService(
             Description = lesson.Description,
             VideoUrl = lesson.VideoUrl,
             VideoDurationSeconds = lesson.VideoDurationSeconds,
-            VideoProgressSeconds = videoProgress,
+            VideoProgressSeconds = progress?.VideoProgressSeconds ?? 0,
             IsCompleted = progress?.IsCompleted ?? false,
             SectionId = lesson.SectionId,
             SectionTitle = section?.Title,
@@ -56,5 +39,56 @@ public class LessonPlayerService(
             PreviousLessonId = prevId,
             NextLessonId = nextId
         };
+    }
+
+    public async Task<ArticlePlayerViewModel?> GetArticlePlayerAsync(
+        int lessonId, string userId, CancellationToken ct = default)
+    {
+        var lesson = await uow.Lessons.GetByIdAsync(lessonId, ct).ConfigureAwait(false);
+        if (lesson is null || lesson.Type != LessonType.Article)
+        {
+            logger.LogWarning("文章單元不存在或類型不符 | LessonId={LessonId}", lessonId);
+            return null;
+        }
+
+        var (section, course, progress, prevId, nextId) = await GetLessonContextAsync(lesson, userId, ct).ConfigureAwait(false);
+
+        return new ArticlePlayerViewModel
+        {
+            LessonId = lesson.Id,
+            Title = lesson.Title,
+            Description = lesson.Description,
+            ArticleContent = lesson.ArticleContent,
+            IsCompleted = progress?.IsCompleted ?? false,
+            SectionId = lesson.SectionId,
+            SectionTitle = section?.Title,
+            CourseId = course?.Id ?? 0,
+            CourseTitle = course?.Title,
+            PreviousLessonId = prevId,
+            NextLessonId = nextId
+        };
+    }
+
+    private async Task<(Section? section, Course? course, Progress? progress, int? prevId, int? nextId)>
+        GetLessonContextAsync(Lesson lesson, string userId, CancellationToken ct)
+    {
+        var section = await uow.Sections.GetByIdAsync(lesson.SectionId, ct).ConfigureAwait(false);
+        var course = section is not null
+            ? await uow.Courses.GetByIdAsync(section.CourseId, ct).ConfigureAwait(false)
+            : null;
+        var progress = await uow.Progresses.GetByUserAndLessonAsync(userId, lesson.Id, ct).ConfigureAwait(false);
+
+        int? prevId = null;
+        int? nextId = null;
+        if (section is not null)
+        {
+            var siblings = await uow.Lessons.GetBySectionIdAsync(section.Id, ct).ConfigureAwait(false);
+            var sorted = siblings.OrderBy(l => l.SortOrder).ThenBy(l => l.Id).ToList();
+            var idx = sorted.FindIndex(l => l.Id == lesson.Id);
+            if (idx > 0) prevId = sorted[idx - 1].Id;
+            if (idx >= 0 && idx < sorted.Count - 1) nextId = sorted[idx + 1].Id;
+        }
+
+        return (section, course, progress, prevId, nextId);
     }
 }

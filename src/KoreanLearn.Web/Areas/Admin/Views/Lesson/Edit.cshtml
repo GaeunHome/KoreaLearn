@@ -85,8 +85,9 @@
                         <hr />
                         <h5 class="text-primary"><i class="bi bi-file-text me-1"></i>文章設定</h5>
                         <div class="mb-3">
-                            <label asp-for="ArticleContent" class="form-label">文章內容</label>
-                            <textarea asp-for="ArticleContent" class="form-control" rows="10"></textarea>
+                            <label class="form-label">文章內容</label>
+                            <div id="quillEditor" style="min-height:300px;">@Html.Raw(Model.ArticleContent ?? "")</div>
+                            <input asp-for="ArticleContent" type="hidden" id="articleContentHidden" />
                         </div>
                     </div>
 
@@ -109,7 +110,7 @@
 
                     <hr />
                     <div class="d-flex gap-2">
-                        <button type="submit" class="btn btn-primary" onclick="this.disabled=true;this.form.submit();">
+                        <button type="submit" class="btn btn-primary" id="btnSubmit">
                             <i class="bi bi-check-lg me-1"></i>儲存變更
                         </button>
                         <a asp-area="Admin" asp-controller="Course" asp-action="Detail" asp-route-id="@Model.CourseId" class="btn btn-outline-secondary">
@@ -122,15 +123,42 @@
     </div>
 </div>
 
+@section Styles {
+    <link href="https://cdn.jsdelivr.net/npm/quill@2.0.3/dist/quill.snow.css" rel="stylesheet" />
+}
+
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />
+    <script src="https://cdn.jsdelivr.net/npm/quill@2.0.3/dist/quill.js"></script>
     <script>
+        // Type toggle
         document.getElementById('lessonType').addEventListener('change', function () {
             document.getElementById('videoFields').style.display = this.value === '0' ? 'block' : 'none';
             document.getElementById('articleFields').style.display = this.value === '1' ? 'block' : 'none';
             document.getElementById('pdfFields').style.display = this.value === '2' ? 'block' : 'none';
         });
-        // trigger on load
         document.getElementById('lessonType').dispatchEvent(new Event('change'));
+
+        // Quill editor
+        var quill = new Quill('#quillEditor', {
+            theme: 'snow',
+            placeholder: '請輸入文章內容...',
+            modules: {
+                toolbar: [
+                    [{ 'header': [1, 2, 3, false] }],
+                    ['bold', 'italic', 'underline', 'strike'],
+                    [{ 'color': [] }, { 'background': [] }],
+                    [{ 'list': 'ordered' }, { 'list': 'bullet' }],
+                    ['blockquote', 'code-block'],
+                    ['link', 'image'],
+                    ['clean']
+                ]
+            }
+        });
+
+        // Sync quill content to hidden input on submit
+        document.getElementById('btnSubmit').addEventListener('click', function (e) {
+            document.getElementById('articleContentHidden').value = quill.root.innerHTML;
+        });
     </script>
 }

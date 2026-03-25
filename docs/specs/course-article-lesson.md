@@ -1,8 +1,8 @@
 # [Course] 文字教材（富文字編輯器 + 閱讀頁）
 
-> **狀態**：🔲 待實作
+> **狀態**：✅ 完成
 > **建立時間**：2026-03-25
-> **完成時間**：－
+> **完成時間**：2026-03-25
 
 ## 功能描述
 
@@ -31,4 +31,10 @@
 
 ## 實際產出
 
-<!-- 實作完成後填寫 -->
+- **Service**：ILessonPlayerService 擴充 GetArticlePlayerAsync、LessonPlayerService 共用 context 方法
+- **ViewModel**：ArticlePlayerViewModel
+- **Controller**：Learn/LessonController 新增 Article action
+- **View**：Learn/Lesson/Article.cshtml（HTML 渲染 + 完成標記 + 前後導航）
+- **後台**：Admin/Lesson Create+Edit 整合 Quill.js 富文字編輯器
+- **HTTP 驗證**：200（已登入）、302（未登入）、404（不存在）
+- **UX 審查**：✅ 通過

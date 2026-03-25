@@ -1,0 +1,139 @@
+@model KoreanLearn.Service.ViewModels.Learn.ArticlePlayerViewModel
+@{
+    ViewData["Title"] = Model.Title;
+}
+
+<div class="mb-3">
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a asp-area="" asp-controller="Course" asp-action="Detail" asp-route-id="@Model.CourseId">@(Model.CourseTitle ?? "課程")</a></li>
+            <li class="breadcrumb-item">@(Model.SectionTitle ?? "章節")</li>
+            <li class="breadcrumb-item active">@Model.Title</li>
+        </ol>
+    </nav>
+</div>
+
+<div class="row">
+    <div class="col-lg-9">
+        <!-- Article Header -->
+        <div class="d-flex justify-content-between align-items-start mb-3">
+            <h2>@Model.Title</h2>
+            <div>
+                @if (Model.IsCompleted)
+                {
+                    <span class="badge bg-success fs-6" id="completeBadge">
+                        <i class="bi bi-check-circle-fill me-1"></i>已完成
+                    </span>
+                }
+                else
+                {
+                    <button class="btn btn-outline-success btn-sm" id="btnComplete" onclick="markComplete()">
+                        <i class="bi bi-check-circle me-1"></i>標記完成
+                    </button>
+                }
+            </div>
+        </div>
+
+        @if (!string.IsNullOrEmpty(Model.Description))
+        {
+            <p class="text-muted mb-3">@Model.Description</p>
+        }
+
+        <!-- Article Content -->
+        <div class="card shadow-sm">
+            <div class="card-body article-content" style="font-size: 1.1rem; line-height: 1.8;">
+                @Html.Raw(Model.ArticleContent ?? "<p class='text-muted'>此單元尚無內容。</p>")
+            </div>
+        </div>
+
+        <!-- Bottom Navigation -->
+        <div class="d-flex justify-content-between align-items-center mt-4">
+            @if (Model.PreviousLessonId.HasValue)
+            {
+                <a asp-area="Learn" asp-controller="Lesson" asp-action="Article" asp-route-id="@Model.PreviousLessonId"
+                   class="btn btn-outline-primary">
+                    <i class="bi bi-arrow-left me-1"></i>上一個單元
+                </a>
+            }
+            else
+            {
+                <div></div>
+            }
+
+            @if (!Model.IsCompleted)
+            {
+                <button class="btn btn-success" id="btnCompleteBottom" onclick="markComplete()">
+                    <i class="bi bi-check-circle me-1"></i>完成閱讀
+                </button>
+            }
+
+            @if (Model.NextLessonId.HasValue)
+            {
+                <a asp-area="Learn" asp-controller="Lesson" asp-action="Article" asp-route-id="@Model.NextLessonId"
+                   class="btn btn-primary">
+                    下一個單元<i class="bi bi-arrow-right ms-1"></i>
+                </a>
+            }
+            else
+            {
+                <div></div>
+            }
+        </div>
+    </div>
+
+    <!-- Sidebar -->
+    <div class="col-lg-3">
+        <div class="card shadow-sm">
+            <div class="card-header bg-light">
+                <h6 class="mb-0"><i class="bi bi-list-ul me-1"></i>單元導航</h6>
+            </div>
+            <div class="card-body p-0">
+                <div class="list-group list-group-flush">
+                    @if (Model.PreviousLessonId.HasValue)
+                    {
+                        <a asp-area="Learn" asp-controller="Lesson" asp-action="Article" asp-route-id="@Model.PreviousLessonId"
+                           class="list-group-item list-group-item-action">
+                            <i class="bi bi-arrow-left me-1"></i>上一個單元
+                        </a>
+                    }
+                    <div class="list-group-item active">
+                        <i class="bi bi-file-text-fill me-1"></i>@Model.Title
+                    </div>
+                    @if (Model.NextLessonId.HasValue)
+                    {
+                        <a asp-area="Learn" asp-controller="Lesson" asp-action="Article" asp-route-id="@Model.NextLessonId"
+                           class="list-group-item list-group-item-action">
+                            下一個單元<i class="bi bi-arrow-right ms-1"></i>
+                        </a>
+                    }
+                </div>
+            </div>
+            <div class="card-footer text-center">
+                <a asp-area="" asp-controller="Course" asp-action="Detail" asp-route-id="@Model.CourseId"
+                   class="btn btn-sm btn-outline-secondary">
+                    <i class="bi bi-arrow-left me-1"></i>返回課程
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        window.markComplete = function () {
+            fetch('@Url.Action("Complete", "Lesson", new { area = "Learn" })/@Model.LessonId', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' }
+            })
+                .then(r => r.json())
+                .then(data => {
+                    if (data.success) {
+                        const btn = document.getElementById('btnComplete');
+                        if (btn) btn.outerHTML = '<span class="badge bg-success fs-6" id="completeBadge"><i class="bi bi-check-circle-fill me-1"></i>已完成</span>';
+                        const btnBottom = document.getElementById('btnCompleteBottom');
+                        if (btnBottom) btnBottom.remove();
+                    }
+                });
+        };
+    </script>
+}
