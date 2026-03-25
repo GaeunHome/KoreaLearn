@@ -3,6 +3,7 @@ using KoreanLearn.Library.Enums;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 
 namespace KoreanLearn.Data;
 
@@ -14,27 +15,34 @@ public static class DbInitializer
         var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
         var userManager = scope.ServiceProvider.GetRequiredService<UserManager<AppUser>>();
         var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
+        var logger = scope.ServiceProvider.GetRequiredService<ILogger<ApplicationDbContext>>();
 
+        logger.LogInformation("開始資料庫初始化...");
         await db.Database.MigrateAsync().ConfigureAwait(false);
+        logger.LogInformation("資料庫 Migration 完成");
 
-        await SeedRolesAsync(roleManager).ConfigureAwait(false);
-        await SeedUsersAsync(userManager).ConfigureAwait(false);
-        await SeedCoursesAsync(db).ConfigureAwait(false);
-        await SeedAnnouncementsAsync(db).ConfigureAwait(false);
+        await SeedRolesAsync(roleManager, logger).ConfigureAwait(false);
+        await SeedUsersAsync(userManager, logger).ConfigureAwait(false);
+        await SeedCoursesAsync(db, logger).ConfigureAwait(false);
+        await SeedAnnouncementsAsync(db, logger).ConfigureAwait(false);
+        logger.LogInformation("資料庫初始化完成");
     }
 
-    private static async Task SeedRolesAsync(RoleManager<IdentityRole> roleManager)
+    private static async Task SeedRolesAsync(RoleManager<IdentityRole> roleManager, ILogger logger)
     {
         string[] roles = ["Admin", "Student"];
 
         foreach (var role in roles)
         {
             if (!await roleManager.RoleExistsAsync(role).ConfigureAwait(false))
+            {
                 await roleManager.CreateAsync(new IdentityRole(role)).ConfigureAwait(false);
+                logger.LogInformation("建立角色: {Role}", role);
+            }
         }
     }
 
-    private static async Task SeedUsersAsync(UserManager<AppUser> userManager)
+    private static async Task SeedUsersAsync(UserManager<AppUser> userManager, ILogger logger)
     {
         // Admin
         if (await userManager.FindByEmailAsync("admin@koreanlearn.com").ConfigureAwait(false) is null)
@@ -50,6 +58,7 @@ public static class DbInitializer
             };
             await userManager.CreateAsync(admin, "Admin@123").ConfigureAwait(false);
             await userManager.AddToRoleAsync(admin, "Admin").ConfigureAwait(false);
+            logger.LogInformation("建立管理員帳號: {Email}", admin.Email);
         }
 
         // Student
@@ -66,12 +75,17 @@ public static class DbInitializer
             };
             await userManager.CreateAsync(student, "Student@123").ConfigureAwait(false);
             await userManager.AddToRoleAsync(student, "Student").ConfigureAwait(false);
+            logger.LogInformation("建立測試學生帳號: {Email}", student.Email);
         }
     }
 
-    private static async Task SeedCoursesAsync(ApplicationDbContext db)
+    private static async Task SeedCoursesAsync(ApplicationDbContext db, ILogger logger)
     {
-        if (await db.Courses.AnyAsync().ConfigureAwait(false)) return;
+        if (await db.Courses.AnyAsync().ConfigureAwait(false))
+        {
+            logger.LogInformation("課程種子資料已存在，跳過");
+            return;
+        }
 
         var courses = new List<Course>
         {
@@ -150,11 +164,16 @@ public static class DbInitializer
 
         db.Courses.AddRange(courses);
         await db.SaveChangesAsync().ConfigureAwait(false);
+        logger.LogInformation("建立 {Count} 門範例課程", courses.Count);
     }
 
-    private static async Task SeedAnnouncementsAsync(ApplicationDbContext db)
+    private static async Task SeedAnnouncementsAsync(ApplicationDbContext db, ILogger logger)
     {
-        if (await db.Announcements.AnyAsync().ConfigureAwait(false)) return;
+        if (await db.Announcements.AnyAsync().ConfigureAwait(false))
+        {
+            logger.LogInformation("公告種子資料已存在，跳過");
+            return;
+        }
 
         db.Announcements.AddRange(
             new Announcement
@@ -173,5 +192,6 @@ public static class DbInitializer
             }
         );
         await db.SaveChangesAsync().ConfigureAwait(false);
+        logger.LogInformation("建立範例公告");
     }
 }
