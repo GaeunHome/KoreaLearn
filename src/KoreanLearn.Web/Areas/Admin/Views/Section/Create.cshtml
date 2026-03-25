@@ -1,0 +1,60 @@
+@model KoreanLearn.Service.ViewModels.Admin.Section.SectionFormViewModel
+@{
+    ViewData["Title"] = "新增章節";
+}
+
+<div class="mb-4">
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a asp-area="Admin" asp-controller="Course" asp-action="Index">課程管理</a></li>
+            <li class="breadcrumb-item"><a asp-area="Admin" asp-controller="Course" asp-action="Detail" asp-route-id="@Model.CourseId">@(Model.CourseTitle ?? "課程")</a></li>
+            <li class="breadcrumb-item active">新增章節</li>
+        </ol>
+    </nav>
+    <h2><i class="bi bi-plus-circle me-2"></i>新增章節</h2>
+</div>
+
+<div class="row">
+    <div class="col-lg-8">
+        <div class="card shadow-sm">
+            <div class="card-body">
+                <form asp-area="Admin" asp-controller="Section" asp-action="Create" method="post">
+                    @Html.AntiForgeryToken()
+                    <input asp-for="CourseId" type="hidden" />
+                    <input asp-for="CourseTitle" type="hidden" />
+                    <div asp-validation-summary="ModelOnly" class="alert alert-danger" style="display:none;"></div>
+
+                    <div class="mb-3">
+                        <label asp-for="Title" class="form-label">章節標題 <span class="text-danger">*</span></label>
+                        <input asp-for="Title" class="form-control" placeholder="請輸入章節標題" />
+                        <span asp-validation-for="Title" class="text-danger"></span>
+                    </div>
+
+                    <div class="mb-3">
+                        <label asp-for="Description" class="form-label">章節說明</label>
+                        <textarea asp-for="Description" class="form-control" rows="3" placeholder="請輸入章節說明"></textarea>
+                        <span asp-validation-for="Description" class="text-danger"></span>
+                    </div>
+
+                    <div class="mb-3">
+                        <label asp-for="SortOrder" class="form-label">排序</label>
+                        <input asp-for="SortOrder" class="form-control" type="number" min="0" style="max-width:150px;" />
+                    </div>
+
+                    <div class="d-flex gap-2">
+                        <button type="submit" class="btn btn-primary" onclick="this.disabled=true;this.form.submit();">
+                            <i class="bi bi-check-lg me-1"></i>建立章節
+                        </button>
+                        <a asp-area="Admin" asp-controller="Course" asp-action="Detail" asp-route-id="@Model.CourseId" class="btn btn-outline-secondary">
+                            <i class="bi bi-arrow-left me-1"></i>返回課程
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

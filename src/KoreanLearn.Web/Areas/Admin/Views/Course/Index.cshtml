@@ -1,0 +1,95 @@
+@model KoreanLearn.Library.Helpers.PagedResult<KoreanLearn.Service.ViewModels.Admin.Course.CourseAdminListViewModel>
+@{
+    ViewData["Title"] = "課程管理";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2><i class="bi bi-book me-2"></i>課程管理</h2>
+    <a asp-area="Admin" asp-controller="Course" asp-action="Create" class="btn btn-primary">
+        <i class="bi bi-plus-lg me-1"></i>新增課程
+    </a>
+</div>
+
+@if (!Model.Items.Any())
+{
+    <div class="alert alert-info">
+        <i class="bi bi-info-circle me-2"></i>目前沒有任何課程，請先新增課程。
+    </div>
+}
+else
+{
+    <div class="table-responsive">
+        <table class="table table-hover align-middle">
+            <thead class="table-light">
+                <tr>
+                    <th style="width:40px">#</th>
+                    <th>標題</th>
+                    <th>難度</th>
+                    <th class="text-end">售價</th>
+                    <th class="text-center">章節</th>
+                    <th class="text-center">單元</th>
+                    <th class="text-center">狀態</th>
+                    <th class="text-center">排序</th>
+                    <th style="width:200px">操作</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var course in Model.Items)
+                {
+                    <tr>
+                        <td class="text-muted">@course.Id</td>
+                        <td>
+                            <a asp-area="Admin" asp-controller="Course" asp-action="Detail" asp-route-id="@course.Id"
+                               class="text-decoration-none fw-semibold">
+                                @course.Title
+                            </a>
+                        </td>
+                        <td><span class="badge bg-secondary">@course.LevelDisplay</span></td>
+                        <td class="text-end">NT$ @course.Price.ToString("N0")</td>
+                        <td class="text-center">@course.SectionCount</td>
+                        <td class="text-center">@course.LessonCount</td>
+                        <td class="text-center">
+                            @if (course.IsPublished)
+                            {
+                                <span class="badge bg-success">已發佈</span>
+                            }
+                            else
+                            {
+                                <span class="badge bg-warning text-dark">草稿</span>
+                            }
+                        </td>
+                        <td class="text-center">@course.SortOrder</td>
+                        <td>
+                            <a asp-area="Admin" asp-controller="Course" asp-action="Edit" asp-route-id="@course.Id"
+                               class="btn btn-sm btn-outline-primary me-1">
+                                <i class="bi bi-pencil"></i> 編輯
+                            </a>
+                            <form asp-area="Admin" asp-controller="Course" asp-action="Delete" asp-route-id="@course.Id"
+                                  method="post" class="d-inline"
+                                  onsubmit="return confirm('確定要刪除「@course.Title」嗎？此操作無法復原。');">
+                                @Html.AntiForgeryToken()
+                                <button type="submit" class="btn btn-sm btn-outline-danger">
+                                    <i class="bi bi-trash"></i> 刪除
+                                </button>
+                            </form>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+
+    @if (Model.TotalPages > 1)
+    {
+        <nav>
+            <ul class="pagination justify-content-center">
+                @for (var i = 1; i <= Model.TotalPages; i++)
+                {
+                    <li class="page-item @(i == Model.Page ? "active" : "")">
+                        <a class="page-link" asp-area="Admin" asp-controller="Course" asp-action="Index" asp-route-page="@i">@i</a>
+                    </li>
+                }
+            </ul>
+        </nav>
+    }
+}

@@ -1,8 +1,8 @@
 # [Course] 後台課程管理 CRUD
 
-> **狀態**：🚧 實作中
+> **狀態**：✅ 完成
 > **建立時間**：2026-03-25
-> **完成時間**：－
+> **完成時間**：2026-03-25
 
 ---
 
@@ -32,4 +32,11 @@
 
 ## 實際產出
 
-<!-- 實作完成後填寫 -->
+- **Service 層**：ICourseAdminService / CourseAdminService（Course / Section / Lesson CRUD）
+- **ViewModel**：CreateCourseViewModel, EditCourseViewModel, CourseAdminListViewModel, CourseDetailAdminViewModel, SectionFormViewModel, LessonFormViewModel, SectionAdminViewModel, LessonAdminViewModel
+- **Mapper**：CourseAdminProfile
+- **Controller**：Admin/CourseController, Admin/SectionController, Admin/LessonController
+- **View**：Course/Index, Create, Edit, Detail; Section/Create, Edit; Lesson/Create, Edit
+- **HTTP 驗證**：全部通過（200/302/404）
+- **UX 審查**：
+  - ✅ 通過：易用性（label + 必填標示 + 欄位驗證）、流暢性（分頁 + 麵包屑導航）、一致性（按鈕顏色 + badge 樣式）、防呆（刪除確認 + AntiForgeryToken + Authorize）

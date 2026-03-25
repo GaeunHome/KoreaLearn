@@ -1,0 +1,86 @@
+@model KoreanLearn.Service.ViewModels.Admin.Course.CreateCourseViewModel
+@{
+    ViewData["Title"] = "新增課程";
+}
+
+<div class="mb-4">
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a asp-area="Admin" asp-controller="Course" asp-action="Index">課程管理</a></li>
+            <li class="breadcrumb-item active">新增課程</li>
+        </ol>
+    </nav>
+    <h2><i class="bi bi-plus-circle me-2"></i>新增課程</h2>
+</div>
+
+<div class="row">
+    <div class="col-lg-8">
+        <div class="card shadow-sm">
+            <div class="card-body">
+                <form asp-area="Admin" asp-controller="Course" asp-action="Create" method="post" enctype="multipart/form-data">
+                    @Html.AntiForgeryToken()
+                    <div asp-validation-summary="ModelOnly" class="alert alert-danger" style="display:none;"></div>
+
+                    <div class="mb-3">
+                        <label asp-for="Title" class="form-label">課程標題 <span class="text-danger">*</span></label>
+                        <input asp-for="Title" class="form-control" placeholder="請輸入課程標題" />
+                        <span asp-validation-for="Title" class="text-danger"></span>
+                    </div>
+
+                    <div class="mb-3">
+                        <label asp-for="Description" class="form-label">課程介紹</label>
+                        <textarea asp-for="Description" class="form-control" rows="5" placeholder="請輸入課程介紹"></textarea>
+                        <span asp-validation-for="Description" class="text-danger"></span>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-4 mb-3">
+                            <label asp-for="Price" class="form-label">售價 <span class="text-danger">*</span></label>
+                            <div class="input-group">
+                                <span class="input-group-text">NT$</span>
+                                <input asp-for="Price" class="form-control" type="number" min="0" step="1" />
+                            </div>
+                            <span asp-validation-for="Price" class="text-danger"></span>
+                        </div>
+
+                        <div class="col-md-4 mb-3">
+                            <label asp-for="Level" class="form-label">難度等級 <span class="text-danger">*</span></label>
+                            <select asp-for="Level" asp-items="Html.GetEnumSelectList<DifficultyLevel>()" class="form-select">
+                                <option value="">請選擇...</option>
+                            </select>
+                            <span asp-validation-for="Level" class="text-danger"></span>
+                        </div>
+
+                        <div class="col-md-4 mb-3">
+                            <label asp-for="SortOrder" class="form-label">排序</label>
+                            <input asp-for="SortOrder" class="form-control" type="number" min="0" />
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label asp-for="CoverImage" class="form-label">封面圖片</label>
+                        <input asp-for="CoverImage" class="form-control" type="file" accept="image/*" />
+                    </div>
+
+                    <div class="mb-3 form-check">
+                        <input asp-for="IsPublished" class="form-check-input" />
+                        <label asp-for="IsPublished" class="form-check-label">是否發佈</label>
+                    </div>
+
+                    <div class="d-flex gap-2">
+                        <button type="submit" class="btn btn-primary" onclick="this.disabled=true;this.form.submit();">
+                            <i class="bi bi-check-lg me-1"></i>建立課程
+                        </button>
+                        <a asp-area="Admin" asp-controller="Course" asp-action="Index" class="btn btn-outline-secondary">
+                            <i class="bi bi-arrow-left me-1"></i>返回列表
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}
