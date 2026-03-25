@@ -1,8 +1,9 @@
 .claude/*
-!.claude/settings.json
 .DS_Store
 *.log
 logs/
 _backup/
 **/bin/
 **/obj/
+**/bin\\Debug/
+docs/
