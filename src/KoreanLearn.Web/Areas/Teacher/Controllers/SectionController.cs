@@ -1,18 +1,13 @@
-using System.Security.Claims;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using KoreanLearn.Service.Services.Interfaces;
 using KoreanLearn.Service.ViewModels.Admin.Section;
+using KoreanLearn.Web.Infrastructure;
 
 namespace KoreanLearn.Web.Areas.Teacher.Controllers;
 
 /// <summary>教師章節管理 Controller，提供教師自有課程章節的新增、編輯與刪除</summary>
-[Area("Teacher")]
-[Authorize(Roles = "Teacher")]
-public class SectionController(ITeacherCourseService teacherService) : Controller
+public class SectionController(ITeacherCourseService teacherService) : TeacherBaseController
 {
-    private string TeacherId => User.FindFirstValue(ClaimTypes.NameIdentifier)!;
-
     /// <summary>新增章節表單頁（GET），預帶所屬課程資訊</summary>
     public IActionResult Create(int courseId, string? courseTitle)
     {
@@ -29,7 +24,7 @@ public class SectionController(ITeacherCourseService teacherService) : Controlle
         var result = await teacherService.CreateSectionAsync(vm, TeacherId, ct);
         if (result.IsSuccess)
         {
-            TempData["Success"] = "章節建立成功";
+            TempData[TempDataKeys.Success] = "章節建立成功";
             return RedirectToAction("Detail", "Course", new { area = "Teacher", id = vm.CourseId });
         }
 
@@ -55,7 +50,7 @@ public class SectionController(ITeacherCourseService teacherService) : Controlle
         var result = await teacherService.UpdateSectionAsync(vm, TeacherId, ct);
         if (result.IsSuccess)
         {
-            TempData["Success"] = "章節更新成功";
+            TempData[TempDataKeys.Success] = "章節更新成功";
             return RedirectToAction("Detail", "Course", new { area = "Teacher", id = vm.CourseId });
         }
 
@@ -69,7 +64,7 @@ public class SectionController(ITeacherCourseService teacherService) : Controlle
     public async Task<IActionResult> Delete(int id, int courseId, CancellationToken ct = default)
     {
         var result = await teacherService.DeleteSectionAsync(id, TeacherId, ct);
-        TempData[result.IsSuccess ? "Success" : "Error"] = result.IsSuccess ? "章節已刪除" : (result.ErrorMessage ?? "刪除失敗");
+        TempData[result.IsSuccess ? TempDataKeys.Success : TempDataKeys.Error] = result.IsSuccess ? "章節已刪除" : (result.ErrorMessage ?? "刪除失敗");
         return RedirectToAction("Detail", "Course", new { area = "Teacher", id = courseId });
     }
 }

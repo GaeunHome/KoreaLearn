@@ -1,0 +1,127 @@
+@using KoreanLearn.Service.Services.Interfaces
+@model TwoFactorStatusInfo
+@{
+    ViewData["Title"] = "兩步驟驗證管理";
+}
+
+<div class="kl-settings-page">
+    <div class="kl-settings-nav">
+        <a class="btn btn-outline-secondary btn-sm" asp-action="Profile" asp-controller="Account" asp-area="Identity">
+            <i class="bi bi-person me-1"></i>個人資料
+        </a>
+        <a class="btn btn-outline-secondary btn-sm" asp-action="ChangePassword" asp-controller="Account" asp-area="Identity">
+            <i class="bi bi-key me-1"></i>變更密碼
+        </a>
+        <a class="btn btn-primary btn-sm" asp-action="TwoFactorAuthentication" asp-controller="Account" asp-area="Identity">
+            <i class="bi bi-shield-check me-1"></i>兩步驟驗證
+        </a>
+    </div>
+
+    <div class="card kl-settings-card">
+        <div class="card-body">
+            <div class="kl-settings-header">
+                <i class="bi bi-shield-lock"></i>
+                <div>
+                    <h4>兩步驟驗證</h4>
+                    <p>增加帳號安全性，每次登入時需額外驗證身分</p>
+                </div>
+            </div>
+
+            <!-- 目前狀態 -->
+            <div class="d-flex align-items-center justify-content-between p-3 mb-4 rounded" style="background: #f5f3f0;">
+                <div>
+                    <strong>目前狀態</strong>
+                    <p class="text-muted small mb-0">
+                        @if (Model.IsEnabled)
+                        {
+                            <text>使用</text>
+                            @if (Model.PreferredMethod == "Authenticator")
+                            {
+                                <text>驗證器 App</text>
+                            }
+                            else
+                            {
+                                <text>Email 驗證碼</text>
+                            }
+                        }
+                        else
+                        {
+                            <text>尚未啟用兩步驟驗證</text>
+                        }
+                    </p>
+                </div>
+                @if (Model.IsEnabled)
+                {
+                    <span class="badge bg-success px-3 py-2"><i class="bi bi-check-circle me-1"></i>已啟用</span>
+                }
+                else
+                {
+                    <span class="badge bg-secondary px-3 py-2">未啟用</span>
+                }
+            </div>
+
+            @if (Model.IsEnabled)
+            {
+                <div class="alert alert-info small mb-3">
+                    <i class="bi bi-info-circle me-1"></i>
+                    停用後將重設驗證器金鑰，需要重新設定才能再次啟用。
+                </div>
+                <form asp-action="DisableTwoFactor" asp-controller="Account" asp-area="Identity" method="post">
+                    <button type="submit" class="btn btn-outline-danger"
+                            onclick="return confirm('確定要停用兩步驟驗證嗎？這將降低帳號安全性。')">
+                        <i class="bi bi-shield-x me-1"></i>停用兩步驟驗證
+                    </button>
+                </form>
+            }
+            else
+            {
+                <h6 class="mb-3">選擇驗證方式</h6>
+                <div class="row g-3">
+                    <!-- TOTP 驗證器 -->
+                    <div class="col-md-6">
+                        <div class="card h-100" style="border: 1px solid var(--kl-border);">
+                            <div class="card-body text-center p-4">
+                                <div class="mb-3">
+                                    <i class="bi bi-phone" style="font-size: 2rem; color: var(--kl-primary);"></i>
+                                </div>
+                                <h6>驗證器 App</h6>
+                                <p class="text-muted small mb-3">
+                                    使用 Google Authenticator 或 Microsoft Authenticator 產生驗證碼
+                                </p>
+                                <span class="badge bg-primary mb-3">推薦</span>
+                                <div>
+                                    <a asp-action="SetupAuthenticator" asp-controller="Account" asp-area="Identity"
+                                       class="btn btn-primary btn-sm">
+                                        <i class="bi bi-qr-code me-1"></i>設定驗證器
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Email -->
+                    <div class="col-md-6">
+                        <div class="card h-100" style="border: 1px solid var(--kl-border);">
+                            <div class="card-body text-center p-4">
+                                <div class="mb-3">
+                                    <i class="bi bi-envelope" style="font-size: 2rem; color: var(--kl-success);"></i>
+                                </div>
+                                <h6>Email 驗證碼</h6>
+                                <p class="text-muted small mb-3">
+                                    每次登入時寄送驗證碼到 <strong>@Model.Email</strong>
+                                </p>
+                                <div class="mb-3"></div>
+                                <div>
+                                    <a asp-action="SetupEmailTwoFactor" asp-controller="Account" asp-area="Identity"
+                                       class="btn btn-outline-success btn-sm">
+                                        <i class="bi bi-envelope-check me-1"></i>設定 Email 驗證
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+</div>

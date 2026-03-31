@@ -1,0 +1,67 @@
+@model KoreanLearn.Service.ViewModels.Admin.Banner.BannerFormViewModel
+@{
+    ViewData["Title"] = "編輯幻燈片";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2><i class="bi bi-pencil-square me-2"></i>編輯幻燈片</h2>
+    <a asp-area="Admin" asp-controller="Banner" asp-action="Index" class="btn btn-outline-secondary">
+        <i class="bi bi-arrow-left me-1"></i>返回列表
+    </a>
+</div>
+
+<div class="card">
+    <div class="card-body">
+        <form asp-area="Admin" asp-controller="Banner" asp-action="Edit" method="post" enctype="multipart/form-data">
+            @Html.AntiForgeryToken()
+            <input type="hidden" asp-for="Id" />
+            <div asp-validation-summary="All" class="text-danger mb-3"></div>
+
+            <div class="mb-3">
+                <label asp-for="Title" class="form-label">標題</label>
+                <input asp-for="Title" class="form-control" />
+                <span asp-validation-for="Title" class="text-danger"></span>
+            </div>
+
+            @if (!string.IsNullOrEmpty(Model.ImageUrl))
+            {
+                <div class="mb-3">
+                    <label class="form-label">目前圖片</label>
+                    <div>
+                        <img src="@Model.ImageUrl" alt="目前圖片" style="max-width:300px;max-height:150px;"
+                             class="rounded border" />
+                    </div>
+                </div>
+            }
+
+            <div class="mb-3">
+                <label asp-for="ImageFile" class="form-label">更換圖片（選填）</label>
+                <input asp-for="ImageFile" class="form-control" type="file" accept="image/*" />
+                <span asp-validation-for="ImageFile" class="text-danger"></span>
+            </div>
+
+            <input type="hidden" asp-for="ImageUrl" />
+
+            <div class="mb-3">
+                <label asp-for="CourseId" class="form-label">連結課程 ID（選填）</label>
+                <input asp-for="CourseId" class="form-control" type="number" />
+                <span asp-validation-for="CourseId" class="text-danger"></span>
+            </div>
+
+            <div class="mb-3">
+                <label asp-for="DisplayOrder" class="form-label">顯示順序</label>
+                <input asp-for="DisplayOrder" class="form-control" type="number" />
+                <span asp-validation-for="DisplayOrder" class="text-danger"></span>
+            </div>
+
+            <div class="mb-3 form-check">
+                <input asp-for="IsActive" class="form-check-input" type="checkbox" />
+                <label asp-for="IsActive" class="form-check-label">啟用</label>
+            </div>
+
+            <button type="submit" class="btn btn-primary">
+                <i class="bi bi-check-lg me-1"></i>儲存變更
+            </button>
+        </form>
+    </div>
+</div>

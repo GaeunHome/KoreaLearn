@@ -1,4 +1,4 @@
-using AutoMapper;
+using MapsterMapper;
 using KoreanLearn.Data.UnitOfWork;
 using KoreanLearn.Library.Helpers;
 using KoreanLearn.Service.Services.Interfaces;

@@ -1,18 +1,13 @@
-using System.Security.Claims;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using KoreanLearn.Service.Services.Interfaces;
 using KoreanLearn.Service.ViewModels.Admin.Lesson;
+using KoreanLearn.Web.Infrastructure;
 
 namespace KoreanLearn.Web.Areas.Teacher.Controllers;
 
 /// <summary>教師單元管理 Controller，提供教師自有課程單元的新增、編輯與刪除（含影片/PDF 上傳）</summary>
-[Area("Teacher")]
-[Authorize(Roles = "Teacher")]
-public class LessonController(ITeacherCourseService teacherService) : Controller
+public class LessonController(ITeacherCourseService teacherService, IFileUploadService fileUploadService) : TeacherBaseController
 {
-    private string TeacherId => User.FindFirstValue(ClaimTypes.NameIdentifier)!;
-
     /// <summary>新增單元表單頁（GET），預帶所屬章節與課程資訊</summary>
     public IActionResult Create(int sectionId, int courseId, string? sectionTitle, string? courseTitle)
     {
@@ -34,7 +29,7 @@ public class LessonController(ITeacherCourseService teacherService) : Controller
         var result = await teacherService.CreateLessonAsync(vm, TeacherId, ct);
         if (result.IsSuccess)
         {
-            TempData["Success"] = "單元建立成功";
+            TempData[TempDataKeys.Success] = "單元建立成功";
             return RedirectToAction("Detail", "Course", new { area = "Teacher", id = vm.CourseId });
         }
 
@@ -61,7 +56,7 @@ public class LessonController(ITeacherCourseService teacherService) : Controller
         var result = await teacherService.UpdateLessonAsync(vm, TeacherId, ct);
         if (result.IsSuccess)
         {
-            TempData["Success"] = "單元更新成功";
+            TempData[TempDataKeys.Success] = "單元更新成功";
             return RedirectToAction("Detail", "Course", new { area = "Teacher", id = vm.CourseId });
         }
 
@@ -75,7 +70,7 @@ public class LessonController(ITeacherCourseService teacherService) : Controller
     public async Task<IActionResult> Delete(int id, int courseId, CancellationToken ct = default)
     {
         var result = await teacherService.DeleteLessonAsync(id, TeacherId, ct);
-        TempData[result.IsSuccess ? "Success" : "Error"] = result.IsSuccess ? "單元已刪除" : (result.ErrorMessage ?? "刪除失敗");
+        TempData[result.IsSuccess ? TempDataKeys.Success : TempDataKeys.Error] = result.IsSuccess ? "單元已刪除" : (result.ErrorMessage ?? "刪除失敗");
         return RedirectToAction("Detail", "Course", new { area = "Teacher", id = courseId });
     }
 
@@ -83,23 +78,11 @@ public class LessonController(ITeacherCourseService teacherService) : Controller
     private async Task HandleFileUploadsAsync(LessonFormViewModel vm)
     {
         if (vm.VideoFile is not null)
-            vm.ExistingVideoUrl = await SaveFileAsync(vm.VideoFile, "videos");
+            vm.ExistingVideoUrl = await fileUploadService.SaveAsync(vm.VideoFile, "videos");
         if (vm.PdfFile is not null)
         {
-            vm.ExistingPdfUrl = await SaveFileAsync(vm.PdfFile, "pdfs");
+            vm.ExistingPdfUrl = await fileUploadService.SaveAsync(vm.PdfFile, "pdfs");
             vm.ExistingPdfFileName = vm.PdfFile.FileName;
         }
-    }
-
-    /// <summary>儲存上傳檔案至 wwwroot/uploads/{folder}/，回傳相對路徑</summary>
-    private static async Task<string> SaveFileAsync(IFormFile file, string folder)
-    {
-        var uploadsDir = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "uploads", folder);
-        Directory.CreateDirectory(uploadsDir);
-        var fileName = $"{Guid.NewGuid()}{Path.GetExtension(file.FileName)}";
-        var filePath = Path.Combine(uploadsDir, fileName);
-        await using var stream = new FileStream(filePath, FileMode.Create);
-        await file.CopyToAsync(stream);
-        return $"/uploads/{folder}/{fileName}";
     }
 }

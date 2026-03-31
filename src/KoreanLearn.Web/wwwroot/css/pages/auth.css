@@ -1,0 +1,87 @@
+/* ─── Auth Pages ──────────────────────────── */
+
+.kl-auth-wrapper {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem 1rem;
+  min-height: calc(100vh - 180px);
+}
+
+.kl-auth-card {
+  width: 100%;
+  max-width: 480px;
+  border-radius: var(--kl-radius-lg);
+  box-shadow: var(--kl-shadow-md);
+}
+
+.kl-auth-card .card-body {
+  padding: 2rem;
+}
+
+.kl-auth-header {
+  text-align: center;
+  padding: 2rem 2rem 0;
+}
+
+.kl-auth-header h3 {
+  margin-bottom: 0.3rem;
+}
+
+.kl-auth-header p {
+  color: var(--kl-text-muted);
+  font-size: 0.9rem;
+}
+
+/* ─── Settings Page（個人資料/2FA 等帳號設定頁面）── */
+
+.kl-settings-page {
+  max-width: 720px;
+  margin: 0 auto;
+}
+
+.kl-settings-card {
+  border-radius: var(--kl-radius-lg);
+  box-shadow: var(--kl-shadow-md);
+  border: 1px solid var(--kl-border);
+}
+
+.kl-settings-card .card-body {
+  padding: 2rem;
+}
+
+.kl-settings-header {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 1.5rem;
+  padding-bottom: 1rem;
+  border-bottom: 2px solid var(--kl-accent);
+}
+
+.kl-settings-header i {
+  font-size: 1.5rem;
+  color: var(--kl-primary);
+}
+
+.kl-settings-header h4 {
+  margin: 0;
+  font-size: 1.25rem;
+}
+
+.kl-settings-header p {
+  margin: 0;
+  color: var(--kl-text-muted);
+  font-size: 0.85rem;
+}
+
+.kl-settings-nav {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 1.5rem;
+  flex-wrap: wrap;
+}
+
+.kl-settings-nav .btn {
+  font-size: 0.85rem;
+}

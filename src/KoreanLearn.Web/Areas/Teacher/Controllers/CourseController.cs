@@ -1,33 +1,28 @@
-using System.Security.Claims;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using KoreanLearn.Service.Services.Interfaces;
 using KoreanLearn.Service.ViewModels.Admin.Course;
+using KoreanLearn.Web.Infrastructure;
+using KoreanLearn.Library.Helpers;
 
 namespace KoreanLearn.Web.Areas.Teacher.Controllers;
 
 /// <summary>教師課程管理 Controller，提供教師自有課程的 CRUD 操作（含封面圖上傳）</summary>
-[Area("Teacher")]
-[Authorize(Roles = "Teacher")]
-public class CourseController(ITeacherCourseService teacherService) : Controller
+public class CourseController(ITeacherCourseService teacherService, IFileUploadService fileUploadService) : TeacherBaseController
 {
-    private const int PageSize = 20;
-    private string TeacherId => User.FindFirstValue(ClaimTypes.NameIdentifier)!;
-
     /// <summary>教師課程列表頁（分頁），僅顯示該教師建立的課程</summary>
     public async Task<IActionResult> Index(int page = 1, CancellationToken ct = default)
     {
-        var result = await teacherService.GetTeacherCoursesPagedAsync(TeacherId, page, PageSize, ct);
+        var result = await teacherService.GetTeacherCoursesPagedAsync(TeacherId, page, DisplayConstants.TeacherPageSize, ct);
         return View(result);
     }
 
     /// <summary>新增課程表單頁（GET）</summary>
-    public IActionResult Create() => View(new CreateCourseViewModel());
+    public IActionResult Create() => View(new CourseFormViewModel());
 
     /// <summary>新增課程（POST），建立課程並儲存封面圖片，成功後導回列表</summary>
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> Create(CreateCourseViewModel vm, CancellationToken ct = default)
+    public async Task<IActionResult> Create(CourseFormViewModel vm, CancellationToken ct = default)
     {
         if (!ModelState.IsValid) return View(vm);
 
@@ -36,10 +31,10 @@ public class CourseController(ITeacherCourseService teacherService) : Controller
         {
             if (vm.CoverImage is not null)
             {
-                var coverPath = await SaveCoverImageAsync(vm.CoverImage);
+                var coverPath = await fileUploadService.SaveAsync(vm.CoverImage, "covers");
                 await teacherService.UpdateCourseImageAsync(courseId, coverPath, TeacherId, ct);
             }
-            TempData["Success"] = "課程建立成功";
+            TempData[TempDataKeys.Success] = "課程建立成功";
             return RedirectToAction(nameof(Index));
         }
 
@@ -66,20 +61,20 @@ public class CourseController(ITeacherCourseService teacherService) : Controller
     /// <summary>更新課程（POST），更新課程資料與封面圖片，成功後導回詳情頁</summary>
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> Edit(EditCourseViewModel vm, CancellationToken ct = default)
+    public async Task<IActionResult> Edit(CourseFormViewModel vm, CancellationToken ct = default)
     {
         if (!ModelState.IsValid) return View(vm);
 
         if (vm.CoverImage is not null)
         {
-            var coverPath = await SaveCoverImageAsync(vm.CoverImage);
+            var coverPath = await fileUploadService.SaveAsync(vm.CoverImage, "covers");
             await teacherService.UpdateCourseImageAsync(vm.Id, coverPath, TeacherId, ct);
         }
 
         var result = await teacherService.UpdateCourseAsync(vm, TeacherId, ct);
         if (result.IsSuccess)
         {
-            TempData["Success"] = "課程更新成功";
+            TempData[TempDataKeys.Success] = "課程更新成功";
             return RedirectToAction(nameof(Detail), new { id = vm.Id });
         }
 
@@ -93,19 +88,8 @@ public class CourseController(ITeacherCourseService teacherService) : Controller
     public async Task<IActionResult> Delete(int id, CancellationToken ct = default)
     {
         var result = await teacherService.DeleteCourseAsync(id, TeacherId, ct);
-        TempData[result.IsSuccess ? "Success" : "Error"] = result.IsSuccess ? "課程已刪除" : (result.ErrorMessage ?? "刪除失敗");
+        TempData[result.IsSuccess ? TempDataKeys.Success : TempDataKeys.Error] = result.IsSuccess ? "課程已刪除" : (result.ErrorMessage ?? "刪除失敗");
         return RedirectToAction(nameof(Index));
     }
 
-    /// <summary>儲存封面圖片至 wwwroot/uploads/covers/，回傳相對路徑</summary>
-    private static async Task<string> SaveCoverImageAsync(IFormFile file)
-    {
-        var uploadsDir = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "uploads", "covers");
-        Directory.CreateDirectory(uploadsDir);
-        var fileName = $"{Guid.NewGuid()}{Path.GetExtension(file.FileName)}";
-        var filePath = Path.Combine(uploadsDir, fileName);
-        await using var stream = new FileStream(filePath, FileMode.Create);
-        await file.CopyToAsync(stream);
-        return $"/uploads/covers/{fileName}";
-    }
 }

@@ -1,0 +1,77 @@
+@model IReadOnlyList<KoreanLearn.Service.ViewModels.Admin.SystemSetting.SystemSettingViewModel>
+@{
+    ViewData["Title"] = "系統參數管理";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2><i class="bi bi-gear me-2"></i>系統參數管理</h2>
+    <a asp-area="Admin" asp-controller="SystemSetting" asp-action="Create" class="btn btn-primary">
+        <i class="bi bi-plus-lg me-1"></i>新增參數
+    </a>
+</div>
+
+@if (!Model.Any())
+{
+    <div class="alert alert-info">
+        <i class="bi bi-info-circle me-2"></i>目前沒有任何系統參數。
+    </div>
+}
+else
+{
+    <div class="table-responsive">
+        <table class="table table-hover align-middle">
+            <thead class="table-light">
+                <tr>
+                    <th style="width:40px">#</th>
+                    <th>參數鍵</th>
+                    <th>參數值</th>
+                    <th>說明</th>
+                    <th>分組</th>
+                    <th>更新時間</th>
+                    <th style="width:180px">操作</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var setting in Model)
+                {
+                    <tr>
+                        <td class="text-muted">@setting.Id</td>
+                        <td><code>@setting.Key</code></td>
+                        <td>
+                            @if (setting.Value.Length > 50)
+                            {
+                                <span title="@setting.Value">@setting.Value[..50]...</span>
+                            }
+                            else
+                            {
+                                @setting.Value
+                            }
+                        </td>
+                        <td class="text-muted">@setting.Description</td>
+                        <td>
+                            @if (!string.IsNullOrEmpty(setting.Group))
+                            {
+                                <span class="badge bg-secondary">@setting.Group</span>
+                            }
+                        </td>
+                        <td>@setting.UpdatedAt.ToString("yyyy-MM-dd HH:mm")</td>
+                        <td>
+                            <a asp-area="Admin" asp-controller="SystemSetting" asp-action="Edit" asp-route-id="@setting.Id"
+                               class="btn btn-sm btn-outline-primary me-1">
+                                <i class="bi bi-pencil"></i> 編輯
+                            </a>
+                            <form asp-area="Admin" asp-controller="SystemSetting" asp-action="Delete" asp-route-id="@setting.Id"
+                                  method="post" class="d-inline">
+                                @Html.AntiForgeryToken()
+                                <button type="submit" class="btn btn-sm btn-outline-danger"
+                                        data-confirm="確定要刪除參數「@setting.Key」嗎？">
+                                    <i class="bi bi-trash"></i> 刪除
+                                </button>
+                            </form>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+}

@@ -13,4 +13,7 @@ public interface IFlashcardLogRepository : IRepository<FlashcardLog>
 
     /// <summary>取得使用者在指定牌組的所有學習紀錄</summary>
     Task<IReadOnlyList<FlashcardLog>> GetByUserAndDeckAsync(string userId, int deckId, CancellationToken ct = default);
+
+    /// <summary>取得使用者所有牌組中已到期需複習的字卡總數</summary>
+    Task<int> CountDueForUserAsync(string userId, CancellationToken ct = default);
 }

@@ -19,13 +19,13 @@ public interface ITeacherCourseService
     Task<CourseDetailAdminViewModel?> GetCourseDetailAsync(int id, string teacherId, CancellationToken ct = default);
 
     /// <summary>取得課程編輯表單資料（驗證所有權）</summary>
-    Task<EditCourseViewModel?> GetCourseForEditAsync(int id, string teacherId, CancellationToken ct = default);
+    Task<CourseFormViewModel?> GetCourseForEditAsync(int id, string teacherId, CancellationToken ct = default);
 
     /// <summary>教師建立新課程，自動設定 TeacherId</summary>
-    Task<ServiceResult<int>> CreateCourseAsync(CreateCourseViewModel vm, string teacherId, CancellationToken ct = default);
+    Task<ServiceResult<int>> CreateCourseAsync(CourseFormViewModel vm, string teacherId, CancellationToken ct = default);
 
     /// <summary>更新教師自己的課程資訊</summary>
-    Task<ServiceResult> UpdateCourseAsync(EditCourseViewModel vm, string teacherId, CancellationToken ct = default);
+    Task<ServiceResult> UpdateCourseAsync(CourseFormViewModel vm, string teacherId, CancellationToken ct = default);
 
     /// <summary>軟刪除教師自己的課程</summary>
     Task<ServiceResult> DeleteCourseAsync(int id, string teacherId, CancellationToken ct = default);

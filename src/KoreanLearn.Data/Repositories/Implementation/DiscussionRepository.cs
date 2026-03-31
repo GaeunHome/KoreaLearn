@@ -18,6 +18,7 @@ public class DiscussionRepository(ApplicationDbContext db) : Repository<Discussi
     {
         var query = DbSet.AsNoTracking()
             .Include(d => d.User)
+            .Include(d => d.Replies)
             .Where(d => d.CourseId == courseId);
 
         var total = await query.CountAsync(ct).ConfigureAwait(false);

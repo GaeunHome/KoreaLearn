@@ -1,39 +1,72 @@
 @model KoreanLearn.Service.ViewModels.Home.HomeViewModel
-@{ ViewData["Title"] = "首頁"; Layout = "_Layout"; }
+@{ ViewData["Title"] = "首頁"; ViewData["FullWidth"] = true; Layout = "_Layout"; }
 
-<div class="kl-hero text-center" style="margin: -1.5rem -0.75rem 0; padding: 4rem 1rem;">
-    <div class="container">
-        <h1 class="mb-3">從零開始，學會韓語</h1>
-        <p class="mx-auto mb-4" style="max-width: 580px;">
-            系統化的韓語課程，涵蓋發音、文法、單字與會話。<br />
-            從 한글 字母到 TOPIK 備考，帶你循序漸進地掌握韓語。
-        </p>
-        <div class="d-flex justify-content-center gap-3">
-            <a asp-controller="Course" asp-action="Index" class="btn btn-light btn-lg">瀏覽課程</a>
-            <a asp-controller="Subscription" asp-action="Index" class="btn btn-outline-light btn-lg">訂閱方案</a>
+<!-- ═══ 首頁輪播（滿版） ═══ -->
+<div id="klHeroCarousel" class="carousel slide" data-bs-ride="carousel" data-bs-interval="5000">
+    <div class="carousel-indicators">
+        <button type="button" data-bs-target="#klHeroCarousel" data-bs-slide-to="0" class="active"></button>
+        <button type="button" data-bs-target="#klHeroCarousel" data-bs-slide-to="1"></button>
+        <button type="button" data-bs-target="#klHeroCarousel" data-bs-slide-to="2"></button>
+    </div>
+
+    <div class="carousel-inner">
+        <div class="carousel-item active">
+            <div class="kl-hero-slide kl-hero-slide--1 text-center">
+                <div class="container">
+                    <h1 class="mb-3">從零開始，學會韓語</h1>
+                    <p class="mx-auto mb-4" style="max-width: 580px;">
+                        系統化的韓語課程，涵蓋發音、文法、單字與會話。<br />
+                        從 한글 字母到 TOPIK 備考，帶你循序漸進地掌握韓語。
+                    </p>
+                    <div class="d-flex justify-content-center gap-3">
+                        <a asp-controller="Course" asp-action="Index" class="btn btn-light btn-lg">瀏覽課程</a>
+                        <a asp-controller="Subscription" asp-action="Index" class="btn btn-outline-light btn-lg">訂閱方案</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="carousel-item">
+            <div class="kl-hero-slide kl-hero-slide--2 text-center">
+                <div class="container">
+                    <h1 class="mb-3"><i class="bi bi-card-text me-2"></i>互動式學習體驗</h1>
+                    <p class="mx-auto mb-4" style="max-width: 580px;">
+                        字卡記憶系統搭配 SM-2 間隔重複演算法，<br />
+                        發音練習、隨堂測驗，多元互動讓學習更有效率。
+                    </p>
+                    <div class="d-flex justify-content-center gap-3">
+                        <a asp-controller="Course" asp-action="Index" class="btn btn-light btn-lg">開始學習</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="carousel-item">
+            <div class="kl-hero-slide kl-hero-slide--3 text-center">
+                <div class="container">
+                    <h1 class="mb-3"><i class="bi bi-award me-2"></i>完課即獲結業證書</h1>
+                    <p class="mx-auto mb-4" style="max-width: 580px;">
+                        完成所有課程單元並通過測驗（70 分以上），<br />
+                        即可獲得 PDF 結業證書，為你的韓語能力加分。
+                    </p>
+                    <div class="d-flex justify-content-center gap-3">
+                        <a asp-action="Register" asp-controller="Account" asp-area="Identity" class="btn btn-light btn-lg">免費註冊</a>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
+
+    <button class="carousel-control-prev" type="button" data-bs-target="#klHeroCarousel" data-bs-slide="prev">
+        <span class="carousel-control-prev-icon"></span>
+        <span class="visually-hidden">上一張</span>
+    </button>
+    <button class="carousel-control-next" type="button" data-bs-target="#klHeroCarousel" data-bs-slide="next">
+        <span class="carousel-control-next-icon"></span>
+        <span class="visually-hidden">下一張</span>
+    </button>
 </div>
 
 <div class="container">
-    @if (Model.Announcements.Any())
-    {
-        <section class="mt-4 mb-5">
-            @foreach (var ann in Model.Announcements)
-            {
-                <div class="alert alert-info d-flex align-items-center">
-                    <i class="bi bi-megaphone me-2"></i>
-                    <div>
-                        <strong>@ann.Title</strong>
-                        <span class="ms-2">@ann.Content</span>
-                        <small class="text-muted ms-2">@ann.CreatedAt.ToString("yyyy/MM/dd")</small>
-                    </div>
-                </div>
-            }
-        </section>
-    }
-
-    <!-- 為什麼選擇 KoreanLearn -->
+    <!-- ═══ 為什麼選擇 KoreanLearn ═══ -->
     <section class="my-5">
         <div class="text-center mb-4">
             <h3 class="kl-section-title">為什麼選擇 KoreanLearn</h3>
@@ -69,7 +102,36 @@
         </div>
     </section>
 
-    <!-- 精選課程 -->
+    <!-- ═══ 學習流程 ═══ -->
+    <section class="mb-5">
+        <div class="text-center mb-4">
+            <h3 class="kl-section-title">學習流程</h3>
+        </div>
+        <div class="row text-center g-4">
+            <div class="col-md-3">
+                <div class="kl-stat-number" style="color: var(--kl-primary);">01</div>
+                <h6 class="mt-2">選擇課程</h6>
+                <p class="text-muted small">依照你的程度，選擇入門到進階的課程</p>
+            </div>
+            <div class="col-md-3">
+                <div class="kl-stat-number" style="color: var(--kl-info);">02</div>
+                <h6 class="mt-2">觀看教材</h6>
+                <p class="text-muted small">透過文章、影片、PDF 等多元教材學習</p>
+            </div>
+            <div class="col-md-3">
+                <div class="kl-stat-number" style="color: var(--kl-success);">03</div>
+                <h6 class="mt-2">互動練習</h6>
+                <p class="text-muted small">字卡記憶、發音練習、隨堂測驗強化記憶</p>
+            </div>
+            <div class="col-md-3">
+                <div class="kl-stat-number" style="color: var(--kl-accent);">04</div>
+                <h6 class="mt-2">取得證書</h6>
+                <p class="text-muted small">完成課程並通過測驗，獲得結業證書</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- ═══ 精選課程 ═══ -->
     <section class="mb-5">
         <div class="d-flex justify-content-between align-items-center mb-4">
             <h3 class="kl-section-title mb-0">精選課程</h3>
@@ -91,9 +153,18 @@
                             }
                             else
                             {
-                                <div class="card-img-top d-flex align-items-center justify-content-center"
-                                     style="height: 180px; background: linear-gradient(135deg, #EEF1F7 0%, #E1E6EF 100%);">
-                                    <i class="bi bi-book display-3" style="color: var(--kl-primary); opacity: 0.25;"></i>
+                                <div class="kl-course-placeholder card-img-top">
+                                    <svg viewBox="0 0 400 180" xmlns="http://www.w3.org/2000/svg">
+                                        <defs>
+                                            <linearGradient id="grad-@course.Id" x1="0%" y1="0%" x2="100%" y2="100%">
+                                                <stop offset="0%" style="stop-color:#2B3A67;stop-opacity:1" />
+                                                <stop offset="100%" style="stop-color:#5B9BD5;stop-opacity:1" />
+                                            </linearGradient>
+                                        </defs>
+                                        <rect width="400" height="180" fill="url(#grad-@course.Id)" />
+                                        <text x="200" y="75" text-anchor="middle" fill="rgba(255,255,255,0.15)" font-size="64" font-weight="700" font-family="'Noto Sans KR', sans-serif">한국어</text>
+                                        <text x="200" y="120" text-anchor="middle" fill="rgba(255,255,255,0.7)" font-size="16" font-weight="500" font-family="'Noto Sans TC', sans-serif">@(course.Title.Length > 20 ? course.Title[..20] + "..." : course.Title)</text>
+                                    </svg>
                                 </div>
                             }
                             <div class="card-body d-flex flex-column">
@@ -128,33 +199,29 @@
             <p class="text-muted text-center py-4">目前沒有已發佈的課程</p>
         }
     </section>
+</div>
 
-    <!-- 學習流程 -->
-    <section class="mb-5">
-        <div class="text-center mb-4">
-            <h3 class="kl-section-title">學習流程</h3>
-        </div>
-        <div class="row text-center g-4">
-            <div class="col-md-3">
-                <div class="kl-stat-number" style="color: var(--kl-primary);">01</div>
-                <h6 class="mt-2">選擇課程</h6>
-                <p class="text-muted small">依照你的程度，選擇入門到進階的課程</p>
+<!-- ═══ 公告區（footer 上方） ═══ -->
+@if (Model.Announcements.Any())
+{
+    <section class="kl-announcements-bar">
+        <div class="container">
+            <div class="d-flex align-items-center mb-3">
+                <i class="bi bi-megaphone-fill me-2" style="font-size: 1.2rem;"></i>
+                <h5 class="mb-0">最新公告</h5>
             </div>
-            <div class="col-md-3">
-                <div class="kl-stat-number" style="color: var(--kl-info);">02</div>
-                <h6 class="mt-2">觀看教材</h6>
-                <p class="text-muted small">透過文章、影片、PDF 等多元教材學習</p>
-            </div>
-            <div class="col-md-3">
-                <div class="kl-stat-number" style="color: var(--kl-success);">03</div>
-                <h6 class="mt-2">互動練習</h6>
-                <p class="text-muted small">字卡記憶、發音練習、隨堂測驗強化記憶</p>
-            </div>
-            <div class="col-md-3">
-                <div class="kl-stat-number" style="color: var(--kl-accent);">04</div>
-                <h6 class="mt-2">取得證書</h6>
-                <p class="text-muted small">完成課程並通過測驗，獲得結業證書</p>
+            <div class="row g-3">
+                @foreach (var ann in Model.Announcements)
+                {
+                    <div class="col-md-4">
+                        <div class="kl-announcement-item">
+                            <h6 class="mb-1">@ann.Title</h6>
+                            <p class="small mb-1 opacity-85">@ann.Content</p>
+                            <small class="opacity-60">@ann.CreatedAt.ToString("yyyy/MM/dd")</small>
+                        </div>
+                    </div>
+                }
             </div>
         </div>
     </section>
-</div>
+}

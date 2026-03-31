@@ -115,10 +115,12 @@ else
                                     </tr>
                                 </thead>
                                 <tbody>
+                                    @{ var lessonIndex = 0; }
                                     @foreach (var lesson in sec.Lessons)
                                     {
+                                        lessonIndex++;
                                         <tr>
-                                            <td class="text-muted">@lesson.Id</td>
+                                            <td class="text-muted">@lessonIndex</td>
                                             <td>
                                                 <i class="bi @lesson.TypeIcon me-1 text-primary"></i>
                                                 @lesson.Title

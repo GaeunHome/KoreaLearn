@@ -1,14 +1,12 @@
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using KoreanLearn.Service.Services.Interfaces;
 using KoreanLearn.Service.ViewModels.Admin.Section;
+using KoreanLearn.Web.Infrastructure;
 
 namespace KoreanLearn.Web.Areas.Admin.Controllers;
 
 /// <summary>後台章節管理 Controller，提供課程章節的新增、編輯與刪除</summary>
-[Area("Admin")]
-[Authorize(Roles = "Admin")]
-public class SectionController(ICourseAdminService courseAdminService) : Controller
+public class SectionController(ICourseAdminService courseAdminService) : AdminBaseController
 {
     /// <summary>新增章節表單頁（GET），預帶所屬課程資訊</summary>
     public IActionResult Create(int courseId, string? courseTitle)
@@ -31,7 +29,7 @@ public class SectionController(ICourseAdminService courseAdminService) : Control
         var result = await courseAdminService.CreateSectionAsync(vm, ct);
         if (result.IsSuccess)
         {
-            TempData["Success"] = "章節建立成功";
+            TempData[TempDataKeys.Success] = "章節建立成功";
             return RedirectToAction("Detail", "Course", new { area = "Admin", id = vm.CourseId });
         }
 
@@ -57,7 +55,7 @@ public class SectionController(ICourseAdminService courseAdminService) : Control
         var result = await courseAdminService.UpdateSectionAsync(vm, ct);
         if (result.IsSuccess)
         {
-            TempData["Success"] = "章節更新成功";
+            TempData[TempDataKeys.Success] = "章節更新成功";
             return RedirectToAction("Detail", "Course", new { area = "Admin", id = vm.CourseId });
         }
 
@@ -72,9 +70,9 @@ public class SectionController(ICourseAdminService courseAdminService) : Control
     {
         var result = await courseAdminService.DeleteSectionAsync(id, ct);
         if (result.IsSuccess)
-            TempData["Success"] = "章節已刪除";
+            TempData[TempDataKeys.Success] = "章節已刪除";
         else
-            TempData["Error"] = result.ErrorMessage ?? "刪除失敗";
+            TempData[TempDataKeys.Error] = result.ErrorMessage ?? "刪除失敗";
 
         return RedirectToAction("Detail", "Course", new { area = "Admin", id = courseId });
     }

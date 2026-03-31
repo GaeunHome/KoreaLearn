@@ -1,14 +1,15 @@
-using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using KoreanLearn.Library.Helpers;
 using KoreanLearn.Service.Services.Interfaces;
+using KoreanLearn.Web.Infrastructure;
 
 namespace KoreanLearn.Web.Controllers;
 
 /// <summary>討論區 Controller，提供討論列表、詳情、發文、回覆與刪除功能</summary>
 public class DiscussionController(
     IDiscussionService discussionService,
-    ICourseService courseService) : Controller
+    ICourseService courseService) : BaseController
 {
     /// <summary>討論列表頁（支援依課程篩選與分頁），無指定課程時顯示全站討論</summary>
     public async Task<IActionResult> Index(int? courseId, int page = 1, CancellationToken ct = default)
@@ -17,12 +18,12 @@ public class DiscussionController(
 
         if (courseId.HasValue && courseId.Value > 0)
         {
-            var result = await discussionService.GetByCourseAsync(courseId.Value, page, 20, ct);
+            var result = await discussionService.GetByCourseAsync(courseId.Value, page, DisplayConstants.DiscussionPageSize, ct);
             return View(result);
         }
 
         // 全站討論列表
-        var all = await discussionService.GetAllAsync(page, 20, ct);
+        var all = await discussionService.GetAllAsync(page, DisplayConstants.DiscussionPageSize, ct);
         return View(all);
     }
 
@@ -56,14 +57,14 @@ public class DiscussionController(
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Create(int courseId, string title, string content, CancellationToken ct = default)
     {
-        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier)!;
+        var userId = GetAuthorizedUserId();
         var result = await discussionService.CreateAsync(userId, courseId, title, content, ct);
         if (result.IsSuccess)
         {
-            TempData["Success"] = "討論已發佈";
+            TempData[TempDataKeys.Success] = "討論已發佈";
             return RedirectToAction(nameof(Detail), new { id = result.Data });
         }
-        TempData["Error"] = result.ErrorMessage;
+        TempData[TempDataKeys.Error] = result.ErrorMessage;
         ViewBag.CourseId = courseId;
         return View();
     }
@@ -74,12 +75,12 @@ public class DiscussionController(
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Reply(int discussionId, string content, CancellationToken ct = default)
     {
-        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier)!;
+        var userId = GetAuthorizedUserId();
         var result = await discussionService.ReplyAsync(userId, discussionId, content, ct);
         if (result.IsSuccess)
-            TempData["Success"] = "回覆已發佈";
+            TempData[TempDataKeys.Success] = "回覆已發佈";
         else
-            TempData["Error"] = result.ErrorMessage;
+            TempData[TempDataKeys.Error] = result.ErrorMessage;
         return RedirectToAction(nameof(Detail), new { id = discussionId });
     }
 
@@ -89,10 +90,10 @@ public class DiscussionController(
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Delete(int id, int courseId, CancellationToken ct = default)
     {
-        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier)!;
+        var userId = GetAuthorizedUserId();
         var isAdmin = User.IsInRole("Admin");
         var result = await discussionService.DeleteAsync(id, userId, isAdmin, ct);
-        TempData[result.IsSuccess ? "Success" : "Error"] = result.IsSuccess ? "已刪除" : (result.ErrorMessage ?? "刪除失敗");
+        TempData[result.IsSuccess ? TempDataKeys.Success : TempDataKeys.Error] = result.IsSuccess ? "已刪除" : (result.ErrorMessage ?? "刪除失敗");
         return RedirectToAction(nameof(Index), new { courseId });
     }
 }

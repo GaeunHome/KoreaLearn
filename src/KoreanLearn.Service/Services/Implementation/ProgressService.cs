@@ -13,10 +13,9 @@ public class ProgressService(
 {
     /// <inheritdoc />
     public async Task<ServiceResult<int>> SaveVideoProgressAsync(
-        string userId, int lessonId, int progressSeconds, CancellationToken ct = default)
+        string userId, int lessonId, int progressSeconds, IEnumerable<string> userRoles, CancellationToken ct = default)
     {
-        // 權限檢查：確認使用者有存取此單元的權限
-        var accessCheck = await CheckLessonAccessAsync(userId, lessonId, ct).ConfigureAwait(false);
+        var accessCheck = await CheckLessonAccessAsync(userId, lessonId, userRoles, ct).ConfigureAwait(false);
         if (!accessCheck.IsSuccess) return ServiceResult<int>.Failure(accessCheck.ErrorMessage!);
 
         var progress = await uow.Progresses.GetByUserAndLessonAsync(userId, lessonId, ct).ConfigureAwait(false);
@@ -46,10 +45,9 @@ public class ProgressService(
 
     /// <inheritdoc />
     public async Task<ServiceResult> MarkLessonCompleteAsync(
-        string userId, int lessonId, CancellationToken ct = default)
+        string userId, int lessonId, IEnumerable<string> userRoles, CancellationToken ct = default)
     {
-        // 權限檢查：確認使用者有存取此單元的權限
-        var accessCheck = await CheckLessonAccessAsync(userId, lessonId, ct).ConfigureAwait(false);
+        var accessCheck = await CheckLessonAccessAsync(userId, lessonId, userRoles, ct).ConfigureAwait(false);
         if (!accessCheck.IsSuccess) return accessCheck;
 
         var progress = await uow.Progresses.GetByUserAndLessonAsync(userId, lessonId, ct).ConfigureAwait(false);
@@ -80,9 +78,9 @@ public class ProgressService(
 
     /// <inheritdoc />
     public async Task<ServiceResult> UndoLessonCompleteAsync(
-        string userId, int lessonId, CancellationToken ct = default)
+        string userId, int lessonId, IEnumerable<string> userRoles, CancellationToken ct = default)
     {
-        var accessCheck = await CheckLessonAccessAsync(userId, lessonId, ct).ConfigureAwait(false);
+        var accessCheck = await CheckLessonAccessAsync(userId, lessonId, userRoles, ct).ConfigureAwait(false);
         if (!accessCheck.IsSuccess) return accessCheck;
 
         var progress = await uow.Progresses.GetByUserAndLessonAsync(userId, lessonId, ct).ConfigureAwait(false);
@@ -106,17 +104,31 @@ public class ProgressService(
         return progress?.VideoProgressSeconds ?? 0;
     }
 
-    /// <summary>檢查使用者是否有存取單元的權限（免費試看或已購買課程）</summary>
+    /// <summary>檢查使用者是否有存取單元的權限（依角色分流：Admin 全通過、Teacher 自己課程、Student 需購買）</summary>
     private async Task<ServiceResult> CheckLessonAccessAsync(
-        string userId, int lessonId, CancellationToken ct)
+        string userId, int lessonId, IEnumerable<string> userRoles, CancellationToken ct)
     {
         var lesson = await uow.Lessons.GetByIdAsync(lessonId, ct).ConfigureAwait(false);
         if (lesson is null) return ServiceResult.Failure("單元不存在");
         if (lesson.IsFreePreview) return ServiceResult.Success();
 
+        var roles = userRoles.ToList();
+
+        // Admin：可存取所有課程
+        if (roles.Contains("Admin", StringComparer.OrdinalIgnoreCase))
+            return ServiceResult.Success();
+
         var section = await uow.Sections.GetByIdAsync(lesson.SectionId, ct).ConfigureAwait(false);
         if (section is null) return ServiceResult.Failure("章節不存在");
 
+        // Teacher：可存取自己發布的課程
+        if (roles.Contains("Teacher", StringComparer.OrdinalIgnoreCase))
+        {
+            var course = await uow.Courses.GetByIdAsync(section.CourseId, ct).ConfigureAwait(false);
+            if (course?.TeacherId == userId) return ServiceResult.Success();
+        }
+
+        // Student（或其他角色）：需購買或訂閱
         var hasAccess = await uow.Enrollments.HasActiveAccessAsync(userId, section.CourseId, ct).ConfigureAwait(false);
         return hasAccess ? ServiceResult.Success() : ServiceResult.Failure("您尚未購買此課程");
     }

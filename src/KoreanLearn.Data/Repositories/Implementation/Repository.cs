@@ -35,4 +35,19 @@ public class Repository<T>(ApplicationDbContext db) : IRepository<T> where T : c
 
     public void Update(T entity) => DbSet.Update(entity);
     public void Remove(T entity) => DbSet.Remove(entity);
+
+    public async Task<IReadOnlyList<T>> FindAsync(
+        System.Linq.Expressions.Expression<Func<T, bool>> predicate, CancellationToken ct = default)
+        => await DbSet.AsNoTracking().Where(predicate).ToListAsync(ct).ConfigureAwait(false);
+
+    public async Task<T?> FirstOrDefaultAsync(
+        System.Linq.Expressions.Expression<Func<T, bool>> predicate, CancellationToken ct = default)
+        => await DbSet.AsNoTracking().FirstOrDefaultAsync(predicate, ct).ConfigureAwait(false);
+
+    public async Task<bool> ExistsAsync(
+        System.Linq.Expressions.Expression<Func<T, bool>> predicate, CancellationToken ct = default)
+        => await DbSet.AnyAsync(predicate, ct).ConfigureAwait(false);
+
+    public async Task AddRangeAsync(IEnumerable<T> entities, CancellationToken ct = default)
+        => await DbSet.AddRangeAsync(entities, ct).ConfigureAwait(false);
 }

@@ -19,7 +19,7 @@ public class QuizRepository(ApplicationDbContext db) : Repository<Quiz>(db), IQu
             .FirstOrDefaultAsync(q => q.LessonId == lessonId, ct).ConfigureAwait(false);
 
     public async Task<QuizQuestion?> GetQuestionByIdAsync(int questionId, CancellationToken ct = default)
-        => await db.Set<QuizQuestion>()
+        => await Db.Set<QuizQuestion>()
             .Include(q => q.Options.OrderBy(o => o.SortOrder))
             .Include(q => q.Quiz)
             .FirstOrDefaultAsync(q => q.Id == questionId, ct).ConfigureAwait(false);

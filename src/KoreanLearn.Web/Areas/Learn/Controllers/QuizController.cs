@@ -1,15 +1,12 @@
-using System.Security.Claims;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using KoreanLearn.Service.Services.Interfaces;
 using KoreanLearn.Service.ViewModels.Learn;
+using KoreanLearn.Web.Infrastructure;
 
 namespace KoreanLearn.Web.Areas.Learn.Controllers;
 
 /// <summary>測驗作答 Controller，提供測驗作答介面、提交答案與成績檢視</summary>
-[Area("Learn")]
-[Authorize]
-public class QuizController(IQuizTakeService quizTakeService) : Controller
+public class QuizController(IQuizTakeService quizTakeService) : LearnBaseController
 {
     /// <summary>測驗作答頁面，顯示所有題目（選擇題/填空題）供學生作答</summary>
     public async Task<IActionResult> Take(int id, CancellationToken ct = default)
@@ -24,7 +21,7 @@ public class QuizController(IQuizTakeService quizTakeService) : Controller
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Submit(int id, IFormCollection form, CancellationToken ct = default)
     {
-        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier)!;
+        var userId = GetAuthorizedUserId();
 
         var model = new QuizSubmitModel { QuizId = id };
         foreach (var key in form.Keys)
@@ -39,14 +36,14 @@ public class QuizController(IQuizTakeService quizTakeService) : Controller
         if (result is { IsSuccess: true, Data: var attemptId })
             return RedirectToAction(nameof(Result), new { id = attemptId });
 
-        TempData["Error"] = result.ErrorMessage ?? "提交失敗";
+        TempData[TempDataKeys.Error] = result.ErrorMessage ?? "提交失敗";
         return RedirectToAction(nameof(Take), new { id });
     }
 
     /// <summary>測驗成績頁面，顯示得分、答對率與各題詳細結果</summary>
     public async Task<IActionResult> Result(int id, CancellationToken ct = default)
     {
-        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier)!;
+        var userId = GetAuthorizedUserId();
         var vm = await quizTakeService.GetResultAsync(id, userId, ct);
         if (vm is null) return NotFound();
         return View(vm);

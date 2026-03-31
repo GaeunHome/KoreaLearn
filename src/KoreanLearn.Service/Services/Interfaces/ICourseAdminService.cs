@@ -17,13 +17,13 @@ public interface ICourseAdminService
     Task<CourseDetailAdminViewModel?> GetCourseDetailAsync(int id, CancellationToken ct = default);
 
     /// <summary>取得課程編輯表單資料</summary>
-    Task<EditCourseViewModel?> GetCourseForEditAsync(int id, CancellationToken ct = default);
+    Task<CourseFormViewModel?> GetCourseForEditAsync(int id, CancellationToken ct = default);
 
     /// <summary>建立新課程，回傳新課程 ID</summary>
-    Task<ServiceResult<int>> CreateCourseAsync(CreateCourseViewModel vm, CancellationToken ct = default);
+    Task<ServiceResult<int>> CreateCourseAsync(CourseFormViewModel vm, CancellationToken ct = default);
 
     /// <summary>更新課程基本資訊</summary>
-    Task<ServiceResult> UpdateCourseAsync(EditCourseViewModel vm, CancellationToken ct = default);
+    Task<ServiceResult> UpdateCourseAsync(CourseFormViewModel vm, CancellationToken ct = default);
 
     /// <summary>軟刪除課程</summary>
     Task<ServiceResult> DeleteCourseAsync(int id, CancellationToken ct = default);

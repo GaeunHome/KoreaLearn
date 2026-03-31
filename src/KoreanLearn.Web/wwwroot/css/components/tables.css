@@ -1,0 +1,52 @@
+/* ─── Tables ──────────────────────────────── */
+
+.table {
+  border-color: var(--kl-border);
+}
+
+.table thead {
+  background: #FAFAF8;
+}
+
+.table th {
+  font-weight: 600;
+  color: var(--kl-primary-dark);
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+/* ─── Badges ──────────────────────────────── */
+
+.badge {
+  font-weight: 500;
+  border-radius: 4px;
+  letter-spacing: 0.02em;
+}
+
+.badge.bg-primary { background: var(--kl-primary) !important; }
+.badge.bg-success { background: var(--kl-success) !important; }
+.badge.bg-warning { background: var(--kl-warning) !important; color: #fff !important; }
+.badge.bg-danger  { background: var(--kl-danger) !important; }
+.badge.bg-info    { background: var(--kl-info) !important; }
+.badge.bg-secondary { background: #8E8E93 !important; }
+
+/* ─── Alerts ──────────────────────────────── */
+
+.alert-success {
+  background: #EBF5EE;
+  border-color: #C8E6CF;
+  color: #2D6E42;
+}
+
+.alert-danger {
+  background: #FBEAEA;
+  border-color: #F0C4C4;
+  color: #8B2D2D;
+}
+
+.alert-info {
+  background: #EAF2FB;
+  border-color: #C4D9F0;
+  color: #2D4A6B;
+}

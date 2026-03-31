@@ -1,6 +1,13 @@
 @model KoreanLearn.Service.ViewModels.Course.CourseDetailViewModel
 @using KoreanLearn.Library.Enums
-@{ ViewData["Title"] = Model.Title; }
+@{
+    ViewData["Title"] = Model.Title;
+    ViewData["Description"] = $"{Model.Title} - {Model.LevelDisplay} 韓文課程";
+    if (!string.IsNullOrEmpty(Model.CoverImageUrl))
+    {
+        ViewData["OgImage"] = Model.CoverImageUrl;
+    }
+}
 
 <nav aria-label="breadcrumb" class="mb-3">
     <ol class="breadcrumb">
@@ -202,7 +209,7 @@
                 {
                     <!-- 未登入：顯示價格 + 登入 -->
                     <h4 class="mb-3" style="color: var(--kl-accent);">NT$ @Model.Price.ToString("N0")</h4>
-                    <a asp-area="Identity" asp-page="/Account/Login" class="btn btn-primary btn-lg w-100 mb-2">
+                    <a asp-area="Identity" asp-controller="Account" asp-action="Login" class="btn btn-primary btn-lg w-100 mb-2">
                         <i class="bi bi-box-arrow-in-right me-1"></i>登入後購買
                     </a>
                     <p class="text-muted small mt-2 mb-0">

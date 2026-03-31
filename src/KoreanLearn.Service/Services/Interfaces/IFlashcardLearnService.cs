@@ -14,4 +14,7 @@ public interface IFlashcardLearnService
 
     /// <summary>記錄字卡複習結果，使用 SM-2 演算法計算下次複習時間</summary>
     Task<ServiceResult> ReviewCardAsync(string userId, int cardId, int quality, CancellationToken ct = default);
+
+    /// <summary>取得使用者待複習字卡總數</summary>
+    Task<int> GetDueCardCountAsync(string userId, CancellationToken ct = default);
 }

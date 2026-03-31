@@ -1,0 +1,154 @@
+@model KoreanLearn.Service.Services.Interfaces.OrderDetailViewModel
+@{ ViewData["Title"] = $"訂單 {Model.OrderNumber}"; }
+
+<nav aria-label="breadcrumb" class="mb-3">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a asp-area="Admin" asp-controller="Order" asp-action="Index">訂單管理</a></li>
+        <li class="breadcrumb-item active">@Model.OrderNumber</li>
+    </ol>
+</nav>
+
+<div class="row">
+    <div class="col-lg-8">
+        <!-- 訂單基本資訊 -->
+        <div class="card mb-4">
+            <div class="card-header"><h5 class="mb-0"><i class="bi bi-cart me-2"></i>訂單資訊</h5></div>
+            <div class="card-body">
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <label class="small text-muted">訂單編號</label>
+                        <p class="fw-semibold"><code>@Model.OrderNumber</code></p>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="small text-muted">建立時間</label>
+                        <p>@Model.CreatedAt.ToString("yyyy-MM-dd HH:mm")</p>
+                    </div>
+                </div>
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <label class="small text-muted">訂單狀態</label>
+                        <div>
+                            @{
+                                var statusClass = Model.Status switch
+                                {
+                                    "Completed" => "bg-success",
+                                    "Cancelled" => "bg-secondary",
+                                    "Paid" => "bg-info",
+                                    "Refunded" => "bg-dark",
+                                    _ => "bg-warning text-dark"
+                                };
+                                var statusText = Model.Status switch
+                                {
+                                    "Completed" => "已完成",
+                                    "Cancelled" => "已取消",
+                                    "Pending" => "待付款",
+                                    "Paid" => "已付款",
+                                    "Refunded" => "已退款",
+                                    _ => Model.Status
+                                };
+                            }
+                            <span class="badge @statusClass">@statusText</span>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="small text-muted">付款狀態</label>
+                        <div>
+                            @{
+                                var payClass = Model.PaymentStatus switch
+                                {
+                                    "Completed" => "bg-success",
+                                    "Failed" => "bg-danger",
+                                    "Refunded" => "bg-dark",
+                                    _ => "bg-warning text-dark"
+                                };
+                                var payText = Model.PaymentStatus switch
+                                {
+                                    "Completed" => "已付款",
+                                    "Failed" => "失敗",
+                                    "Refunded" => "已退款",
+                                    _ => "未付款"
+                                };
+                            }
+                            <span class="badge @payClass">@payText</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 使用者資訊 -->
+        <div class="card mb-4">
+            <div class="card-header"><h5 class="mb-0"><i class="bi bi-person me-2"></i>訂購人資訊</h5></div>
+            <div class="card-body">
+                <table class="table table-borderless mb-0">
+                    <tr><th style="width:120px">名稱</th><td>@(Model.UserDisplayName ?? "—")</td></tr>
+                    <tr><th>Email</th><td>@(Model.UserEmail ?? "—")</td></tr>
+                </table>
+            </div>
+        </div>
+
+        <!-- 訂單項目 -->
+        <div class="card mb-4">
+            <div class="card-header"><h5 class="mb-0"><i class="bi bi-book me-2"></i>購買項目</h5></div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table mb-0">
+                        <thead class="table-light"><tr><th>課程</th><th class="text-end">價格</th></tr></thead>
+                        <tbody>
+                            @foreach (var item in Model.Items)
+                            {
+                                <tr>
+                                    <td>
+                                        <a asp-area="Admin" asp-controller="Course" asp-action="Detail" asp-route-id="@item.CourseId"
+                                           class="text-decoration-none">
+                                            <i class="bi bi-book me-1"></i>@item.CourseTitle
+                                        </a>
+                                    </td>
+                                    <td class="text-end">NT$ @item.Price.ToString("N0")</td>
+                                </tr>
+                            }
+                        </tbody>
+                        <tfoot>
+                            <tr>
+                                <td class="fw-bold">合計</td>
+                                <td class="text-end fw-bold fs-5" style="color: var(--kl-accent);">NT$ @Model.TotalAmount.ToString("N0")</td>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 右側操作面板 -->
+    <div class="col-lg-4">
+        <div class="card">
+            <div class="card-header"><h5 class="mb-0"><i class="bi bi-gear me-2"></i>狀態管理</h5></div>
+            <div class="card-body">
+                <form asp-area="Admin" asp-controller="Order" asp-action="UpdateStatus" asp-route-id="@Model.Id" method="post">
+                    @Html.AntiForgeryToken()
+                    <div class="mb-3">
+                        <label for="status" class="form-label">更新訂單狀態 <span class="text-danger">*</span></label>
+                        <select name="status" id="status" class="form-select" required>
+                            <option value="">請選擇...</option>
+                            <option value="Pending" selected="@(Model.Status == "Pending")">待付款</option>
+                            <option value="Paid" selected="@(Model.Status == "Paid")">已付款</option>
+                            <option value="Completed" selected="@(Model.Status == "Completed")">已完成</option>
+                            <option value="Cancelled" selected="@(Model.Status == "Cancelled")">已取消</option>
+                            <option value="Refunded" selected="@(Model.Status == "Refunded")">已退款</option>
+                        </select>
+                    </div>
+                    <button type="submit" class="btn btn-primary w-100">
+                        <i class="bi bi-arrow-repeat me-1"></i>更新狀態
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="mt-3">
+    <a asp-area="Admin" asp-controller="Order" asp-action="Index" class="btn btn-outline-secondary">
+        <i class="bi bi-arrow-left me-1"></i>返回訂單列表
+    </a>
+</div>

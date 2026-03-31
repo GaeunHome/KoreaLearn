@@ -1,3 +1,4 @@
+using KoreanLearn.Library.Enums;
 using Microsoft.AspNetCore.Identity;
 
 namespace KoreanLearn.Data.Entities;
@@ -10,6 +11,9 @@ public class AppUser : IdentityUser
 
     /// <summary>頭像圖片路徑</summary>
     public string? AvatarUrl { get; set; }
+
+    /// <summary>偏好的兩步驟驗證方式</summary>
+    public TwoFactorMethod PreferredTwoFactorMethod { get; set; } = TwoFactorMethod.None;
 
     /// <summary>帳號建立時間</summary>
     public DateTime CreatedAt { get; set; }

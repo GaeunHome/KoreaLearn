@@ -69,19 +69,14 @@ else
                         }
                         else if (User.Identity?.IsAuthenticated == true)
                         {
-                            <form asp-controller="Subscription" asp-action="Subscribe" method="post">
-                                @Html.AntiForgeryToken()
-                                <input type="hidden" name="planId" value="@plan.Id" />
-                                <button type="submit"
-                                        class="btn @(isPopular ? "btn-primary" : "btn-outline-primary") w-100"
-                                        data-confirm="確定要訂閱「@plan.Name」嗎？（NT$ @(plan.MonthlyPrice * plan.DurationMonths) / @plan.DurationMonths 個月）">
-                                    立即訂閱
-                                </button>
-                            </form>
+                            <a asp-controller="Subscription" asp-action="Checkout" asp-route-planId="@plan.Id"
+                               class="btn @(isPopular ? "btn-primary" : "btn-outline-primary") w-100">
+                                選擇方案
+                            </a>
                         }
                         else
                         {
-                            <a asp-area="Identity" asp-page="/Account/Login" class="btn btn-outline-primary w-100">登入後訂閱</a>
+                            <a asp-area="Identity" asp-controller="Account" asp-action="Login" class="btn btn-outline-primary w-100">登入後訂閱</a>
                         }
                     </div>
                 </div>

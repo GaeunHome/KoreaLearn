@@ -12,7 +12,7 @@ public class SecurityHeadersMiddleware(RequestDelegate next)
         headers.Append("X-Frame-Options", "DENY");
         headers.Append("Referrer-Policy", "strict-origin-when-cross-origin");
         headers.Append("X-Permitted-Cross-Domain-Policies", "none");
-        headers.Append("Permissions-Policy", "camera=(), geolocation=(), payment=()");
+        headers.Append("Permissions-Policy", "camera=(), microphone=(), geolocation=(), payment=()");
 
         headers.Append("Content-Security-Policy",
             "default-src 'self'; " +
@@ -23,7 +23,7 @@ public class SecurityHeadersMiddleware(RequestDelegate next)
             "connect-src 'self'; " +
             "frame-ancestors 'none'; " +
             "base-uri 'self'; " +
-            "form-action 'self'");
+            "form-action 'self' https://accounts.google.com https://www.facebook.com https://access.line.me https://appleid.apple.com");
 
         await next(context);
     }

@@ -25,4 +25,16 @@ public interface IRepository<T> where T : class
 
     /// <summary>移除實體（ISoftDeletable 會由 DbContext 攔截為軟刪除）</summary>
     void Remove(T entity);
+
+    /// <summary>依條件搜尋實體</summary>
+    Task<IReadOnlyList<T>> FindAsync(System.Linq.Expressions.Expression<Func<T, bool>> predicate, CancellationToken ct = default);
+
+    /// <summary>依條件取得第一個實體</summary>
+    Task<T?> FirstOrDefaultAsync(System.Linq.Expressions.Expression<Func<T, bool>> predicate, CancellationToken ct = default);
+
+    /// <summary>檢查是否存在符合條件的實體</summary>
+    Task<bool> ExistsAsync(System.Linq.Expressions.Expression<Func<T, bool>> predicate, CancellationToken ct = default);
+
+    /// <summary>批量新增</summary>
+    Task AddRangeAsync(IEnumerable<T> entities, CancellationToken ct = default);
 }

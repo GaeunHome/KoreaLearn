@@ -79,10 +79,9 @@ public class OrderService(
     public async Task<PagedResult<OrderListViewModel>> GetUserOrdersAsync(
         string userId, int page, int pageSize, CancellationToken ct = default)
     {
-        var orders = await uow.Orders.GetByUserIdAsync(userId, ct).ConfigureAwait(false);
-        var total = orders.Count;
-        var items = orders.Skip((page - 1) * pageSize).Take(pageSize).Select(MapToList).ToList();
-        return new PagedResult<OrderListViewModel>(items, total, page, pageSize);
+        var result = await uow.Orders.GetByUserIdPagedAsync(userId, page, pageSize, ct).ConfigureAwait(false);
+        var items = result.Items.Select(MapToList).ToList();
+        return new PagedResult<OrderListViewModel>(items, result.TotalCount, result.Page, result.PageSize);
     }
 
     /// <inheritdoc />
@@ -116,6 +115,110 @@ public class OrderService(
         var result = await uow.Orders.GetPagedWithItemsAsync(page, pageSize, ct).ConfigureAwait(false);
         var items = result.Items.Select(MapToList).ToList();
         return new PagedResult<OrderListViewModel>(items, result.TotalCount, result.Page, result.PageSize);
+    }
+
+    /// <inheritdoc />
+    public async Task<ServiceResult> CancelOrderAsync(
+        int orderId, string userId, CancellationToken ct = default)
+    {
+        var order = await uow.Orders.GetWithItemsAsync(orderId, ct).ConfigureAwait(false);
+        if (order is null || order.UserId != userId)
+            return ServiceResult.Failure("訂單不存在");
+        if (order.Status != OrderStatus.Pending)
+            return ServiceResult.Failure("僅限待付款狀態的訂單可取消");
+
+        order.Status = OrderStatus.Cancelled;
+        order.PaymentStatus = PaymentStatus.Failed;
+        uow.Orders.Update(order);
+
+        // 移除已建立的選課紀錄（若有）
+        foreach (var item in order.OrderItems)
+        {
+            var enrollment = await uow.Enrollments.GetByUserAndCourseAsync(userId, item.CourseId, ct).ConfigureAwait(false);
+            if (enrollment is not null)
+                uow.Enrollments.Remove(enrollment);
+        }
+
+        await uow.SaveChangesAsync(ct).ConfigureAwait(false);
+        logger.LogInformation("訂單已取消 | OrderId={OrderId}", orderId);
+        return ServiceResult.Success();
+    }
+
+    /// <inheritdoc />
+    public async Task<OrderDetailViewModel?> GetOrderDetailForAdminAsync(
+        int orderId, CancellationToken ct = default)
+    {
+        var order = await uow.Orders.GetWithItemsAsync(orderId, ct).ConfigureAwait(false);
+        if (order is null) return null;
+
+        return new OrderDetailViewModel
+        {
+            Id = order.Id,
+            OrderNumber = order.OrderNumber,
+            TotalAmount = order.TotalAmount,
+            Status = order.Status.ToString(),
+            PaymentStatus = order.PaymentStatus.ToString(),
+            CreatedAt = order.CreatedAt,
+            UserDisplayName = order.User?.DisplayName,
+            UserEmail = order.User?.Email,
+            Items = order.OrderItems.Select(i => new OrderItemViewModel
+            {
+                CourseTitle = i.Course?.Title ?? "未知課程",
+                Price = i.Price,
+                CourseId = i.CourseId
+            }).ToList()
+        };
+    }
+
+    /// <inheritdoc />
+    public async Task<ServiceResult> UpdateOrderStatusAsync(
+        int orderId, string newStatus, CancellationToken ct = default)
+    {
+        if (!Enum.TryParse<OrderStatus>(newStatus, ignoreCase: true, out var status))
+            return ServiceResult.Failure("無效的訂單狀態");
+
+        var order = await uow.Orders.GetWithItemsAsync(orderId, ct).ConfigureAwait(false);
+        if (order is null) return ServiceResult.Failure("訂單不存在");
+
+        order.Status = status;
+
+        if (status == OrderStatus.Completed)
+        {
+            order.PaymentStatus = PaymentStatus.Completed;
+            order.PaidAt = DateTime.UtcNow;
+
+            // 自動建立選課紀錄
+            foreach (var item in order.OrderItems)
+            {
+                var existing = await uow.Enrollments.GetByUserAndCourseAsync(order.UserId, item.CourseId, ct).ConfigureAwait(false);
+                if (existing is null)
+                {
+                    await uow.Enrollments.AddAsync(new Enrollment
+                    {
+                        UserId = order.UserId,
+                        CourseId = item.CourseId,
+                        Status = EnrollmentStatus.Active
+                    }, ct).ConfigureAwait(false);
+                }
+            }
+        }
+        else if (status == OrderStatus.Cancelled)
+        {
+            order.PaymentStatus = PaymentStatus.Failed;
+
+            // 移除選課紀錄
+            foreach (var item in order.OrderItems)
+            {
+                var enrollment = await uow.Enrollments.GetByUserAndCourseAsync(order.UserId, item.CourseId, ct).ConfigureAwait(false);
+                if (enrollment is not null)
+                    uow.Enrollments.Remove(enrollment);
+            }
+        }
+
+        uow.Orders.Update(order);
+        await uow.SaveChangesAsync(ct).ConfigureAwait(false);
+        logger.LogInformation("訂單狀態更新 | OrderId={OrderId} | NewStatus={Status}", orderId, status);
+        return ServiceResult.Success();
     }
 
     /// <summary>將 Order Entity 轉換為列表 ViewModel</summary>

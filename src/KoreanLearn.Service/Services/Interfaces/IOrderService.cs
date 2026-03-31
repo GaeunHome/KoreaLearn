@@ -19,6 +19,15 @@ public interface IOrderService
 
     /// <summary>取得所有訂單分頁列表（後台管理用）</summary>
     Task<PagedResult<OrderListViewModel>> GetAllOrdersPagedAsync(int page, int pageSize, CancellationToken ct = default);
+
+    /// <summary>取消訂單（軟刪除選課紀錄、恢復狀態）</summary>
+    Task<ServiceResult> CancelOrderAsync(int orderId, string userId, CancellationToken ct = default);
+
+    /// <summary>管理員取得訂單詳情</summary>
+    Task<OrderDetailViewModel?> GetOrderDetailForAdminAsync(int orderId, CancellationToken ct = default);
+
+    /// <summary>管理員更新訂單狀態</summary>
+    Task<ServiceResult> UpdateOrderStatusAsync(int orderId, string newStatus, CancellationToken ct = default);
 }
 
 /// <summary>訂單列表項目 ViewModel</summary>
@@ -66,6 +75,12 @@ public class OrderDetailViewModel
 
     /// <summary>建立時間</summary>
     public DateTime CreatedAt { get; set; }
+
+    /// <summary>使用者顯示名稱（管理員檢視用）</summary>
+    public string? UserDisplayName { get; set; }
+
+    /// <summary>使用者 Email（管理員檢視用）</summary>
+    public string? UserEmail { get; set; }
 
     /// <summary>訂單項目明細</summary>
     public IReadOnlyList<OrderItemViewModel> Items { get; set; } = [];

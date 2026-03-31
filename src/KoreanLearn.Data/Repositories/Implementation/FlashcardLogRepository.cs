@@ -30,4 +30,9 @@ public class FlashcardLogRepository(ApplicationDbContext db) : Repository<Flashc
             .Where(l => l.UserId == userId && l.Flashcard.DeckId == deckId)
             .ToListAsync(ct)
             .ConfigureAwait(false);
+
+    public async Task<int> CountDueForUserAsync(string userId, CancellationToken ct = default)
+        => await DbSet.AsNoTracking()
+            .Where(l => l.UserId == userId && l.NextReviewDate <= DateTime.UtcNow)
+            .CountAsync(ct).ConfigureAwait(false);
 }

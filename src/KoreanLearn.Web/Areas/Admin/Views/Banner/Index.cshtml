@@ -1,0 +1,82 @@
+@model IReadOnlyList<KoreanLearn.Service.ViewModels.Admin.Banner.BannerViewModel>
+@{
+    ViewData["Title"] = "幻燈片管理";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2><i class="bi bi-images me-2"></i>幻燈片管理</h2>
+    <a asp-area="Admin" asp-controller="Banner" asp-action="Create" class="btn btn-primary">
+        <i class="bi bi-plus-lg me-1"></i>新增幻燈片
+    </a>
+</div>
+
+@if (!Model.Any())
+{
+    <div class="alert alert-info">
+        <i class="bi bi-info-circle me-2"></i>目前沒有任何幻燈片。
+    </div>
+}
+else
+{
+    <div class="table-responsive">
+        <table class="table table-hover align-middle">
+            <thead class="table-light">
+                <tr>
+                    <th style="width:40px">#</th>
+                    <th>預覽</th>
+                    <th>標題</th>
+                    <th>連結課程</th>
+                    <th class="text-center">排序</th>
+                    <th class="text-center">狀態</th>
+                    <th style="width:260px">操作</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var banner in Model)
+                {
+                    <tr>
+                        <td class="text-muted">@banner.Id</td>
+                        <td>
+                            <img src="@banner.ImageUrl" alt="@banner.Title" style="width:120px;height:60px;object-fit:cover;"
+                                 class="rounded" />
+                        </td>
+                        <td>@(banner.Title ?? "（無標題）")</td>
+                        <td>@(banner.CourseTitle ?? "—")</td>
+                        <td class="text-center">@banner.DisplayOrder</td>
+                        <td class="text-center">
+                            @if (banner.IsActive)
+                            {
+                                <span class="badge bg-success">啟用</span>
+                            }
+                            else
+                            {
+                                <span class="badge bg-secondary">停用</span>
+                            }
+                        </td>
+                        <td>
+                            <a asp-area="Admin" asp-controller="Banner" asp-action="Edit" asp-route-id="@banner.Id"
+                               class="btn btn-sm btn-outline-primary me-1">
+                                <i class="bi bi-pencil"></i> 編輯
+                            </a>
+                            <form asp-area="Admin" asp-controller="Banner" asp-action="Toggle" asp-route-id="@banner.Id"
+                                  method="post" class="d-inline me-1">
+                                @Html.AntiForgeryToken()
+                                <button type="submit" class="btn btn-sm btn-outline-warning">
+                                    <i class="bi bi-toggle-on"></i> @(banner.IsActive ? "停用" : "啟用")
+                                </button>
+                            </form>
+                            <form asp-area="Admin" asp-controller="Banner" asp-action="Delete" asp-route-id="@banner.Id"
+                                  method="post" class="d-inline">
+                                @Html.AntiForgeryToken()
+                                <button type="submit" class="btn btn-sm btn-outline-danger"
+                                        data-confirm="確定要刪除此幻燈片嗎？">
+                                    <i class="bi bi-trash"></i> 刪除
+                                </button>
+                            </form>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+}

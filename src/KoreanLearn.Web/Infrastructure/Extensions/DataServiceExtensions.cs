@@ -20,18 +20,27 @@ public static class DataServiceExtensions
         // Identity 需要 Microsoft.AspNetCore.Identity.UI，放 Web 層註冊
         services.AddDefaultIdentity<AppUser>(opts =>
             {
-                opts.Password.RequireDigit = false;
+                // 密碼強度（CWE-521）
+                opts.Password.RequireDigit = true;
                 opts.Password.RequireLowercase = false;
                 opts.Password.RequireUppercase = false;
                 opts.Password.RequireNonAlphanumeric = false;
                 opts.Password.RequiredLength = 6;
+
+                // 使用者設定
                 opts.User.RequireUniqueEmail = true;
-                opts.SignIn.RequireConfirmedEmail = false;
+
+                // Email 驗證（註冊後需先驗證 Email 才能登入）
+                opts.SignIn.RequireConfirmedEmail = true;
+
+                // 帳號鎖定（CWE-307：暴力破解防護）
                 opts.Lockout.MaxFailedAccessAttempts = 5;
                 opts.Lockout.DefaultLockoutTimeSpan = TimeSpan.FromMinutes(5);
+                opts.Lockout.AllowedForNewUsers = true;
             })
             .AddRoles<IdentityRole>()
-            .AddEntityFrameworkStores<ApplicationDbContext>();
+            .AddEntityFrameworkStores<ApplicationDbContext>()
+            .AddDefaultTokenProviders();
 
         return services;
     }

@@ -1,61 +1,62 @@
-using AutoMapper;
+#pragma warning disable CS8603, CS8600
 using KoreanLearn.Data.Entities;
 using KoreanLearn.Service.ViewModels.Admin.Course;
 using KoreanLearn.Service.ViewModels.Admin.Lesson;
 using KoreanLearn.Service.ViewModels.Admin.Section;
+using Mapster;
 
 namespace KoreanLearn.Service.Mapper;
 
-/// <summary>後台課程管理 AutoMapper 設定檔（Course / Section / Lesson 的 Entity ↔ ViewModel 映射）</summary>
-public class CourseAdminProfile : Profile
+/// <summary>後台課程管理 Mapster 映射設定（Course / Section / Lesson 的 Entity ↔ ViewModel）</summary>
+public class CourseAdminMapping : IRegister
 {
-    public CourseAdminProfile()
+    public void Register(TypeAdapterConfig config)
     {
         // ── 課程映射 ──
-        CreateMap<Course, CourseAdminListViewModel>()
-            .ForMember(d => d.SectionCount, o => o.MapFrom(s => s.Sections.Count))
-            .ForMember(d => d.LessonCount, o => o.MapFrom(s => s.Sections.SelectMany(sec => sec.Lessons).Count()));
+        config.NewConfig<Course, CourseAdminListViewModel>()
+            .Map(d => d.SectionCount, s => s.Sections.Count)
+            .Map(d => d.LessonCount, s => s.Sections.SelectMany(sec => sec.Lessons).Count());
 
-        CreateMap<Course, CourseDetailAdminViewModel>()
-            .ForMember(d => d.Sections, o => o.MapFrom(s => s.Sections.OrderBy(sec => sec.SortOrder)));
+        config.NewConfig<Course, CourseDetailAdminViewModel>()
+            .Map(d => d.Sections, s => s.Sections.OrderBy(sec => sec.SortOrder));
 
-        CreateMap<Course, EditCourseViewModel>()
-            .ForMember(d => d.ExistingCoverImageUrl, o => o.MapFrom(s => s.CoverImageUrl))
-            .ForMember(d => d.CoverImage, o => o.Ignore());
+        config.NewConfig<Course, CourseFormViewModel>()
+            .Map(d => d.ExistingCoverImageUrl, s => s.CoverImageUrl)
+            .Ignore(d => d.CoverImage!);
 
-        CreateMap<CreateCourseViewModel, Course>()
-            .ForMember(d => d.CoverImageUrl, o => o.Ignore());
+        config.NewConfig<CourseFormViewModel, Course>()
+            .Ignore(d => d.CoverImageUrl!);
 
         // ── 章節映射 ──
-        CreateMap<Section, SectionAdminViewModel>()
-            .ForMember(d => d.Lessons, o => o.MapFrom(s => s.Lessons.OrderBy(l => l.SortOrder)));
+        config.NewConfig<Section, SectionAdminViewModel>()
+            .Map(d => d.Lessons, s => s.Lessons.OrderBy(l => l.SortOrder));
 
-        CreateMap<Section, SectionFormViewModel>()
-            .ForMember(d => d.CourseTitle, o => o.Ignore());
+        config.NewConfig<Section, SectionFormViewModel>()
+            .Ignore(d => d.CourseTitle!);
 
-        CreateMap<SectionFormViewModel, Section>()
-            .ForMember(d => d.Course, o => o.Ignore())
-            .ForMember(d => d.Lessons, o => o.Ignore());
+        config.NewConfig<SectionFormViewModel, Section>()
+            .Ignore(d => d.Course!)
+            .Ignore(d => d.Lessons!);
 
         // ── 單元映射 ──
-        CreateMap<Lesson, LessonAdminViewModel>();
+        config.NewConfig<Lesson, LessonAdminViewModel>();
 
-        CreateMap<Lesson, LessonFormViewModel>()
-            .ForMember(d => d.SectionTitle, o => o.Ignore())
-            .ForMember(d => d.CourseTitle, o => o.Ignore())
-            .ForMember(d => d.CourseId, o => o.Ignore())
-            .ForMember(d => d.VideoFile, o => o.Ignore())
-            .ForMember(d => d.PdfFile, o => o.Ignore())
-            .ForMember(d => d.ExistingVideoUrl, o => o.Ignore())
-            .ForMember(d => d.ExistingPdfUrl, o => o.Ignore())
-            .ForMember(d => d.ExistingPdfFileName, o => o.Ignore());
+        config.NewConfig<Lesson, LessonFormViewModel>()
+            .Ignore(d => d.SectionTitle!)
+            .Ignore(d => d.CourseTitle!)
+            .Ignore(d => (object)d.CourseId)
+            .Ignore(d => d.VideoFile!)
+            .Ignore(d => d.PdfFile!)
+            .Ignore(d => d.ExistingVideoUrl!)
+            .Ignore(d => d.ExistingPdfUrl!)
+            .Ignore(d => d.ExistingPdfFileName!);
 
-        CreateMap<LessonFormViewModel, Lesson>()
-            .ForMember(d => d.Section, o => o.Ignore())
-            .ForMember(d => d.Progresses, o => o.Ignore())
-            .ForMember(d => d.Quiz, o => o.Ignore())
-            .ForMember(d => d.VideoUrl, o => o.Ignore())
-            .ForMember(d => d.PdfUrl, o => o.Ignore())
-            .ForMember(d => d.PdfFileName, o => o.Ignore());
+        config.NewConfig<LessonFormViewModel, Lesson>()
+            .Ignore(d => d.Section!)
+            .Ignore(d => d.Progresses!)
+            .Ignore(d => d.Quiz!)
+            .Ignore(d => d.VideoUrl!)
+            .Ignore(d => d.PdfUrl!)
+            .Ignore(d => d.PdfFileName!);
     }
 }

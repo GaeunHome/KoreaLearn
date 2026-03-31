@@ -1,0 +1,127 @@
+@model RegisterViewModel
+@{
+    ViewData["Title"] = "註冊";
+    var returnUrl = ViewBag.ReturnUrl as string ?? Url.Content("~/");
+}
+
+<div class="kl-auth-wrapper">
+    <div class="row justify-content-center w-100" style="max-width: 900px;">
+        <!-- 左側說明 -->
+        <div class="col-lg-5 d-none d-lg-flex align-items-center">
+            <div class="p-4">
+                <div class="mb-4">
+                    <i class="bi bi-translate" style="font-size: 3rem; color: var(--kl-primary);"></i>
+                </div>
+                <h2 style="color: var(--kl-primary-dark);">加入 KoreanLearn</h2>
+                <p class="text-muted mb-4">建立帳號，開始你的韓語學習之旅。</p>
+
+                <div class="card mb-3" style="background: rgba(43,58,103,0.03); border: 1px solid var(--kl-border);">
+                    <div class="card-body py-3">
+                        <h6 class="mb-2"><i class="bi bi-gift me-1" style="color: var(--kl-accent);"></i>免費帳號包含</h6>
+                        <ul class="list-unstyled mb-0 small text-muted">
+                            <li class="mb-1"><i class="bi bi-check2 me-1 text-success"></i>瀏覽所有課程大綱</li>
+                            <li class="mb-1"><i class="bi bi-check2 me-1 text-success"></i>免費試看課程單元</li>
+                            <li class="mb-1"><i class="bi bi-check2 me-1 text-success"></i>參與討論區交流</li>
+                            <li><i class="bi bi-check2 me-1 text-success"></i>追蹤學習進度</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <p class="text-muted small">
+                    <i class="bi bi-people me-1"></i>
+                    已有超過 1,000 名學習者加入我們的平台
+                </p>
+            </div>
+        </div>
+
+        <!-- 右側表單 -->
+        <div class="col-lg-5">
+            <div class="card" style="border-radius: var(--kl-radius-lg); box-shadow: var(--kl-shadow-md);">
+                <div class="card-body p-4">
+                    <div class="text-center mb-4 d-lg-none">
+                        <i class="bi bi-translate" style="font-size: 2rem; color: var(--kl-primary);"></i>
+                    </div>
+                    <h4 class="text-center mb-1">建立帳號</h4>
+                    <p class="text-center text-muted small mb-4">填寫以下資料完成註冊</p>
+
+                    <div asp-validation-summary="ModelOnly" class="alert alert-danger" role="alert"></div>
+
+                    <form asp-action="Register" asp-controller="Account" asp-area="Identity" asp-route-returnUrl="@returnUrl" method="post" data-no-disable="true">
+                        <div class="mb-3">
+                            <label asp-for="DisplayName" class="form-label">顯示名稱 <span class="text-danger">*</span></label>
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="bi bi-person"></i></span>
+                                <input asp-for="DisplayName" class="form-control" placeholder="您的暱稱" />
+                            </div>
+                            <span asp-validation-for="DisplayName" class="text-danger small"></span>
+                        </div>
+                        <div class="mb-3">
+                            <label asp-for="Email" class="form-label">電子信箱 <span class="text-danger">*</span></label>
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="bi bi-envelope"></i></span>
+                                <input asp-for="Email" class="form-control" placeholder="name@example.com" autocomplete="email" />
+                            </div>
+                            <span asp-validation-for="Email" class="text-danger small"></span>
+                        </div>
+                        <div class="mb-3">
+                            <label asp-for="PhoneNumber" class="form-label">聯絡電話</label>
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="bi bi-telephone"></i></span>
+                                <input asp-for="PhoneNumber" class="form-control" placeholder="09XXXXXXXX（選填）" />
+                            </div>
+                            <span asp-validation-for="PhoneNumber" class="text-danger small"></span>
+                        </div>
+                        <div class="row">
+                            <div class="col-6 mb-3">
+                                <label asp-for="Password" class="form-label">密碼 <span class="text-danger">*</span></label>
+                                <div class="input-group">
+                                    <input asp-for="Password" class="form-control" placeholder="至少 6 碼" autocomplete="new-password" />
+                                    <button type="button" class="btn btn-outline-secondary kl-toggle-pw" tabindex="-1">
+                                        <i class="bi bi-eye"></i>
+                                    </button>
+                                </div>
+                                <span asp-validation-for="Password" class="text-danger small"></span>
+                            </div>
+                            <div class="col-6 mb-3">
+                                <label asp-for="ConfirmPassword" class="form-label">確認密碼 <span class="text-danger">*</span></label>
+                                <div class="input-group">
+                                    <input asp-for="ConfirmPassword" class="form-control" placeholder="再次輸入" autocomplete="new-password" />
+                                    <button type="button" class="btn btn-outline-secondary kl-toggle-pw" tabindex="-1">
+                                        <i class="bi bi-eye"></i>
+                                    </button>
+                                </div>
+                                <span asp-validation-for="ConfirmPassword" class="text-danger small"></span>
+                            </div>
+                        </div>
+                        <div class="mb-3 form-check">
+                            <input asp-for="AgreeTerms" class="form-check-input" />
+                            <label asp-for="AgreeTerms" class="form-check-label small">
+                                我已閱讀並同意<a href="#" class="text-decoration-underline">服務條款</a>與<a href="#" class="text-decoration-underline">隱私權政策</a>
+                            </label>
+                            <div><span asp-validation-for="AgreeTerms" class="text-danger small"></span></div>
+                        </div>
+                        <button type="submit" class="btn btn-primary w-100 py-2">
+                            建立帳號
+                        </button>
+                    </form>
+
+                    <hr class="my-4" />
+
+                    <p class="text-center mb-0 small">
+                        已有帳號？
+                        <a asp-action="Login" asp-controller="Account" asp-area="Identity" class="fw-semibold">立即登入</a>
+                    </p>
+                </div>
+            </div>
+
+            <p class="text-center text-muted mt-3" style="font-size: 0.8rem;">
+                <i class="bi bi-shield-lock me-1"></i>
+                你的密碼經過加密儲存，我們無法讀取你的密碼。
+            </p>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

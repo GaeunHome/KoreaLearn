@@ -1,0 +1,28 @@
+@model KoreanLearn.Service.ViewModels.Course.CourseListViewModel
+
+<div class="col-md-6 col-lg-4 col-xl-3 mb-4">
+    <a asp-controller="Course" asp-action="Detail" asp-route-id="@Model.Id" class="text-decoration-none">
+        <div class="card kl-course-card h-100">
+            @if (!string.IsNullOrEmpty(Model.CoverImageUrl))
+            {
+                <img src="@Model.CoverImageUrl" class="card-img-top" alt="@Model.Title" loading="lazy" />
+            }
+            else
+            {
+                <div class="card-img-top d-flex align-items-center justify-content-center bg-light" style="height:180px;">
+                    <i class="bi bi-book text-muted" style="font-size:2.5rem;"></i>
+                </div>
+            }
+            <div class="card-body d-flex flex-column">
+                <h6 class="card-title mb-1 text-dark">@Model.Title</h6>
+                <div class="text-muted small mb-2">
+                    <span class="badge bg-info">@Model.LevelDisplay</span>
+                    <span class="ms-1">@Model.SectionCount 章 · @Model.LessonCount 單元</span>
+                </div>
+                <div class="mt-auto">
+                    <span class="fw-bold" style="color:var(--kl-accent);">NT$ @Model.Price.ToString("N0")</span>
+                </div>
+            </div>
+        </div>
+    </a>
+</div>

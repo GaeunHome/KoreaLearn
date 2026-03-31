@@ -1,0 +1,12 @@
+@model int
+@if (Model > 0)
+{
+    <a asp-area="Learn" asp-controller="Flashcard" asp-action="Index"
+       class="nav-link position-relative" title="待複習字卡">
+        <i class="bi bi-card-text"></i>
+        <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger"
+              style="font-size:0.65rem;">
+            @(Model > 99 ? "99+" : Model.ToString())
+        </span>
+    </a>
+}

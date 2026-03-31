@@ -4,12 +4,28 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>@ViewData["Title"] - KoreanLearn</title>
+    <meta name="description" content="@(ViewData["Description"] ?? "KoreanLearn 韓文線上學習平台 — 影片課程、字卡、測驗、發音練習")" />
+    <meta property="og:title" content="@ViewData["Title"] - KoreanLearn" />
+    <meta property="og:description" content="@(ViewData["Description"] ?? "KoreanLearn 韓文線上學習平台")" />
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="KoreanLearn" />
+    @if (ViewData["OgImage"] is string ogImage)
+    {
+        <meta property="og:image" content="@ogImage" />
+    }
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;600;700&family=Noto+Sans+KR:wght@400;500;700&display=swap" rel="stylesheet" />
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" />
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/components/navbar.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/components/cards.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/components/forms.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/components/tables.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/components/skeleton.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/pages/auth.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/pages/error.css" asp-append-version="true" />
     @await RenderSectionAsync("Styles", required: false)
 </head>
 <body>
@@ -46,37 +62,93 @@
 
     <partial name="_TempDataNotifications" />
 
-    <div class="container py-4 flex-grow-1">
-        <main role="main">
+    @if (ViewData["FullWidth"] is true)
+    {
+        <main role="main" class="flex-grow-1">
             @RenderBody()
         </main>
-    </div>
+    }
+    else
+    {
+        <div class="container py-4 flex-grow-1">
+            <main role="main">
+                @RenderBody()
+            </main>
+        </div>
+    }
 
     <footer class="kl-footer">
-        <div class="container">
-            <div class="row align-items-center">
-                <div class="col-md-4 text-center text-md-start mb-2 mb-md-0">
-                    <strong style="color: #fff;"><i class="bi bi-translate me-1"></i>KoreanLearn</strong>
-                    <span class="ms-2">韓文線上學習平台</span>
+        <div class="kl-footer-main">
+            <div class="container">
+                <div class="row">
+                    <!-- 關於平台 -->
+                    <div class="col-md-3 mb-4">
+                        <h5 class="kl-footer-title">
+                            <i class="bi bi-translate me-1"></i>KoreanLearn
+                        </h5>
+                        <p class="kl-footer-desc">
+                            系統化韓語學習平台，從入門到 TOPIK 備考，帶你循序漸進掌握韓語。
+                        </p>
+                    </div>
+
+                    <!-- 快速連結 -->
+                    <div class="col-md-3 mb-4">
+                        <h6 class="kl-footer-title">快速連結</h6>
+                        <ul class="kl-footer-links">
+                            <li><a asp-area="" asp-controller="Home" asp-action="Index"><i class="bi bi-house-door me-1"></i>首頁</a></li>
+                            <li><a asp-area="" asp-controller="Course" asp-action="Index"><i class="bi bi-book me-1"></i>課程總覽</a></li>
+                            <li><a asp-area="" asp-controller="Discussion" asp-action="Index"><i class="bi bi-chat-dots me-1"></i>討論區</a></li>
+                            <li><a asp-area="" asp-controller="Subscription" asp-action="Index"><i class="bi bi-star me-1"></i>訂閱方案</a></li>
+                        </ul>
+                    </div>
+
+                    <!-- 帳號相關 -->
+                    <div class="col-md-3 mb-4">
+                        <h6 class="kl-footer-title">帳號服務</h6>
+                        <ul class="kl-footer-links">
+                            <li><a asp-area="Identity" asp-controller="Account" asp-action="Login"><i class="bi bi-box-arrow-in-right me-1"></i>登入</a></li>
+                            <li><a asp-area="Identity" asp-controller="Account" asp-action="Register"><i class="bi bi-person-plus me-1"></i>註冊</a></li>
+                            <li><a asp-controller="Home" asp-action="Privacy"><i class="bi bi-shield-check me-1"></i>隱私權政策</a></li>
+                        </ul>
+                    </div>
+
+                    <!-- 聯絡資訊 -->
+                    <div class="col-md-3 mb-4">
+                        <h6 class="kl-footer-title">聯絡我們</h6>
+                        <ul class="kl-footer-links kl-footer-contact">
+                            <li><i class="bi bi-envelope me-2"></i>support&#64;koreanlearn.com</li>
+                            <li><i class="bi bi-clock me-2"></i>週一至週五 09:00 - 18:00</li>
+                        </ul>
+                        <div class="kl-footer-social mt-3">
+                            <a href="#" class="kl-social-icon" title="Facebook"><i class="bi bi-facebook"></i></a>
+                            <a href="#" class="kl-social-icon" title="Instagram"><i class="bi bi-instagram"></i></a>
+                            <a href="#" class="kl-social-icon" title="LINE"><i class="bi bi-line"></i></a>
+                        </div>
+                    </div>
                 </div>
-                <div class="col-md-4 text-center mb-2 mb-md-0">
-                    <ul class="kl-footer-links">
-                        <li><a asp-controller="Course" asp-action="Index">課程</a></li>
-                        <li><a asp-controller="Discussion" asp-action="Index">討論區</a></li>
-                        <li><a asp-controller="Subscription" asp-action="Index">訂閱</a></li>
-                    </ul>
-                </div>
-                <div class="col-md-4 text-center text-md-end">
-                    &copy; 2026 KoreanLearn
-                </div>
+            </div>
+        </div>
+        <div class="kl-footer-bottom">
+            <div class="container text-center">
+                <p class="mb-0">
+                    Copyright &copy; 2026 <strong>KoreanLearn</strong> All Rights Reserved.
+                    Designed by <strong>HOU WEN CHIA</strong>.
+                </p>
             </div>
         </div>
     </footer>
 
+    <!-- 回到頂端按鈕 -->
+    <button id="klBackToTop" class="kl-back-to-top" onclick="window.scrollTo({top:0,behavior:'smooth'})" title="回到頂端">
+        <i class="bi bi-arrow-up"></i>
+    </button>
+
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-    <script src="~/js/site.js" asp-append-version="true"></script>
+    <script src="~/js/core/notifications.js" asp-append-version="true"></script>
+    <script src="~/js/core/tempdata.js" asp-append-version="true"></script>
+    <script src="~/js/core/forms.js" asp-append-version="true"></script>
     @await RenderSectionAsync("Scripts", required: false)
 </body>
 </html>

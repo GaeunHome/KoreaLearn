@@ -1,0 +1,81 @@
+@model KoreanLearn.Service.Services.Interfaces.SubscriptionPlanViewModel
+@{ ViewData["Title"] = "訂閱確認"; }
+
+<div class="row justify-content-center">
+    <div class="col-lg-5">
+        <div class="text-center mb-4">
+            <i class="bi bi-star" style="font-size: 2.5rem; color: var(--kl-primary);"></i>
+            <h3 class="mt-2">確認訂閱方案</h3>
+            <p class="text-muted">請確認您即將訂閱的方案內容</p>
+        </div>
+
+        <div class="card" style="border-radius: var(--kl-radius-lg);">
+            <div class="card-body p-4">
+                <!-- 方案資訊 -->
+                <div class="text-center mb-4">
+                    <h5 style="color: var(--kl-primary-dark);">@Model.Name</h5>
+                    @if (!string.IsNullOrEmpty(Model.Description))
+                    {
+                        <p class="text-muted small">@Model.Description</p>
+                    }
+                </div>
+
+                <!-- 方案明細 -->
+                <div class="py-3" style="border-top: 1px solid var(--kl-border); border-bottom: 1px solid var(--kl-border);">
+                    <div class="d-flex justify-content-between mb-2">
+                        <span class="text-muted">方案期限</span>
+                        <span>@Model.DurationMonths 個月</span>
+                    </div>
+                    <div class="d-flex justify-content-between mb-2">
+                        <span class="text-muted">月費</span>
+                        <span>NT$ @Model.MonthlyPrice.ToString("N0") / 月</span>
+                    </div>
+                    <div class="d-flex justify-content-between mb-2">
+                        <span class="text-muted">到期日</span>
+                        <span>@DateTime.UtcNow.AddMonths(Model.DurationMonths).ToString("yyyy-MM-dd")</span>
+                    </div>
+                </div>
+
+                <div class="d-flex justify-content-between align-items-center pt-3 mt-2">
+                    <span class="fw-bold">應付總金額</span>
+                    <span class="fw-bold fs-4" style="color: var(--kl-accent);">
+                        NT$ @((Model.MonthlyPrice * Model.DurationMonths).ToString("N0"))
+                    </span>
+                </div>
+
+                <!-- 包含內容 -->
+                <div class="mt-4 p-3 rounded" style="background: #f5f3f0;">
+                    <h6 class="mb-2"><i class="bi bi-check-circle text-success me-1"></i>訂閱包含</h6>
+                    <ul class="list-unstyled small text-muted mb-0">
+                        <li class="mb-1"><i class="bi bi-check2 text-success me-1"></i>所有課程無限觀看</li>
+                        <li class="mb-1"><i class="bi bi-check2 text-success me-1"></i>字卡與發音練習</li>
+                        <li class="mb-1"><i class="bi bi-check2 text-success me-1"></i>測驗與結業證書</li>
+                        <li><i class="bi bi-check2 text-success me-1"></i>討論區完整功能</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="card-footer p-4" style="background: transparent; border-top: 1px solid var(--kl-border);">
+                <div class="alert alert-info py-2 mb-3">
+                    <i class="bi bi-info-circle me-1"></i>
+                    <small>此為模擬付款環境，點擊即完成訂閱。</small>
+                </div>
+
+                <form asp-controller="Subscription" asp-action="ConfirmSubscribe" method="post">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" name="planId" value="@Model.Id" />
+                    <button type="submit" class="btn btn-success btn-lg w-100"
+                            data-confirm="確認訂閱「@Model.Name」嗎？（NT$ @((Model.MonthlyPrice * Model.DurationMonths).ToString("N0")) / @Model.DurationMonths 個月）">
+                        <i class="bi bi-credit-card me-2"></i>確認付款並訂閱
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        <div class="text-center mt-3">
+            <a asp-controller="Subscription" asp-action="Index" class="text-muted small">
+                <i class="bi bi-arrow-left me-1"></i>返回方案列表
+            </a>
+        </div>
+    </div>
+</div>

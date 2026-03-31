@@ -50,6 +50,11 @@ namespace KoreanLearn.Data.Migrations
                     b.Property<bool>("IsDeleted")
                         .HasColumnType("bit");
 
+                    b.Property<byte[]>("RowVersion")
+                        .IsConcurrencyToken()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("rowversion");
+
                     b.Property<DateTime?>("StartDate")
                         .HasColumnType("datetime2");
 
@@ -65,7 +70,7 @@ namespace KoreanLearn.Data.Migrations
 
                     b.HasIndex("IsActive");
 
-                    b.ToTable("Announcements", (string)null);
+                    b.ToTable("Announcements");
                 });
 
             modelBuilder.Entity("KoreanLearn.Data.Entities.AppUser", b =>
@@ -126,6 +131,9 @@ namespace KoreanLearn.Data.Migrations
                     b.Property<bool>("PhoneNumberConfirmed")
                         .HasColumnType("bit");
 
+                    b.Property<int>("PreferredTwoFactorMethod")
+                        .HasColumnType("int");
+
                     b.Property<string>("SecurityStamp")
                         .HasColumnType("nvarchar(max)");
 
@@ -150,6 +158,56 @@ namespace KoreanLearn.Data.Migrations
                         .HasFilter("[NormalizedUserName] IS NOT NULL");
 
                     b.ToTable("AspNetUsers", (string)null);
+                });
+
+            modelBuilder.Entity("KoreanLearn.Data.Entities.Banner", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int?>("CourseId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime?>("DeletedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("DisplayOrder")
+                        .HasColumnType("int");
+
+                    b.Property<string>("ImageUrl")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit");
+
+                    b.Property<byte[]>("RowVersion")
+                        .IsConcurrencyToken()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("rowversion");
+
+                    b.Property<string>("Title")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CourseId");
+
+                    b.ToTable("Banners");
                 });
 
             modelBuilder.Entity("KoreanLearn.Data.Entities.Certificate", b =>
@@ -178,6 +236,11 @@ namespace KoreanLearn.Data.Migrations
                         .HasMaxLength(500)
                         .HasColumnType("nvarchar(500)");
 
+                    b.Property<byte[]>("RowVersion")
+                        .IsConcurrencyToken()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("rowversion");
+
                     b.Property<DateTime>("UpdatedAt")
                         .HasColumnType("datetime2");
 
@@ -195,7 +258,7 @@ namespace KoreanLearn.Data.Migrations
                     b.HasIndex("UserId", "CourseId")
                         .IsUnique();
 
-                    b.ToTable("Certificates", (string)null);
+                    b.ToTable("Certificates");
                 });
 
             modelBuilder.Entity("KoreanLearn.Data.Entities.Course", b =>
@@ -230,7 +293,13 @@ namespace KoreanLearn.Data.Migrations
                         .HasColumnType("int");
 
                     b.Property<decimal>("Price")
+                        .HasPrecision(18, 2)
                         .HasColumnType("decimal(18,2)");
+
+                    b.Property<byte[]>("RowVersion")
+                        .IsConcurrencyToken()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("rowversion");
 
                     b.Property<int>("SortOrder")
                         .HasColumnType("int");
@@ -255,7 +324,7 @@ namespace KoreanLearn.Data.Migrations
 
                     b.HasIndex("Title");
 
-                    b.ToTable("Courses", (string)null);
+                    b.ToTable("Courses");
                 });
 
             modelBuilder.Entity("KoreanLearn.Data.Entities.Discussion", b =>
@@ -283,6 +352,11 @@ namespace KoreanLearn.Data.Migrations
                     b.Property<bool>("IsDeleted")
                         .HasColumnType("bit");
 
+                    b.Property<byte[]>("RowVersion")
+                        .IsConcurrencyToken()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("rowversion");
+
                     b.Property<string>("Title")
                         .IsRequired()
                         .HasMaxLength(200)
@@ -301,7 +375,7 @@ namespace KoreanLearn.Data.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("Discussions", (string)null);
+                    b.ToTable("Discussions");
                 });
 
             modelBuilder.Entity("KoreanLearn.Data.Entities.DiscussionReply", b =>
@@ -329,6 +403,11 @@ namespace KoreanLearn.Data.Migrations
                     b.Property<bool>("IsDeleted")
                         .HasColumnType("bit");
 
+                    b.Property<byte[]>("RowVersion")
+                        .IsConcurrencyToken()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("rowversion");
+
                     b.Property<DateTime>("UpdatedAt")
                         .HasColumnType("datetime2");
 
@@ -342,7 +421,7 @@ namespace KoreanLearn.Data.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("DiscussionReplies", (string)null);
+                    b.ToTable("DiscussionReplies");
                 });
 
             modelBuilder.Entity("KoreanLearn.Data.Entities.Enrollment", b =>
@@ -365,6 +444,11 @@ namespace KoreanLearn.Data.Migrations
                     b.Property<int>("ProgressPercent")
                         .HasColumnType("int");
 
+                    b.Property<byte[]>("RowVersion")
+                        .IsConcurrencyToken()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("rowversion");
+
                     b.Property<int>("Status")
                         .HasColumnType("int");
 
@@ -384,7 +468,7 @@ namespace KoreanLearn.Data.Migrations
                     b.HasIndex("UserId", "CourseId")
                         .IsUnique();
 
-                    b.ToTable("Enrollments", (string)null);
+                    b.ToTable("Enrollments");
                 });
 
             modelBuilder.Entity("KoreanLearn.Data.Entities.Flashcard", b =>
@@ -423,6 +507,11 @@ namespace KoreanLearn.Data.Migrations
                         .HasMaxLength(200)
                         .HasColumnType("nvarchar(200)");
 
+                    b.Property<byte[]>("RowVersion")
+                        .IsConcurrencyToken()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("rowversion");
+
                     b.Property<int>("SortOrder")
                         .HasColumnType("int");
 
@@ -433,7 +522,7 @@ namespace KoreanLearn.Data.Migrations
 
                     b.HasIndex("DeckId");
 
-                    b.ToTable("Flashcards", (string)null);
+                    b.ToTable("Flashcards");
                 });
 
             modelBuilder.Entity("KoreanLearn.Data.Entities.FlashcardDeck", b =>
@@ -460,6 +549,11 @@ namespace KoreanLearn.Data.Migrations
                     b.Property<bool>("IsDeleted")
                         .HasColumnType("bit");
 
+                    b.Property<byte[]>("RowVersion")
+                        .IsConcurrencyToken()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("rowversion");
+
                     b.Property<string>("Title")
                         .IsRequired()
                         .HasMaxLength(200)
@@ -472,7 +566,7 @@ namespace KoreanLearn.Data.Migrations
 
                     b.HasIndex("CourseId");
 
-                    b.ToTable("FlashcardDecks", (string)null);
+                    b.ToTable("FlashcardDecks");
                 });
 
             modelBuilder.Entity("KoreanLearn.Data.Entities.FlashcardLog", b =>
@@ -504,6 +598,11 @@ namespace KoreanLearn.Data.Migrations
                     b.Property<int>("Repetition")
                         .HasColumnType("int");
 
+                    b.Property<byte[]>("RowVersion")
+                        .IsConcurrencyToken()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("rowversion");
+
                     b.Property<DateTime>("UpdatedAt")
                         .HasColumnType("datetime2");
 
@@ -519,7 +618,7 @@ namespace KoreanLearn.Data.Migrations
 
                     b.HasIndex("UserId", "FlashcardId");
 
-                    b.ToTable("FlashcardLogs", (string)null);
+                    b.ToTable("FlashcardLogs");
                 });
 
             modelBuilder.Entity("KoreanLearn.Data.Entities.Lesson", b =>
@@ -557,6 +656,11 @@ namespace KoreanLearn.Data.Migrations
                         .HasMaxLength(500)
                         .HasColumnType("nvarchar(500)");
 
+                    b.Property<byte[]>("RowVersion")
+                        .IsConcurrencyToken()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("rowversion");
+
                     b.Property<int>("SectionId")
                         .HasColumnType("int");
 
@@ -585,7 +689,7 @@ namespace KoreanLearn.Data.Migrations
 
                     b.HasIndex("SectionId");
 
-                    b.ToTable("Lessons", (string)null);
+                    b.ToTable("Lessons");
                 });
 
             modelBuilder.Entity("KoreanLearn.Data.Entities.LessonAttachment", b =>
@@ -621,6 +725,11 @@ namespace KoreanLearn.Data.Migrations
                     b.Property<int>("LessonId")
                         .HasColumnType("int");
 
+                    b.Property<byte[]>("RowVersion")
+                        .IsConcurrencyToken()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("rowversion");
+
                     b.Property<int>("SortOrder")
                         .HasColumnType("int");
 
@@ -631,7 +740,7 @@ namespace KoreanLearn.Data.Migrations
 
                     b.HasIndex("LessonId");
 
-                    b.ToTable("LessonAttachments", (string)null);
+                    b.ToTable("LessonAttachments");
                 });
 
             modelBuilder.Entity("KoreanLearn.Data.Entities.Order", b =>
@@ -662,10 +771,16 @@ namespace KoreanLearn.Data.Migrations
                     b.Property<int>("PaymentStatus")
                         .HasColumnType("int");
 
+                    b.Property<byte[]>("RowVersion")
+                        .IsConcurrencyToken()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("rowversion");
+
                     b.Property<int>("Status")
                         .HasColumnType("int");
 
                     b.Property<decimal>("TotalAmount")
+                        .HasPrecision(18, 2)
                         .HasColumnType("decimal(18,2)");
 
                     b.Property<DateTime>("UpdatedAt")
@@ -682,7 +797,7 @@ namespace KoreanLearn.Data.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("Orders", (string)null);
+                    b.ToTable("Orders");
                 });
 
             modelBuilder.Entity("KoreanLearn.Data.Entities.OrderItem", b =>
@@ -703,7 +818,13 @@ namespace KoreanLearn.Data.Migrations
                         .HasColumnType("int");
 
                     b.Property<decimal>("Price")
+                        .HasPrecision(18, 2)
                         .HasColumnType("decimal(18,2)");
+
+                    b.Property<byte[]>("RowVersion")
+                        .IsConcurrencyToken()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("rowversion");
 
                     b.Property<DateTime>("UpdatedAt")
                         .HasColumnType("datetime2");
@@ -714,7 +835,33 @@ namespace KoreanLearn.Data.Migrations
 
                     b.HasIndex("OrderId");
 
-                    b.ToTable("OrderItems", (string)null);
+                    b.ToTable("OrderItems");
+                });
+
+            modelBuilder.Entity("KoreanLearn.Data.Entities.PasswordHistory", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("PasswordHash")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("UserId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("PasswordHistories");
                 });
 
             modelBuilder.Entity("KoreanLearn.Data.Entities.Progress", b =>
@@ -737,6 +884,11 @@ namespace KoreanLearn.Data.Migrations
                     b.Property<int>("LessonId")
                         .HasColumnType("int");
 
+                    b.Property<byte[]>("RowVersion")
+                        .IsConcurrencyToken()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("rowversion");
+
                     b.Property<DateTime>("UpdatedAt")
                         .HasColumnType("datetime2");
 
@@ -756,7 +908,7 @@ namespace KoreanLearn.Data.Migrations
                     b.HasIndex("UserId", "LessonId")
                         .IsUnique();
 
-                    b.ToTable("Progresses", (string)null);
+                    b.ToTable("Progresses");
                 });
 
             modelBuilder.Entity("KoreanLearn.Data.Entities.PronunciationAttempt", b =>
@@ -778,6 +930,11 @@ namespace KoreanLearn.Data.Migrations
                         .HasMaxLength(500)
                         .HasColumnType("nvarchar(500)");
 
+                    b.Property<byte[]>("RowVersion")
+                        .IsConcurrencyToken()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("rowversion");
+
                     b.Property<DateTime>("UpdatedAt")
                         .HasColumnType("datetime2");
 
@@ -791,7 +948,7 @@ namespace KoreanLearn.Data.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("PronunciationAttempts", (string)null);
+                    b.ToTable("PronunciationAttempts");
                 });
 
             modelBuilder.Entity("KoreanLearn.Data.Entities.PronunciationExercise", b =>
@@ -827,6 +984,11 @@ namespace KoreanLearn.Data.Migrations
                         .HasMaxLength(200)
                         .HasColumnType("nvarchar(200)");
 
+                    b.Property<byte[]>("RowVersion")
+                        .IsConcurrencyToken()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("rowversion");
+
                     b.Property<string>("StandardAudioUrl")
                         .IsRequired()
                         .HasMaxLength(500)
@@ -839,7 +1001,7 @@ namespace KoreanLearn.Data.Migrations
 
                     b.HasIndex("LessonId");
 
-                    b.ToTable("PronunciationExercises", (string)null);
+                    b.ToTable("PronunciationExercises");
                 });
 
             modelBuilder.Entity("KoreanLearn.Data.Entities.Quiz", b =>
@@ -869,6 +1031,11 @@ namespace KoreanLearn.Data.Migrations
                     b.Property<int>("PassingScore")
                         .HasColumnType("int");
 
+                    b.Property<byte[]>("RowVersion")
+                        .IsConcurrencyToken()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("rowversion");
+
                     b.Property<int>("TimeLimitMinutes")
                         .HasColumnType("int");
 
@@ -885,7 +1052,7 @@ namespace KoreanLearn.Data.Migrations
                     b.HasIndex("LessonId")
                         .IsUnique();
 
-                    b.ToTable("Quizzes", (string)null);
+                    b.ToTable("Quizzes");
                 });
 
             modelBuilder.Entity("KoreanLearn.Data.Entities.QuizAnswer", b =>
@@ -911,6 +1078,11 @@ namespace KoreanLearn.Data.Migrations
                     b.Property<int>("QuestionId")
                         .HasColumnType("int");
 
+                    b.Property<byte[]>("RowVersion")
+                        .IsConcurrencyToken()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("rowversion");
+
                     b.Property<int?>("SelectedOptionId")
                         .HasColumnType("int");
 
@@ -929,7 +1101,7 @@ namespace KoreanLearn.Data.Migrations
 
                     b.HasIndex("SelectedOptionId");
 
-                    b.ToTable("QuizAnswers", (string)null);
+                    b.ToTable("QuizAnswers");
                 });
 
             modelBuilder.Entity("KoreanLearn.Data.Entities.QuizAttempt", b =>
@@ -951,6 +1123,11 @@ namespace KoreanLearn.Data.Migrations
 
                     b.Property<int>("QuizId")
                         .HasColumnType("int");
+
+                    b.Property<byte[]>("RowVersion")
+                        .IsConcurrencyToken()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("rowversion");
 
                     b.Property<int>("Score")
                         .HasColumnType("int");
@@ -974,7 +1151,7 @@ namespace KoreanLearn.Data.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("QuizAttempts", (string)null);
+                    b.ToTable("QuizAttempts");
                 });
 
             modelBuilder.Entity("KoreanLearn.Data.Entities.QuizOption", b =>
@@ -999,6 +1176,11 @@ namespace KoreanLearn.Data.Migrations
                     b.Property<int>("QuestionId")
                         .HasColumnType("int");
 
+                    b.Property<byte[]>("RowVersion")
+                        .IsConcurrencyToken()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("rowversion");
+
                     b.Property<int>("SortOrder")
                         .HasColumnType("int");
 
@@ -1009,7 +1191,7 @@ namespace KoreanLearn.Data.Migrations
 
                     b.HasIndex("QuestionId");
 
-                    b.ToTable("QuizOptions", (string)null);
+                    b.ToTable("QuizOptions");
                 });
 
             modelBuilder.Entity("KoreanLearn.Data.Entities.QuizQuestion", b =>
@@ -1038,6 +1220,11 @@ namespace KoreanLearn.Data.Migrations
                     b.Property<int>("QuizId")
                         .HasColumnType("int");
 
+                    b.Property<byte[]>("RowVersion")
+                        .IsConcurrencyToken()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("rowversion");
+
                     b.Property<int>("SortOrder")
                         .HasColumnType("int");
 
@@ -1051,7 +1238,7 @@ namespace KoreanLearn.Data.Migrations
 
                     b.HasIndex("QuizId");
 
-                    b.ToTable("QuizQuestions", (string)null);
+                    b.ToTable("QuizQuestions");
                 });
 
             modelBuilder.Entity("KoreanLearn.Data.Entities.Section", b =>
@@ -1078,6 +1265,11 @@ namespace KoreanLearn.Data.Migrations
                     b.Property<bool>("IsDeleted")
                         .HasColumnType("bit");
 
+                    b.Property<byte[]>("RowVersion")
+                        .IsConcurrencyToken()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("rowversion");
+
                     b.Property<int>("SortOrder")
                         .HasColumnType("int");
 
@@ -1093,7 +1285,7 @@ namespace KoreanLearn.Data.Migrations
 
                     b.HasIndex("CourseId");
 
-                    b.ToTable("Sections", (string)null);
+                    b.ToTable("Sections");
                 });
 
             modelBuilder.Entity("KoreanLearn.Data.Entities.SubscriptionPlan", b =>
@@ -1124,6 +1316,7 @@ namespace KoreanLearn.Data.Migrations
                         .HasColumnType("bit");
 
                     b.Property<decimal>("MonthlyPrice")
+                        .HasPrecision(18, 2)
                         .HasColumnType("decimal(18,2)");
 
                     b.Property<string>("Name")
@@ -1131,12 +1324,54 @@ namespace KoreanLearn.Data.Migrations
                         .HasMaxLength(100)
                         .HasColumnType("nvarchar(100)");
 
+                    b.Property<byte[]>("RowVersion")
+                        .IsConcurrencyToken()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("rowversion");
+
                     b.Property<DateTime>("UpdatedAt")
                         .HasColumnType("datetime2");
 
                     b.HasKey("Id");
 
-                    b.ToTable("SubscriptionPlans", (string)null);
+                    b.ToTable("SubscriptionPlans");
+                });
+
+            modelBuilder.Entity("KoreanLearn.Data.Entities.SystemSetting", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Description")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<string>("Group")
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<string>("Key")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Value")
+                        .IsRequired()
+                        .HasMaxLength(2000)
+                        .HasColumnType("nvarchar(2000)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Key")
+                        .IsUnique();
+
+                    b.ToTable("SystemSettings");
                 });
 
             modelBuilder.Entity("KoreanLearn.Data.Entities.UserSubscription", b =>
@@ -1159,6 +1394,11 @@ namespace KoreanLearn.Data.Migrations
                     b.Property<int>("PlanId")
                         .HasColumnType("int");
 
+                    b.Property<byte[]>("RowVersion")
+                        .IsConcurrencyToken()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("rowversion");
+
                     b.Property<DateTime>("StartDate")
                         .HasColumnType("datetime2");
 
@@ -1176,7 +1416,7 @@ namespace KoreanLearn.Data.Migrations
                     b.HasIndex("UserId")
                         .IsUnique();
 
-                    b.ToTable("UserSubscriptions", (string)null);
+                    b.ToTable("UserSubscriptions");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRole", b =>
@@ -1314,6 +1554,16 @@ namespace KoreanLearn.Data.Migrations
                     b.HasKey("UserId", "LoginProvider", "Name");
 
                     b.ToTable("AspNetUserTokens", (string)null);
+                });
+
+            modelBuilder.Entity("KoreanLearn.Data.Entities.Banner", b =>
+                {
+                    b.HasOne("KoreanLearn.Data.Entities.Course", "Course")
+                        .WithMany()
+                        .HasForeignKey("CourseId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.Navigation("Course");
                 });
 
             modelBuilder.Entity("KoreanLearn.Data.Entities.Certificate", b =>
@@ -1492,6 +1742,17 @@ namespace KoreanLearn.Data.Migrations
                     b.Navigation("Course");
 
                     b.Navigation("Order");
+                });
+
+            modelBuilder.Entity("KoreanLearn.Data.Entities.PasswordHistory", b =>
+                {
+                    b.HasOne("KoreanLearn.Data.Entities.AppUser", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("KoreanLearn.Data.Entities.Progress", b =>

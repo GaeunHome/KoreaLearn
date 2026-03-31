@@ -1,0 +1,74 @@
+@model LoginTwoFactorViewModel
+@{
+    ViewData["Title"] = "兩步驟驗證";
+    var returnUrl = ViewBag.ReturnUrl as string;
+    var maskedEmail = ViewBag.MaskedEmail as string;
+    var devCode = ViewBag.DevCode as string;
+    var isEmail = Model.Method == "Email";
+}
+
+<div class="kl-auth-wrapper">
+    <div class="card" style="max-width: 480px; border-radius: var(--kl-radius-lg); box-shadow: var(--kl-shadow-md);">
+        <div class="card-body p-4">
+            <h4 class="text-center mb-1"><i class="bi bi-shield-lock me-2"></i>兩步驟驗證</h4>
+            @if (isEmail)
+            {
+                <p class="text-center text-muted small mb-4">
+                    驗證碼已寄送至 <strong>@maskedEmail</strong>
+                </p>
+            }
+            else
+            {
+                <p class="text-center text-muted small mb-4">
+                    請開啟驗證器 App，輸入顯示的 6 位數驗證碼
+                </p>
+            }
+
+            @if (devCode is not null)
+            {
+                <div class="alert alert-secondary small">
+                    <strong>開發模式</strong>：正式環境中驗證碼會透過 Email 寄送。<br />
+                    驗證碼：<code>@devCode</code>
+                </div>
+            }
+
+            <form asp-action="LoginTwoFactor" asp-controller="Account" asp-area="Identity"
+                  asp-route-returnUrl="@returnUrl" method="post">
+                <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+                <input type="hidden" asp-for="RememberMe" />
+                <input type="hidden" asp-for="Method" />
+
+                <div class="mb-3">
+                    <label asp-for="Code" class="form-label"></label>
+                    <input asp-for="Code" class="form-control text-center"
+                           style="font-size: 1.5rem; letter-spacing: 0.5em;" maxlength="6"
+                           placeholder="000000" autofocus />
+                    <span asp-validation-for="Code" class="text-danger small"></span>
+                </div>
+
+                <button type="submit" class="btn btn-primary w-100">驗證並登入</button>
+            </form>
+
+            @if (isEmail)
+            {
+                <form asp-action="ResendTwoFactorCode" asp-controller="Account" asp-area="Identity"
+                      asp-route-rememberMe="@Model.RememberMe" asp-route-returnUrl="@returnUrl"
+                      method="post" class="text-center mt-3">
+                    <button type="submit" class="btn btn-link btn-sm text-decoration-none">
+                        <i class="bi bi-arrow-clockwise me-1"></i>重新寄送驗證碼
+                    </button>
+                </form>
+            }
+
+            <div class="text-center mt-3">
+                <a asp-action="Login" asp-controller="Account" asp-area="Identity" class="text-decoration-none">
+                    <i class="bi bi-arrow-left me-1"></i>返回登入
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

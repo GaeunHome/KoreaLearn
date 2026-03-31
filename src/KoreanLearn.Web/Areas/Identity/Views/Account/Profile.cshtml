@@ -1,0 +1,73 @@
+@model ProfileViewModel
+@{ ViewData["Title"] = "個人資料"; }
+
+<div class="kl-settings-page">
+    <!-- 導覽列 -->
+    <div class="kl-settings-nav">
+        <a class="btn btn-primary btn-sm" asp-action="Profile" asp-controller="Account" asp-area="Identity">
+            <i class="bi bi-person me-1"></i>個人資料
+        </a>
+        <a class="btn btn-outline-secondary btn-sm" asp-action="ChangePassword" asp-controller="Account" asp-area="Identity">
+            <i class="bi bi-key me-1"></i>變更密碼
+        </a>
+        <a class="btn btn-outline-secondary btn-sm" asp-action="TwoFactorAuthentication" asp-controller="Account" asp-area="Identity">
+            <i class="bi bi-shield-check me-1"></i>兩步驟驗證
+        </a>
+    </div>
+
+    <div class="card kl-settings-card">
+        <div class="card-body">
+            <div class="kl-settings-header">
+                <i class="bi bi-person-circle"></i>
+                <div>
+                    <h4>個人資料</h4>
+                    <p>管理您的帳號基本資訊</p>
+                </div>
+            </div>
+
+            <form asp-action="Profile" asp-controller="Account" asp-area="Identity" method="post">
+                <div asp-validation-summary="ModelOnly" class="alert alert-danger" role="alert"></div>
+
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label asp-for="Email" class="form-label">電子信箱</label>
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="bi bi-envelope"></i></span>
+                            <input asp-for="Email" class="form-control" readonly />
+                        </div>
+                        <span class="text-muted small">電子信箱無法變更</span>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label asp-for="DisplayName" class="form-label">顯示名稱 <span class="text-danger">*</span></label>
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="bi bi-person"></i></span>
+                            <input asp-for="DisplayName" class="form-control" />
+                        </div>
+                        <span asp-validation-for="DisplayName" class="text-danger small"></span>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label asp-for="PhoneNumber" class="form-label">聯絡電話</label>
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="bi bi-telephone"></i></span>
+                            <input asp-for="PhoneNumber" class="form-control" placeholder="09XXXXXXXX（選填）" />
+                        </div>
+                        <span asp-validation-for="PhoneNumber" class="text-danger small"></span>
+                    </div>
+                </div>
+
+                <div class="d-flex justify-content-end mt-2">
+                    <button type="submit" class="btn btn-primary px-4">
+                        <i class="bi bi-check-lg me-1"></i>儲存變更
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

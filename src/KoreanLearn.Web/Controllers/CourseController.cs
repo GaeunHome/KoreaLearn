@@ -1,4 +1,4 @@
-using System.Security.Claims;
+using KoreanLearn.Library.Helpers;
 using KoreanLearn.Service.Services.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 
@@ -7,7 +7,7 @@ namespace KoreanLearn.Web.Controllers;
 /// <summary>課程公開頁面 Controller，提供課程列表搜尋與課程詳情瀏覽（未登入亦可存取）</summary>
 public class CourseController(
     ICourseService courseService,
-    ILogger<CourseController> logger) : Controller
+    ILogger<CourseController> logger) : BaseController
 {
     /// <summary>課程列表頁（支援關鍵字搜尋與分頁），回傳分頁結果</summary>
     public async Task<IActionResult> Index(
@@ -15,7 +15,7 @@ public class CourseController(
     {
         logger.LogInformation("課程列表 | Keyword={Keyword} | Page={Page} | User={User}",
             keyword ?? "(空)", page, User.Identity?.Name ?? "Anonymous");
-        var result = await courseService.SearchCoursesAsync(keyword, page, pageSize: 12, ct);
+        var result = await courseService.SearchCoursesAsync(keyword, page, pageSize: DisplayConstants.CoursePageSize, ct);
         ViewBag.Keyword = keyword;
         return View(result);
     }
@@ -25,7 +25,7 @@ public class CourseController(
     {
         logger.LogInformation("課程詳情 | CourseId={CourseId} | User={User}",
             id, User.Identity?.Name ?? "Anonymous");
-        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        var userId = GetCurrentUserId();
         var course = await courseService.GetCourseDetailAsync(id, userId, ct);
         if (course is null)
         {

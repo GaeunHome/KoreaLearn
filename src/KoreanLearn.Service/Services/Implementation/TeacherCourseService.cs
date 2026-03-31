@@ -1,5 +1,4 @@
-using AutoMapper;
-using KoreanLearn.Data.Entities;
+using MapsterMapper;
 using KoreanLearn.Data.UnitOfWork;
 using KoreanLearn.Library.Helpers;
 using KoreanLearn.Service.Services.Interfaces;
@@ -11,10 +10,11 @@ using Microsoft.Extensions.Logging;
 
 namespace KoreanLearn.Service.Services.Implementation;
 
-/// <summary>教師課程管理業務邏輯實作，所有操作皆先驗證教師對課程的所有權</summary>
+/// <summary>教師課程管理業務邏輯實作，所有操作皆先驗證教師對課程的所有權，再委派給 CourseAdminService 執行</summary>
 public class TeacherCourseService(
     IUnitOfWork uow,
     IMapper mapper,
+    ICourseAdminService adminService,
     ILogger<TeacherCourseService> logger) : ITeacherCourseService
 {
     // ── 儀表板 ─────────────────────────────────────
@@ -52,30 +52,28 @@ public class TeacherCourseService(
     public async Task<CourseDetailAdminViewModel?> GetCourseDetailAsync(
         int id, string teacherId, CancellationToken ct = default)
     {
-        if (!await uow.Courses.IsOwnedByTeacherAsync(id, teacherId, ct).ConfigureAwait(false))
+        if (!await VerifyCourseOwnershipAsync(id, teacherId, ct).ConfigureAwait(false))
             return null;
-        var course = await uow.Courses.GetWithSectionsAndLessonsAsync(id, ct).ConfigureAwait(false);
-        return course is null ? null : mapper.Map<CourseDetailAdminViewModel>(course);
+        return await adminService.GetCourseDetailAsync(id, ct).ConfigureAwait(false);
     }
 
     /// <inheritdoc />
-    public async Task<EditCourseViewModel?> GetCourseForEditAsync(
+    public async Task<CourseFormViewModel?> GetCourseForEditAsync(
         int id, string teacherId, CancellationToken ct = default)
     {
-        if (!await uow.Courses.IsOwnedByTeacherAsync(id, teacherId, ct).ConfigureAwait(false))
+        if (!await VerifyCourseOwnershipAsync(id, teacherId, ct).ConfigureAwait(false))
             return null;
-        var course = await uow.Courses.GetByIdAsync(id, ct).ConfigureAwait(false);
-        return course is null ? null : mapper.Map<EditCourseViewModel>(course);
+        return await adminService.GetCourseForEditAsync(id, ct).ConfigureAwait(false);
     }
 
     /// <inheritdoc />
     public async Task<ServiceResult<int>> CreateCourseAsync(
-        CreateCourseViewModel vm, string teacherId, CancellationToken ct = default)
+        CourseFormViewModel vm, string teacherId, CancellationToken ct = default)
     {
         if (await uow.Courses.ExistsByTitleAsync(vm.Title, ct).ConfigureAwait(false))
             return ServiceResult<int>.Failure("課程標題已存在");
 
-        var course = mapper.Map<Course>(vm);
+        var course = mapper.Map<Data.Entities.Course>(vm);
         course.TeacherId = teacherId;
         await uow.Courses.AddAsync(course, ct).ConfigureAwait(false);
         await uow.SaveChangesAsync(ct).ConfigureAwait(false);
@@ -87,132 +85,67 @@ public class TeacherCourseService(
 
     /// <inheritdoc />
     public async Task<ServiceResult> UpdateCourseAsync(
-        EditCourseViewModel vm, string teacherId, CancellationToken ct = default)
+        CourseFormViewModel vm, string teacherId, CancellationToken ct = default)
     {
-        if (!await uow.Courses.IsOwnedByTeacherAsync(vm.Id, teacherId, ct).ConfigureAwait(false))
+        if (!await VerifyCourseOwnershipAsync(vm.Id, teacherId, ct).ConfigureAwait(false))
             return ServiceResult.Failure("無權限操作此課程");
-
-        var course = await uow.Courses.GetByIdAsync(vm.Id, ct).ConfigureAwait(false);
-        if (course is null) return ServiceResult.Failure("課程不存在");
-
-        course.Title = vm.Title;
-        course.Description = vm.Description;
-        course.Price = vm.Price;
-        course.Level = vm.Level;
-        course.IsPublished = vm.IsPublished;
-        course.SortOrder = vm.SortOrder;
-
-        uow.Courses.Update(course);
-        await uow.SaveChangesAsync(ct).ConfigureAwait(false);
-        return ServiceResult.Success();
+        return await adminService.UpdateCourseAsync(vm, ct).ConfigureAwait(false);
     }
 
     /// <inheritdoc />
     public async Task<ServiceResult> DeleteCourseAsync(
         int id, string teacherId, CancellationToken ct = default)
     {
-        if (!await uow.Courses.IsOwnedByTeacherAsync(id, teacherId, ct).ConfigureAwait(false))
+        if (!await VerifyCourseOwnershipAsync(id, teacherId, ct).ConfigureAwait(false))
             return ServiceResult.Failure("無權限操作此課程");
-
-        var course = await uow.Courses.GetByIdAsync(id, ct).ConfigureAwait(false);
-        if (course is null) return ServiceResult.Failure("課程不存在");
-
-        uow.Courses.Remove(course);
-        await uow.SaveChangesAsync(ct).ConfigureAwait(false);
-        return ServiceResult.Success();
+        return await adminService.DeleteCourseAsync(id, ct).ConfigureAwait(false);
     }
 
     /// <inheritdoc />
     public async Task<ServiceResult> UpdateCourseImageAsync(
         int courseId, string imageUrl, string teacherId, CancellationToken ct = default)
     {
-        if (!await uow.Courses.IsOwnedByTeacherAsync(courseId, teacherId, ct).ConfigureAwait(false))
+        if (!await VerifyCourseOwnershipAsync(courseId, teacherId, ct).ConfigureAwait(false))
             return ServiceResult.Failure("無權限操作此課程");
-
-        var course = await uow.Courses.GetByIdAsync(courseId, ct).ConfigureAwait(false);
-        if (course is null) return ServiceResult.Failure("課程不存在");
-
-        course.CoverImageUrl = imageUrl;
-        uow.Courses.Update(course);
-        await uow.SaveChangesAsync(ct).ConfigureAwait(false);
-        return ServiceResult.Success();
+        return await adminService.UpdateCourseImageAsync(courseId, imageUrl, ct).ConfigureAwait(false);
     }
 
     // ── 章節 ───────────────────────────────────────
-
-    /// <summary>透過章節 ID 反查課程所有權</summary>
-    private async Task<bool> IsSectionOwnedAsync(int sectionId, string teacherId, CancellationToken ct)
-    {
-        var section = await uow.Sections.GetByIdAsync(sectionId, ct).ConfigureAwait(false);
-        if (section is null) return false;
-        return await uow.Courses.IsOwnedByTeacherAsync(section.CourseId, teacherId, ct).ConfigureAwait(false);
-    }
-
-    /// <summary>透過單元 ID 反查課程所有權（單元 → 章節 → 課程）</summary>
-    private async Task<bool> IsLessonOwnedAsync(int lessonId, string teacherId, CancellationToken ct)
-    {
-        var lesson = await uow.Lessons.GetByIdAsync(lessonId, ct).ConfigureAwait(false);
-        if (lesson is null) return false;
-        return await IsSectionOwnedAsync(lesson.SectionId, teacherId, ct).ConfigureAwait(false);
-    }
 
     /// <inheritdoc />
     public async Task<SectionFormViewModel?> GetSectionForEditAsync(
         int id, string teacherId, CancellationToken ct = default)
     {
-        if (!await IsSectionOwnedAsync(id, teacherId, ct).ConfigureAwait(false)) return null;
-        var section = await uow.Sections.GetByIdAsync(id, ct).ConfigureAwait(false);
-        if (section is null) return null;
-        var course = await uow.Courses.GetByIdAsync(section.CourseId, ct).ConfigureAwait(false);
-        var vm = mapper.Map<SectionFormViewModel>(section);
-        vm.CourseTitle = course?.Title;
-        return vm;
+        if (!await VerifySectionOwnershipAsync(id, teacherId, ct).ConfigureAwait(false))
+            return null;
+        return await adminService.GetSectionForEditAsync(id, ct).ConfigureAwait(false);
     }
 
     /// <inheritdoc />
     public async Task<ServiceResult<int>> CreateSectionAsync(
         SectionFormViewModel vm, string teacherId, CancellationToken ct = default)
     {
-        if (!await uow.Courses.IsOwnedByTeacherAsync(vm.CourseId, teacherId, ct).ConfigureAwait(false))
+        if (!await VerifyCourseOwnershipAsync(vm.CourseId, teacherId, ct).ConfigureAwait(false))
             return ServiceResult<int>.Failure("無權限操作此課程");
-
-        var section = mapper.Map<Section>(vm);
-        await uow.Sections.AddAsync(section, ct).ConfigureAwait(false);
-        await uow.SaveChangesAsync(ct).ConfigureAwait(false);
-        return ServiceResult<int>.Success(section.Id);
+        return await adminService.CreateSectionAsync(vm, ct).ConfigureAwait(false);
     }
 
     /// <inheritdoc />
     public async Task<ServiceResult> UpdateSectionAsync(
         SectionFormViewModel vm, string teacherId, CancellationToken ct = default)
     {
-        if (!await IsSectionOwnedAsync(vm.Id, teacherId, ct).ConfigureAwait(false))
+        if (!await VerifySectionOwnershipAsync(vm.Id, teacherId, ct).ConfigureAwait(false))
             return ServiceResult.Failure("無權限操作此章節");
-
-        var section = await uow.Sections.GetByIdAsync(vm.Id, ct).ConfigureAwait(false);
-        if (section is null) return ServiceResult.Failure("章節不存在");
-
-        section.Title = vm.Title;
-        section.Description = vm.Description;
-        section.SortOrder = vm.SortOrder;
-        uow.Sections.Update(section);
-        await uow.SaveChangesAsync(ct).ConfigureAwait(false);
-        return ServiceResult.Success();
+        return await adminService.UpdateSectionAsync(vm, ct).ConfigureAwait(false);
     }
 
     /// <inheritdoc />
     public async Task<ServiceResult> DeleteSectionAsync(
         int id, string teacherId, CancellationToken ct = default)
     {
-        if (!await IsSectionOwnedAsync(id, teacherId, ct).ConfigureAwait(false))
+        if (!await VerifySectionOwnershipAsync(id, teacherId, ct).ConfigureAwait(false))
             return ServiceResult.Failure("無權限操作此章節");
-
-        var section = await uow.Sections.GetByIdAsync(id, ct).ConfigureAwait(false);
-        if (section is null) return ServiceResult.Failure("章節不存在");
-
-        uow.Sections.Remove(section);
-        await uow.SaveChangesAsync(ct).ConfigureAwait(false);
-        return ServiceResult.Success();
+        return await adminService.DeleteSectionAsync(id, ct).ConfigureAwait(false);
     }
 
     // ── 單元 ────────────────────────────────────────
@@ -221,84 +154,54 @@ public class TeacherCourseService(
     public async Task<LessonFormViewModel?> GetLessonForEditAsync(
         int id, string teacherId, CancellationToken ct = default)
     {
-        if (!await IsLessonOwnedAsync(id, teacherId, ct).ConfigureAwait(false)) return null;
-        var lesson = await uow.Lessons.GetByIdAsync(id, ct).ConfigureAwait(false);
-        if (lesson is null) return null;
-
-        var section = await uow.Sections.GetByIdAsync(lesson.SectionId, ct).ConfigureAwait(false);
-        var course = section is not null
-            ? await uow.Courses.GetByIdAsync(section.CourseId, ct).ConfigureAwait(false)
-            : null;
-
-        var vm = mapper.Map<LessonFormViewModel>(lesson);
-        vm.SectionTitle = section?.Title;
-        vm.CourseTitle = course?.Title;
-        vm.CourseId = course?.Id;
-        vm.ExistingVideoUrl = lesson.VideoUrl;
-        vm.ExistingPdfUrl = lesson.PdfUrl;
-        vm.ExistingPdfFileName = lesson.PdfFileName;
-        return vm;
+        if (!await VerifyLessonOwnershipAsync(id, teacherId, ct).ConfigureAwait(false))
+            return null;
+        return await adminService.GetLessonForEditAsync(id, ct).ConfigureAwait(false);
     }
 
     /// <inheritdoc />
     public async Task<ServiceResult<int>> CreateLessonAsync(
         LessonFormViewModel vm, string teacherId, CancellationToken ct = default)
     {
-        if (!await IsSectionOwnedAsync(vm.SectionId, teacherId, ct).ConfigureAwait(false))
+        if (!await VerifySectionOwnershipAsync(vm.SectionId, teacherId, ct).ConfigureAwait(false))
             return ServiceResult<int>.Failure("無權限操作此章節");
-
-        var lesson = mapper.Map<Lesson>(vm);
-        lesson.VideoUrl = vm.ExistingVideoUrl;
-        lesson.PdfUrl = vm.ExistingPdfUrl;
-        lesson.PdfFileName = vm.ExistingPdfFileName;
-
-        await uow.Lessons.AddAsync(lesson, ct).ConfigureAwait(false);
-        await uow.SaveChangesAsync(ct).ConfigureAwait(false);
-        return ServiceResult<int>.Success(lesson.Id);
+        return await adminService.CreateLessonAsync(vm, ct).ConfigureAwait(false);
     }
 
     /// <inheritdoc />
     public async Task<ServiceResult> UpdateLessonAsync(
         LessonFormViewModel vm, string teacherId, CancellationToken ct = default)
     {
-        if (!await IsLessonOwnedAsync(vm.Id, teacherId, ct).ConfigureAwait(false))
+        if (!await VerifyLessonOwnershipAsync(vm.Id, teacherId, ct).ConfigureAwait(false))
             return ServiceResult.Failure("無權限操作此單元");
-
-        var lesson = await uow.Lessons.GetByIdAsync(vm.Id, ct).ConfigureAwait(false);
-        if (lesson is null) return ServiceResult.Failure("單元不存在");
-
-        lesson.Title = vm.Title;
-        lesson.Description = vm.Description;
-        lesson.Type = vm.Type;
-        lesson.SortOrder = vm.SortOrder;
-        lesson.IsFreePreview = vm.IsFreePreview;
-        lesson.ArticleContent = vm.ArticleContent;
-        lesson.VideoDurationSeconds = vm.VideoDurationSeconds;
-
-        if (vm.ExistingVideoUrl is not null) lesson.VideoUrl = vm.ExistingVideoUrl;
-        if (vm.ExistingPdfUrl is not null)
-        {
-            lesson.PdfUrl = vm.ExistingPdfUrl;
-            lesson.PdfFileName = vm.ExistingPdfFileName;
-        }
-
-        uow.Lessons.Update(lesson);
-        await uow.SaveChangesAsync(ct).ConfigureAwait(false);
-        return ServiceResult.Success();
+        return await adminService.UpdateLessonAsync(vm, ct).ConfigureAwait(false);
     }
 
     /// <inheritdoc />
     public async Task<ServiceResult> DeleteLessonAsync(
         int id, string teacherId, CancellationToken ct = default)
     {
-        if (!await IsLessonOwnedAsync(id, teacherId, ct).ConfigureAwait(false))
+        if (!await VerifyLessonOwnershipAsync(id, teacherId, ct).ConfigureAwait(false))
             return ServiceResult.Failure("無權限操作此單元");
+        return await adminService.DeleteLessonAsync(id, ct).ConfigureAwait(false);
+    }
 
-        var lesson = await uow.Lessons.GetByIdAsync(id, ct).ConfigureAwait(false);
-        if (lesson is null) return ServiceResult.Failure("單元不存在");
+    // ── 所有權驗證 ──────────────────────────────────
 
-        uow.Lessons.Remove(lesson);
-        await uow.SaveChangesAsync(ct).ConfigureAwait(false);
-        return ServiceResult.Success();
+    private async Task<bool> VerifyCourseOwnershipAsync(int courseId, string teacherId, CancellationToken ct)
+        => await uow.Courses.IsOwnedByTeacherAsync(courseId, teacherId, ct).ConfigureAwait(false);
+
+    private async Task<bool> VerifySectionOwnershipAsync(int sectionId, string teacherId, CancellationToken ct)
+    {
+        var section = await uow.Sections.GetByIdAsync(sectionId, ct).ConfigureAwait(false);
+        if (section is null) return false;
+        return await VerifyCourseOwnershipAsync(section.CourseId, teacherId, ct).ConfigureAwait(false);
+    }
+
+    private async Task<bool> VerifyLessonOwnershipAsync(int lessonId, string teacherId, CancellationToken ct)
+    {
+        var lesson = await uow.Lessons.GetByIdAsync(lessonId, ct).ConfigureAwait(false);
+        if (lesson is null) return false;
+        return await VerifySectionOwnershipAsync(lesson.SectionId, teacherId, ct).ConfigureAwait(false);
     }
 }

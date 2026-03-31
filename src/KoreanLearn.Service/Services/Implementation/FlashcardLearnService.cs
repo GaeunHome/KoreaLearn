@@ -130,11 +130,12 @@ public class FlashcardLearnService(
         //
         // 步驟 4：設定下次複習日期 = 今天 + 間隔天數
 
+        // log 在此處保證非 null（上方已處理 isNew 初始化）
         if (quality >= 3)
         {
             // 回答正確：累計重複次數，按規則延長間隔
             log!.Repetition++;
-            log.Interval = log.Repetition switch
+            log!.Interval = log.Repetition switch
             {
                 1 => 1,   // 第 1 次正確：明天複習
                 2 => 6,   // 第 2 次正確：6 天後複習
@@ -144,7 +145,7 @@ public class FlashcardLearnService(
         else
         {
             // 回答錯誤：重頭開始，明天再複習
-            log.Repetition = 0;
+            log!.Repetition = 0;
             log.Interval = 1;
         }
 
@@ -165,5 +166,12 @@ public class FlashcardLearnService(
             cardId, quality, log.EaseFactor, log.Interval);
 
         return ServiceResult.Success();
+    }
+
+    /// <inheritdoc />
+    public async Task<int> GetDueCardCountAsync(string userId, CancellationToken ct = default)
+    {
+        var count = await uow.FlashcardLogs.CountDueForUserAsync(userId, ct).ConfigureAwait(false);
+        return count;
     }
 }

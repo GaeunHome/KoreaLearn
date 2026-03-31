@@ -1,0 +1,16 @@
+/* ─── Error Page ──────────────────────────── */
+
+.kl-error-page {
+  min-height: 60vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
+
+.kl-error-page .error-code {
+  font-size: 6rem;
+  font-weight: 800;
+  color: var(--kl-primary);
+  line-height: 1;
+}

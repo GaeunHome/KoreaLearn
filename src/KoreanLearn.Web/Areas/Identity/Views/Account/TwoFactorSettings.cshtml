@@ -1,0 +1,12 @@
+@{
+    // 此頁面已由 TwoFactorAuthentication.cshtml 取代，保留以相容舊連結
+    ViewData["Title"] = "兩步驟驗證設定";
+}
+
+<script>window.location.href = '@Url.Action("TwoFactorAuthentication", "Account", new { area = "Identity" })';</script>
+<div class="text-center py-5">
+    <p>正在重新導向...</p>
+    <a asp-action="TwoFactorAuthentication" asp-controller="Account" asp-area="Identity">
+        如果沒有自動跳轉，請點此
+    </a>
+</div>

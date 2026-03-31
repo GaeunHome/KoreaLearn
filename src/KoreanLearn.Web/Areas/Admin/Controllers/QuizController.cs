@@ -1,19 +1,16 @@
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using KoreanLearn.Service.Services.Interfaces;
 using KoreanLearn.Service.ViewModels.Admin.Quiz;
+using KoreanLearn.Web.Infrastructure;
 
 namespace KoreanLearn.Web.Areas.Admin.Controllers;
 
 /// <summary>後台測驗管理 Controller，提供測驗與題目的 CRUD 操作</summary>
-[Area("Admin")]
-[Authorize(Roles = "Admin")]
-public class QuizController(IQuizAdminService quizAdminService) : Controller
+public class QuizController(IQuizAdminService quizAdminService) : AdminBaseController
 {
     /// <summary>測驗首頁，導向課程管理（測驗依附於單元管理）</summary>
-    public async Task<IActionResult> Index(CancellationToken ct = default)
+    public IActionResult Index()
     {
-        // Redirect to course management - quizzes are managed per-lesson
         return RedirectToAction("Index", "Course", new { area = "Admin" });
     }
 
@@ -34,7 +31,7 @@ public class QuizController(IQuizAdminService quizAdminService) : Controller
         var result = await quizAdminService.CreateQuizAsync(vm, ct);
         if (result is { IsSuccess: true, Data: var quizId })
         {
-            TempData["Success"] = "測驗建立成功";
+            TempData[TempDataKeys.Success] = "測驗建立成功";
             return RedirectToAction(nameof(Detail), new { id = quizId });
         }
 
@@ -68,7 +65,7 @@ public class QuizController(IQuizAdminService quizAdminService) : Controller
         var result = await quizAdminService.UpdateQuizAsync(vm, ct);
         if (result.IsSuccess)
         {
-            TempData["Success"] = "測驗更新成功";
+            TempData[TempDataKeys.Success] = "測驗更新成功";
             return RedirectToAction(nameof(Detail), new { id = vm.Id });
         }
 
@@ -83,9 +80,9 @@ public class QuizController(IQuizAdminService quizAdminService) : Controller
     {
         var result = await quizAdminService.DeleteQuizAsync(id, ct);
         if (result.IsSuccess)
-            TempData["Success"] = "測驗已刪除";
+            TempData[TempDataKeys.Success] = "測驗已刪除";
         else
-            TempData["Error"] = result.ErrorMessage ?? "刪除失敗";
+            TempData[TempDataKeys.Error] = result.ErrorMessage ?? "刪除失敗";
 
         if (courseId.HasValue)
             return RedirectToAction("Detail", "Course", new { area = "Admin", id = courseId });
@@ -117,7 +114,7 @@ public class QuizController(IQuizAdminService quizAdminService) : Controller
         var result = await quizAdminService.AddQuestionAsync(vm, ct);
         if (result.IsSuccess)
         {
-            TempData["Success"] = "題目新增成功";
+            TempData[TempDataKeys.Success] = "題目新增成功";
             return RedirectToAction(nameof(Detail), new { id = vm.QuizId });
         }
 
@@ -145,7 +142,7 @@ public class QuizController(IQuizAdminService quizAdminService) : Controller
         var result = await quizAdminService.UpdateQuestionAsync(vm, ct);
         if (result.IsSuccess)
         {
-            TempData["Success"] = "題目更新成功";
+            TempData[TempDataKeys.Success] = "題目更新成功";
             return RedirectToAction(nameof(Detail), new { id = vm.QuizId });
         }
 
@@ -160,9 +157,9 @@ public class QuizController(IQuizAdminService quizAdminService) : Controller
     {
         var result = await quizAdminService.DeleteQuestionAsync(id, ct);
         if (result.IsSuccess)
-            TempData["Success"] = "題目已刪除";
+            TempData[TempDataKeys.Success] = "題目已刪除";
         else
-            TempData["Error"] = result.ErrorMessage ?? "刪除失敗";
+            TempData[TempDataKeys.Error] = result.ErrorMessage ?? "刪除失敗";
 
         return RedirectToAction(nameof(Detail), new { id = quizId });
     }

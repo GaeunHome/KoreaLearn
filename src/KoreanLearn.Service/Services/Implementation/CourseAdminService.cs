@@ -1,4 +1,4 @@
-using AutoMapper;
+using MapsterMapper;
 using KoreanLearn.Data.Entities;
 using KoreanLearn.Data.UnitOfWork;
 using KoreanLearn.Library.Helpers;
@@ -43,17 +43,17 @@ public class CourseAdminService(
     }
 
     /// <inheritdoc />
-    public async Task<EditCourseViewModel?> GetCourseForEditAsync(
+    public async Task<CourseFormViewModel?> GetCourseForEditAsync(
         int id, CancellationToken ct = default)
     {
         var course = await uow.Courses.GetByIdAsync(id, ct).ConfigureAwait(false);
         if (course is null) return null;
-        return mapper.Map<EditCourseViewModel>(course);
+        return mapper.Map<CourseFormViewModel>(course);
     }
 
     /// <inheritdoc />
     public async Task<ServiceResult<int>> CreateCourseAsync(
-        CreateCourseViewModel vm, CancellationToken ct = default)
+        CourseFormViewModel vm, CancellationToken ct = default)
     {
         logger.LogInformation("建立課程 | Title={Title} | Price={Price}", vm.Title, vm.Price);
 
@@ -73,7 +73,7 @@ public class CourseAdminService(
 
     /// <inheritdoc />
     public async Task<ServiceResult> UpdateCourseAsync(
-        EditCourseViewModel vm, CancellationToken ct = default)
+        CourseFormViewModel vm, CancellationToken ct = default)
     {
         logger.LogInformation("更新課程 | CourseId={CourseId} | Title={Title}", vm.Id, vm.Title);
 

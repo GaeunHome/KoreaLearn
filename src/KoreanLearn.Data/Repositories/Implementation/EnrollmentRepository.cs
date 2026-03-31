@@ -30,7 +30,7 @@ public class EnrollmentRepository(ApplicationDbContext db) : Repository<Enrollme
         if (enrolled) return true;
 
         // 檢查有效訂閱（訂閱用戶可存取所有課程）
-        var hasSubscription = await db.Set<UserSubscription>()
+        var hasSubscription = await Db.Set<UserSubscription>()
             .AnyAsync(s => s.UserId == userId && s.IsActive && s.EndDate > DateTime.UtcNow, ct)
             .ConfigureAwait(false);
         return hasSubscription;

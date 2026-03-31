@@ -8,7 +8,7 @@ namespace KoreanLearn.Web.Controllers;
 /// <summary>首頁 Controller，提供網站首頁、隱私權頁面與錯誤頁面</summary>
 public class HomeController(
     ICourseService courseService,
-    ILogger<HomeController> logger) : Controller
+    ILogger<HomeController> logger) : BaseController
 {
     /// <summary>首頁：顯示精選課程與網站摘要資訊</summary>
     public async Task<IActionResult> Index(CancellationToken ct)

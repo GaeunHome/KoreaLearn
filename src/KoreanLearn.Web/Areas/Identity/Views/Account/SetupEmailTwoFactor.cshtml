@@ -1,0 +1,56 @@
+@{
+    ViewData["Title"] = "設定 Email 兩步驟驗證";
+    var email = ViewBag.Email as string;
+    var devCode = ViewBag.DevCode as string;
+}
+
+<div class="kl-settings-page">
+    <div class="kl-settings-nav">
+        <a class="btn btn-outline-secondary btn-sm" asp-action="Profile" asp-controller="Account" asp-area="Identity">
+            <i class="bi bi-person me-1"></i>個人資料
+        </a>
+        <a class="btn btn-outline-secondary btn-sm" asp-action="ChangePassword" asp-controller="Account" asp-area="Identity">
+            <i class="bi bi-key me-1"></i>變更密碼
+        </a>
+        <a class="btn btn-primary btn-sm" asp-action="TwoFactorAuthentication" asp-controller="Account" asp-area="Identity">
+            <i class="bi bi-shield-check me-1"></i>兩步驟驗證
+        </a>
+    </div>
+
+    <div class="card kl-settings-card">
+        <div class="card-body">
+            <div class="kl-settings-header">
+                <i class="bi bi-envelope-check"></i>
+                <div>
+                    <h4>Email 兩步驟驗證</h4>
+                    <p>驗證碼已寄送至 <strong>@email</strong></p>
+                </div>
+            </div>
+
+            @if (devCode is not null)
+            {
+                <div class="alert alert-secondary small">
+                    <strong>開發模式</strong>：正式環境中驗證碼會透過 Email 寄送。<br />
+                    驗證碼：<code>@devCode</code>
+                </div>
+            }
+
+            <form asp-action="SetupEmailTwoFactor" asp-controller="Account" asp-area="Identity" method="post">
+                <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+
+                <div class="mb-3" style="max-width: 280px;">
+                    <label class="form-label">驗證碼</label>
+                    <input name="code" class="form-control text-center"
+                           style="font-size: 1.5rem; letter-spacing: 0.5em;" maxlength="6"
+                           placeholder="000000" autofocus />
+                </div>
+
+                <button type="submit" class="btn btn-primary">
+                    <i class="bi bi-check-circle me-1"></i>驗證並啟用
+                </button>
+                <a asp-action="TwoFactorAuthentication" asp-controller="Account" asp-area="Identity"
+                   class="btn btn-outline-secondary ms-2">取消</a>
+            </form>
+        </div>
+    </div>
+</div>

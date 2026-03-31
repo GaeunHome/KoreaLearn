@@ -1,0 +1,70 @@
+/* ─── Navbar (Public) ─────────────────────── */
+
+.kl-navbar {
+  background: var(--kl-primary) !important;
+  padding: 0.6rem 0;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.1);
+}
+
+.kl-navbar .navbar-brand {
+  font-weight: 700;
+  font-size: 1.2rem;
+  letter-spacing: 0.02em;
+}
+
+.kl-navbar .nav-link {
+  font-weight: 500;
+  padding: 0.4rem 0.9rem;
+  border-radius: var(--kl-radius);
+}
+
+/* ─── Navbar (Admin) ──────────────────────── */
+
+.kl-admin-navbar {
+  background: var(--kl-primary-dark) !important;
+  padding: 0.5rem 0;
+}
+
+.kl-admin-sidebar {
+  background: #F5F4F2;
+  border-right: 1px solid var(--kl-border);
+  min-height: calc(100vh - 52px);
+}
+
+.kl-admin-sidebar .nav-link {
+  color: var(--kl-text);
+  padding: 0.55rem 1rem;
+  border-radius: var(--kl-radius);
+  margin: 2px 8px;
+  font-size: 0.9rem;
+}
+
+.kl-admin-sidebar .nav-link:hover,
+.kl-admin-sidebar .nav-link.active {
+  background: var(--kl-primary);
+  color: #fff;
+}
+
+.kl-admin-sidebar .nav-link i {
+  width: 20px;
+  text-align: center;
+}
+
+/* ─── Navbar (Learn) ──────────────────────── */
+
+.kl-learn-navbar {
+  background: var(--kl-success) !important;
+  padding: 0.5rem 0;
+}
+
+/* ─── Breadcrumb ──────────────────────────── */
+
+.breadcrumb {
+  background: transparent;
+  padding: 0;
+  font-size: 0.88rem;
+}
+
+.breadcrumb-item a {
+  color: var(--kl-primary);
+}

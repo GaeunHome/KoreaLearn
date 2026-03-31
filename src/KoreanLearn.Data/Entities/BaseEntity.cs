@@ -11,4 +11,7 @@ public abstract class BaseEntity
 
     /// <summary>最後更新時間（UTC）</summary>
     public DateTime UpdatedAt { get; set; }
+
+    /// <summary>樂觀並行控制版本戳記</summary>
+    public byte[]? RowVersion { get; set; }
 }

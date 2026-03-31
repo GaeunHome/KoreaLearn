@@ -87,20 +87,8 @@ public class LessonAdminViewModel
     public bool IsFreePreview { get; set; }
 
     /// <summary>類型中文顯示</summary>
-    public string TypeDisplay => Type switch
-    {
-        LessonType.Video => "影片",
-        LessonType.Article => "文章",
-        LessonType.Pdf => "PDF",
-        _ => "未知"
-    };
+    public string TypeDisplay => Type.ToDisplay();
 
     /// <summary>類型對應的 Bootstrap Icon CSS 類別</summary>
-    public string TypeIcon => Type switch
-    {
-        LessonType.Video => "bi-play-circle",
-        LessonType.Article => "bi-file-text",
-        LessonType.Pdf => "bi-file-pdf",
-        _ => "bi-file"
-    };
+    public string TypeIcon => Type.ToIcon();
 }

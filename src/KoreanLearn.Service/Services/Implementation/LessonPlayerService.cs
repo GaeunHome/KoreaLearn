@@ -14,7 +14,7 @@ public class LessonPlayerService(
 {
     /// <inheritdoc />
     public async Task<VideoPlayerViewModel?> GetVideoPlayerAsync(
-        int lessonId, string userId, CancellationToken ct = default)
+        int lessonId, string userId, IEnumerable<string> userRoles, CancellationToken ct = default)
     {
         var lesson = await uow.Lessons.GetByIdAsync(lessonId, ct).ConfigureAwait(false);
         if (lesson is null || lesson.Type != LessonType.Video)
@@ -23,7 +23,7 @@ public class LessonPlayerService(
             return null;
         }
 
-        var context = await GetLessonContextAsync(lesson, userId, ct).ConfigureAwait(false);
+        var context = await GetLessonContextAsync(lesson, userId, userRoles, ct).ConfigureAwait(false);
         if (context is null) return null;
         var (section, course, progress, prevId, nextId) = context.Value;
 
@@ -48,7 +48,7 @@ public class LessonPlayerService(
 
     /// <inheritdoc />
     public async Task<ArticlePlayerViewModel?> GetArticlePlayerAsync(
-        int lessonId, string userId, CancellationToken ct = default)
+        int lessonId, string userId, IEnumerable<string> userRoles, CancellationToken ct = default)
     {
         var lesson = await uow.Lessons.GetByIdAsync(lessonId, ct).ConfigureAwait(false);
         if (lesson is null || lesson.Type != LessonType.Article)
@@ -57,7 +57,7 @@ public class LessonPlayerService(
             return null;
         }
 
-        var context = await GetLessonContextAsync(lesson, userId, ct).ConfigureAwait(false);
+        var context = await GetLessonContextAsync(lesson, userId, userRoles, ct).ConfigureAwait(false);
         if (context is null) return null;
         var (section, course, progress, prevId, nextId) = context.Value;
 
@@ -80,7 +80,7 @@ public class LessonPlayerService(
 
     /// <inheritdoc />
     public async Task<PdfPlayerViewModel?> GetPdfPlayerAsync(
-        int lessonId, string userId, CancellationToken ct = default)
+        int lessonId, string userId, IEnumerable<string> userRoles, CancellationToken ct = default)
     {
         var lesson = await uow.Lessons.GetByIdAsync(lessonId, ct).ConfigureAwait(false);
         if (lesson is null || lesson.Type != LessonType.Pdf)
@@ -89,7 +89,7 @@ public class LessonPlayerService(
             return null;
         }
 
-        var context = await GetLessonContextAsync(lesson, userId, ct).ConfigureAwait(false);
+        var context = await GetLessonContextAsync(lesson, userId, userRoles, ct).ConfigureAwait(false);
         if (context is null) return null;
         var (section, course, progress, prevId, nextId) = context.Value;
 
@@ -113,20 +113,39 @@ public class LessonPlayerService(
 
     /// <summary>取得單元的上下文資訊（章節、課程、學習進度、前後單元 ID），同時檢查存取權限</summary>
     private async Task<(Section? section, Course? course, Progress? progress, int? prevId, int? nextId)?>
-        GetLessonContextAsync(Lesson lesson, string userId, CancellationToken ct)
+        GetLessonContextAsync(Lesson lesson, string userId, IEnumerable<string> userRoles, CancellationToken ct)
     {
+        var roles = userRoles.ToList();
         var section = await uow.Sections.GetByIdAsync(lesson.SectionId, ct).ConfigureAwait(false);
         var course = section is not null
             ? await uow.Courses.GetByIdAsync(section.CourseId, ct).ConfigureAwait(false)
             : null;
 
-        // 權限檢查：非免費試看的課程必須有購買或訂閱
+        // 權限檢查（依角色分流）
         if (!lesson.IsFreePreview && course is not null)
         {
-            var hasAccess = await uow.Enrollments.HasActiveAccessAsync(userId, course.Id, ct).ConfigureAwait(false);
+            var hasAccess = false;
+
+            // Admin：可檢視所有課程
+            if (roles.Contains("Admin", StringComparer.OrdinalIgnoreCase))
+            {
+                hasAccess = true;
+            }
+            // Teacher：可檢視自己發布的課程
+            else if (roles.Contains("Teacher", StringComparer.OrdinalIgnoreCase))
+            {
+                hasAccess = course.TeacherId == userId;
+            }
+
+            // Student（或其他角色）：需購買或訂閱
             if (!hasAccess)
             {
-                logger.LogWarning("未購買課程 | UserId={UserId} | CourseId={CourseId} | LessonId={LessonId}",
+                hasAccess = await uow.Enrollments.HasActiveAccessAsync(userId, course.Id, ct).ConfigureAwait(false);
+            }
+
+            if (!hasAccess)
+            {
+                logger.LogWarning("課程存取被拒 | UserId={UserId} | CourseId={CourseId} | LessonId={LessonId}",
                     userId, course.Id, lesson.Id);
                 return null;
             }

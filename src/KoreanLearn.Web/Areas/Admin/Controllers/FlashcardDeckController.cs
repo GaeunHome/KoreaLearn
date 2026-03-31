@@ -1,21 +1,18 @@
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using KoreanLearn.Service.Services.Interfaces;
 using KoreanLearn.Service.ViewModels.Admin.Flashcard;
+using KoreanLearn.Web.Infrastructure;
+using KoreanLearn.Library.Helpers;
 
 namespace KoreanLearn.Web.Areas.Admin.Controllers;
 
 /// <summary>後台字卡牌組管理 Controller，提供牌組與字卡的 CRUD 操作</summary>
-[Area("Admin")]
-[Authorize(Roles = "Admin")]
-public class FlashcardDeckController(IFlashcardAdminService flashcardAdminService) : Controller
+public class FlashcardDeckController(IFlashcardAdminService flashcardAdminService) : AdminBaseController
 {
-    private const int PageSize = 20;
-
     /// <summary>牌組列表頁（分頁），顯示所有字卡牌組</summary>
     public async Task<IActionResult> Index(int page = 1, CancellationToken ct = default)
     {
-        var result = await flashcardAdminService.GetDecksPagedAsync(page, PageSize, ct);
+        var result = await flashcardAdminService.GetDecksPagedAsync(page, DisplayConstants.AdminPageSize, ct);
         return View(result);
     }
 
@@ -31,7 +28,7 @@ public class FlashcardDeckController(IFlashcardAdminService flashcardAdminServic
         var result = await flashcardAdminService.CreateDeckAsync(vm, ct);
         if (result is { IsSuccess: true, Data: var deckId })
         {
-            TempData["Success"] = "牌組建立成功";
+            TempData[TempDataKeys.Success] = "牌組建立成功";
             return RedirectToAction(nameof(Detail), new { id = deckId });
         }
         ModelState.AddModelError("", result.ErrorMessage ?? "建立失敗");
@@ -63,7 +60,7 @@ public class FlashcardDeckController(IFlashcardAdminService flashcardAdminServic
         var result = await flashcardAdminService.UpdateDeckAsync(vm, ct);
         if (result.IsSuccess)
         {
-            TempData["Success"] = "牌組更新成功";
+            TempData[TempDataKeys.Success] = "牌組更新成功";
             return RedirectToAction(nameof(Detail), new { id = vm.Id });
         }
         ModelState.AddModelError("", result.ErrorMessage ?? "更新失敗");
@@ -76,7 +73,7 @@ public class FlashcardDeckController(IFlashcardAdminService flashcardAdminServic
     public async Task<IActionResult> Delete(int id, CancellationToken ct = default)
     {
         var result = await flashcardAdminService.DeleteDeckAsync(id, ct);
-        TempData[result.IsSuccess ? "Success" : "Error"] = result.IsSuccess ? "牌組已刪除" : (result.ErrorMessage ?? "刪除失敗");
+        TempData[result.IsSuccess ? TempDataKeys.Success : TempDataKeys.Error] = result.IsSuccess ? "牌組已刪除" : (result.ErrorMessage ?? "刪除失敗");
         return RedirectToAction(nameof(Index));
     }
 
@@ -97,7 +94,7 @@ public class FlashcardDeckController(IFlashcardAdminService flashcardAdminServic
         var result = await flashcardAdminService.AddCardAsync(vm, ct);
         if (result.IsSuccess)
         {
-            TempData["Success"] = "字卡新增成功";
+            TempData[TempDataKeys.Success] = "字卡新增成功";
             return RedirectToAction(nameof(Detail), new { id = vm.DeckId });
         }
         ModelState.AddModelError("", result.ErrorMessage ?? "新增失敗");
@@ -121,7 +118,7 @@ public class FlashcardDeckController(IFlashcardAdminService flashcardAdminServic
         var result = await flashcardAdminService.UpdateCardAsync(vm, ct);
         if (result.IsSuccess)
         {
-            TempData["Success"] = "字卡更新成功";
+            TempData[TempDataKeys.Success] = "字卡更新成功";
             return RedirectToAction(nameof(Detail), new { id = vm.DeckId });
         }
         ModelState.AddModelError("", result.ErrorMessage ?? "更新失敗");
@@ -134,7 +131,7 @@ public class FlashcardDeckController(IFlashcardAdminService flashcardAdminServic
     public async Task<IActionResult> DeleteCard(int id, int deckId, CancellationToken ct = default)
     {
         var result = await flashcardAdminService.DeleteCardAsync(id, deckId, ct);
-        TempData[result.IsSuccess ? "Success" : "Error"] = result.IsSuccess ? "字卡已刪除" : (result.ErrorMessage ?? "刪除失敗");
+        TempData[result.IsSuccess ? TempDataKeys.Success : TempDataKeys.Error] = result.IsSuccess ? "字卡已刪除" : (result.ErrorMessage ?? "刪除失敗");
         return RedirectToAction(nameof(Detail), new { id = deckId });
     }
 }

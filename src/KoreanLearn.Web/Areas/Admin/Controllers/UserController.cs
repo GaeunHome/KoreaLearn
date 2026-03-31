@@ -1,20 +1,17 @@
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using KoreanLearn.Service.Services.Interfaces;
+using KoreanLearn.Web.Infrastructure;
+using KoreanLearn.Library.Helpers;
 
 namespace KoreanLearn.Web.Areas.Admin.Controllers;
 
 /// <summary>後台使用者管理 Controller，提供使用者列表、詳情與角色升降級</summary>
-[Area("Admin")]
-[Authorize(Roles = "Admin")]
-public class UserController(IUserManagementService userService) : Controller
+public class UserController(IUserManagementService userService) : AdminBaseController
 {
-    private const int PageSize = 20;
-
     /// <summary>使用者列表頁（支援搜尋與分頁）</summary>
     public async Task<IActionResult> Index(string? search, int page = 1, CancellationToken ct = default)
     {
-        var result = await userService.GetUsersPagedAsync(search, page, PageSize, ct);
+        var result = await userService.GetUsersPagedAsync(search, page, DisplayConstants.UserPageSize, ct);
         ViewBag.Search = search;
         return View(result);
     }
@@ -33,7 +30,7 @@ public class UserController(IUserManagementService userService) : Controller
     public async Task<IActionResult> PromoteToTeacher(string id, CancellationToken ct = default)
     {
         var result = await userService.PromoteToTeacherAsync(id, ct);
-        TempData[result.IsSuccess ? "Success" : "Error"] = result.IsSuccess ? "已升級為教師" : (result.ErrorMessage ?? "操作失敗");
+        TempData[result.IsSuccess ? TempDataKeys.Success : TempDataKeys.Error] = result.IsSuccess ? "已升級為教師" : (result.ErrorMessage ?? "操作失敗");
         return RedirectToAction(nameof(Detail), new { id });
     }
 
@@ -43,7 +40,7 @@ public class UserController(IUserManagementService userService) : Controller
     public async Task<IActionResult> DemoteFromTeacher(string id, CancellationToken ct = default)
     {
         var result = await userService.DemoteFromTeacherAsync(id, ct);
-        TempData[result.IsSuccess ? "Success" : "Error"] = result.IsSuccess ? "已從教師降級" : (result.ErrorMessage ?? "操作失敗");
+        TempData[result.IsSuccess ? TempDataKeys.Success : TempDataKeys.Error] = result.IsSuccess ? "已從教師降級" : (result.ErrorMessage ?? "操作失敗");
         return RedirectToAction(nameof(Detail), new { id });
     }
 }

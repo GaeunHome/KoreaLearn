@@ -53,6 +53,15 @@ public interface IUnitOfWork : IDisposable
     /// <summary>單元附件 Repository</summary>
     ILessonAttachmentRepository LessonAttachments { get; }
 
+    /// <summary>系統參數 Repository</summary>
+    ISystemSettingRepository SystemSettings { get; }
+
+    /// <summary>幻燈片橫幅 Repository</summary>
+    IBannerRepository Banners { get; }
+
+    /// <summary>密碼歷史記錄 Repository</summary>
+    IPasswordHistoryRepository PasswordHistories { get; }
+
     /// <summary>儲存所有變更至資料庫</summary>
     Task<int> SaveChangesAsync(CancellationToken ct = default);
 

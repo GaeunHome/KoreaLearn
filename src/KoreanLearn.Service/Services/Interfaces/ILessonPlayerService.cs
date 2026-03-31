@@ -6,11 +6,11 @@ namespace KoreanLearn.Service.Services.Interfaces;
 public interface ILessonPlayerService
 {
     /// <summary>取得影片播放器所需資料（含進度、上下單元導覽）</summary>
-    Task<VideoPlayerViewModel?> GetVideoPlayerAsync(int lessonId, string userId, CancellationToken ct = default);
+    Task<VideoPlayerViewModel?> GetVideoPlayerAsync(int lessonId, string userId, IEnumerable<string> userRoles, CancellationToken ct = default);
 
     /// <summary>取得文章閱讀器所需資料（含上下單元導覽）</summary>
-    Task<ArticlePlayerViewModel?> GetArticlePlayerAsync(int lessonId, string userId, CancellationToken ct = default);
+    Task<ArticlePlayerViewModel?> GetArticlePlayerAsync(int lessonId, string userId, IEnumerable<string> userRoles, CancellationToken ct = default);
 
     /// <summary>取得 PDF 閱讀器所需資料（含下載連結與上下單元導覽）</summary>
-    Task<PdfPlayerViewModel?> GetPdfPlayerAsync(int lessonId, string userId, CancellationToken ct = default);
+    Task<PdfPlayerViewModel?> GetPdfPlayerAsync(int lessonId, string userId, IEnumerable<string> userRoles, CancellationToken ct = default);
 }

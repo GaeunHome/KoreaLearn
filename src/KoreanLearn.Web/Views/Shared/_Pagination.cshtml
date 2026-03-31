@@ -1,0 +1,63 @@
+@{
+    int currentPage = ViewBag.CurrentPage ?? 1;
+    int totalPages = ViewBag.TotalPages ?? 1;
+    bool hasPrevious = ViewBag.HasPreviousPage ?? false;
+    bool hasNext = ViewBag.HasNextPage ?? false;
+    if (totalPages <= 1) return;
+
+    // Build query string preserving existing params
+    var queryItems = Context.Request.Query
+        .Where(q => q.Key != "page")
+        .SelectMany(q => q.Value, (q, v) => new KeyValuePair<string, string?>(q.Key, v))
+        .ToList();
+
+    string BuildPageUrl(int page)
+    {
+        var items = new List<KeyValuePair<string, string?>>(queryItems)
+        {
+            new KeyValuePair<string, string?>("page", page.ToString())
+        };
+        return QueryString.Create(items).ToString();
+    }
+
+    int startPage = Math.Max(1, currentPage - 2);
+    int endPage = Math.Min(totalPages, startPage + 4);
+    startPage = Math.Max(1, endPage - 4);
+}
+
+<nav aria-label="分頁導覽">
+    <ul class="pagination justify-content-center mt-4 mb-0">
+        <li class="page-item @(hasPrevious ? "" : "disabled")">
+            <a class="page-link" href="@(hasPrevious ? BuildPageUrl(currentPage - 1) : "#")" aria-label="上一頁">
+                <i class="bi bi-chevron-left"></i>
+            </a>
+        </li>
+        @if (startPage > 1)
+        {
+            <li class="page-item"><a class="page-link" href="@BuildPageUrl(1)">1</a></li>
+            if (startPage > 2)
+            {
+                <li class="page-item disabled"><span class="page-link">…</span></li>
+            }
+        }
+        @for (int i = startPage; i <= endPage; i++)
+        {
+            <li class="page-item @(i == currentPage ? "active" : "")">
+                <a class="page-link" href="@BuildPageUrl(i)">@i</a>
+            </li>
+        }
+        @if (endPage < totalPages)
+        {
+            if (endPage < totalPages - 1)
+            {
+                <li class="page-item disabled"><span class="page-link">…</span></li>
+            }
+            <li class="page-item"><a class="page-link" href="@BuildPageUrl(totalPages)">@totalPages</a></li>
+        }
+        <li class="page-item @(hasNext ? "" : "disabled")">
+            <a class="page-link" href="@(hasNext ? BuildPageUrl(currentPage + 1) : "#")" aria-label="下一頁">
+                <i class="bi bi-chevron-right"></i>
+            </a>
+        </li>
+    </ul>
+</nav>

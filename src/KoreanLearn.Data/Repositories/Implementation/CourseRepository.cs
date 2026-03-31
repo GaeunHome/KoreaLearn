@@ -41,9 +41,10 @@ public class CourseRepository(ApplicationDbContext db) : Repository<Course>(db),
     {
         var query = DbSet.AsNoTracking().Where(c => c.TeacherId == teacherId);
         var total = await query.CountAsync(ct).ConfigureAwait(false);
-        var items = await query.OrderByDescending(c => c.CreatedAt)
-            .Skip((page - 1) * pageSize).Take(pageSize)
+        var items = await query
             .Include(c => c.Sections)
+            .OrderByDescending(c => c.CreatedAt)
+            .Skip((page - 1) * pageSize).Take(pageSize)
             .ToListAsync(ct).ConfigureAwait(false);
         return new PagedResult<Course>(items, total, page, pageSize);
     }

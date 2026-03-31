@@ -3,7 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace KoreanLearn.Web.Controllers;
 
 /// <summary>錯誤頁面 Controller，處理各種 HTTP 狀態碼對應的錯誤頁面</summary>
-public class ErrorController : Controller
+public class ErrorController : BaseController
 {
     /// <summary>500 通用錯誤頁面</summary>
     [Route("Error")]
@@ -30,6 +30,7 @@ public class ErrorController : Controller
         {
             404 => View("Error404"),
             403 => View("Error403"),
+            409 => View("Error409"),
             _ => View("Error500")
         };
     }

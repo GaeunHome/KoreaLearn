@@ -1,0 +1,31 @@
+/* ─── Cards ───────────────────────────────── */
+
+.card {
+  border: 1px solid var(--kl-border);
+  border-radius: var(--kl-radius);
+  box-shadow: var(--kl-shadow);
+  background: var(--kl-bg-card);
+}
+
+.card-header {
+  background: #FAFAF8;
+  border-bottom: 1px solid var(--kl-border);
+}
+
+/* ─── Course Cards ────────────────────────── */
+
+.kl-course-card {
+  border: 1px solid var(--kl-border);
+  border-radius: var(--kl-radius-lg);
+  overflow: hidden;
+  background: var(--kl-bg-card);
+}
+
+.kl-course-card .card-img-top {
+  height: 180px;
+  object-fit: cover;
+}
+
+.kl-course-card .card-body {
+  padding: 1.1rem;
+}

@@ -1,0 +1,66 @@
+/* ─── Forms ───────────────────────────────── */
+
+.form-control, .form-select {
+  border-radius: var(--kl-radius);
+  border-color: var(--kl-border);
+}
+
+.form-control:focus, .form-select:focus, .form-check-input:focus {
+  border-color: var(--kl-primary);
+  box-shadow: 0 0 0 2px rgba(43, 58, 103, 0.15);
+}
+
+/* ─── Buttons ─────────────────────────────── */
+
+.btn {
+  border-radius: var(--kl-radius);
+  font-weight: 500;
+  padding: 0.45rem 1.1rem;
+  transition: background-color 0.15s, border-color 0.15s;
+}
+
+.btn-primary {
+  background: var(--kl-primary);
+  border-color: var(--kl-primary);
+}
+
+.btn-primary:hover {
+  background: var(--kl-primary-light);
+  border-color: var(--kl-primary-light);
+}
+
+.btn-success {
+  background: var(--kl-success);
+  border-color: var(--kl-success);
+}
+
+.btn-danger {
+  background: var(--kl-danger);
+  border-color: var(--kl-danger);
+}
+
+.btn-warning {
+  background: var(--kl-warning);
+  border-color: var(--kl-warning);
+  color: #fff;
+}
+
+.btn-outline-primary {
+  color: var(--kl-primary);
+  border-color: var(--kl-primary);
+}
+
+.btn-outline-primary:hover {
+  background: var(--kl-primary);
+  border-color: var(--kl-primary);
+}
+
+.btn-outline-danger {
+  color: var(--kl-danger);
+  border-color: var(--kl-danger);
+}
+
+.btn-outline-danger:hover {
+  background: var(--kl-danger);
+  border-color: var(--kl-danger);
+}

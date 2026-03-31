@@ -21,6 +21,20 @@ public class OrderRepository(ApplicationDbContext db) : Repository<Order>(db), I
             .OrderByDescending(o => o.CreatedAt)
             .ToListAsync(ct).ConfigureAwait(false);
 
+    public async Task<PagedResult<Order>> GetByUserIdPagedAsync(string userId, int page, int pageSize, CancellationToken ct = default)
+    {
+        var query = DbSet.AsNoTracking()
+            .Include(o => o.OrderItems).ThenInclude(oi => oi.Course)
+            .Where(o => o.UserId == userId);
+
+        var total = await query.CountAsync(ct).ConfigureAwait(false);
+        var items = await query
+            .OrderByDescending(o => o.CreatedAt)
+            .Skip((page - 1) * pageSize).Take(pageSize)
+            .ToListAsync(ct).ConfigureAwait(false);
+        return new PagedResult<Order>(items, total, page, pageSize);
+    }
+
     public async Task<PagedResult<Order>> GetPagedWithItemsAsync(int page, int pageSize, CancellationToken ct = default)
     {
         var total = await DbSet.CountAsync(ct).ConfigureAwait(false);

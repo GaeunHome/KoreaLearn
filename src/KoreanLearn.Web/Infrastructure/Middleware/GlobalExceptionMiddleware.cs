@@ -1,4 +1,5 @@
 using KoreanLearn.Library.Helpers;
+using Microsoft.EntityFrameworkCore;
 
 namespace KoreanLearn.Web.Infrastructure.Middleware;
 
@@ -39,6 +40,11 @@ public class GlobalExceptionMiddleware(
                 return;
             }
             context.Response.Redirect("/Error");
+        }
+        catch (DbUpdateConcurrencyException ex)
+        {
+            logger.LogWarning(ex, "並行衝突 | Path={Path}", context.Request.Path);
+            context.Response.Redirect("/Error/409");
         }
         catch (Exception ex)
         {

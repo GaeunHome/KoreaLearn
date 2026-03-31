@@ -87,20 +87,8 @@ public class LessonSummaryViewModel
     public bool IsCompleted { get; set; }
 
     /// <summary>單元類型對應的 Bootstrap Icon CSS 類別</summary>
-    public string TypeIcon => Type switch
-    {
-        LessonType.Video => "bi-play-circle",
-        LessonType.Article => "bi-file-text",
-        LessonType.Pdf => "bi-file-pdf",
-        _ => "bi-file"
-    };
+    public string TypeIcon => Type.ToIcon();
 
     /// <summary>單元類型中文顯示</summary>
-    public string TypeDisplay => Type switch
-    {
-        LessonType.Video => "影片",
-        LessonType.Article => "文章",
-        LessonType.Pdf => "PDF",
-        _ => "未知"
-    };
+    public string TypeDisplay => Type.ToDisplay();
 }

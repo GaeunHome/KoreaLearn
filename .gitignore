@@ -6,4 +6,4 @@ _backup/
 **/obj/
 **/bin\\Debug/
 docs/
-**/appsettings*.json
+**/appsettings.json

@@ -29,7 +29,7 @@ public class SubscriptionService(
         if (sub is null) return null;
         return new UserSubscriptionViewModel
         {
-            PlanName = sub.Plan.Name, StartDate = sub.StartDate,
+            PlanName = sub.Plan?.Name ?? "未知方案", StartDate = sub.StartDate,
             EndDate = sub.EndDate, IsActive = sub.IsActive
         };
     }
