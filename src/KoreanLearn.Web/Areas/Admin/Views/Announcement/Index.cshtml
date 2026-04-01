@@ -1,0 +1,164 @@
+@model IReadOnlyList<KoreanLearn.Service.ViewModels.Admin.Announcement.AnnouncementListItemViewModel>
+@{
+    ViewData["Title"] = "公告管理";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2><i class="bi bi-megaphone me-2"></i>公告管理</h2>
+    <a asp-area="Admin" asp-controller="Announcement" asp-action="Create" class="btn btn-primary">
+        <i class="bi bi-plus-lg me-1"></i>新增公告
+    </a>
+</div>
+
+@if (!Model.Any())
+{
+    <div class="alert alert-info">
+        <i class="bi bi-info-circle me-2"></i>目前沒有任何公告。
+    </div>
+}
+else
+{
+    <div class="table-responsive">
+        <table class="table table-hover align-middle" id="announcementTable">
+            <thead class="table-light">
+                <tr>
+                    <th style="width:30px"></th>
+                    <th>標題</th>
+                    <th class="text-center" style="width:70px">置頂</th>
+                    <th class="text-center" style="width:80px">狀態</th>
+                    <th class="text-center" style="width:60px">附件</th>
+                    <th style="width:120px">建立時間</th>
+                    <th style="width:280px">操作</th>
+                </tr>
+            </thead>
+            <tbody id="sortableBody">
+                @foreach (var ann in Model)
+                {
+                    <tr data-id="@ann.Id" class="@(ann.IsDeleted ? "table-secondary" : "")">
+                        <td>
+                            @if (!ann.IsDeleted)
+                            {
+                                <i class="bi bi-grip-vertical text-muted drag-handle" style="cursor: grab;"></i>
+                            }
+                        </td>
+                        <td>
+                            @if (ann.IsDeleted)
+                            {
+                                <del class="text-muted">@ann.Title</del>
+                            }
+                            else
+                            {
+                                @ann.Title
+                            }
+                        </td>
+                        <td class="text-center">
+                            @if (!ann.IsDeleted)
+                            {
+                                <form asp-area="Admin" asp-controller="Announcement" asp-action="TogglePin"
+                                      asp-route-id="@ann.Id" method="post" class="d-inline">
+                                    @Html.AntiForgeryToken()
+                                    <button type="submit" class="btn btn-sm @(ann.IsPinned ? "btn-warning" : "btn-outline-secondary")"
+                                            title="@(ann.IsPinned ? "取消置頂" : "置頂")">
+                                        <i class="bi bi-pin-angle-fill"></i>
+                                    </button>
+                                </form>
+                            }
+                        </td>
+                        <td class="text-center">
+                            @if (ann.IsDeleted)
+                            {
+                                <span class="badge bg-danger">已刪除</span>
+                            }
+                            else if (ann.IsActive)
+                            {
+                                <span class="badge bg-success">已發布</span>
+                            }
+                            else
+                            {
+                                <span class="badge bg-secondary">草稿</span>
+                            }
+                        </td>
+                        <td class="text-center">
+                            @if (ann.AttachmentCount > 0)
+                            {
+                                <span class="badge bg-light text-dark">
+                                    <i class="bi bi-paperclip"></i> @ann.AttachmentCount
+                                </span>
+                            }
+                            else
+                            {
+                                <span class="text-muted">—</span>
+                            }
+                        </td>
+                        <td>
+                            <small class="text-muted">@ann.CreatedAt.ToString("yyyy/MM/dd")</small>
+                        </td>
+                        <td>
+                            @if (ann.IsDeleted)
+                            {
+                                <form asp-area="Admin" asp-controller="Announcement" asp-action="Restore"
+                                      asp-route-id="@ann.Id" method="post" class="d-inline">
+                                    @Html.AntiForgeryToken()
+                                    <button type="submit" class="btn btn-sm btn-outline-success"
+                                            data-confirm="確定要復原此公告嗎？">
+                                        <i class="bi bi-arrow-counterclockwise"></i> 復原
+                                    </button>
+                                </form>
+                            }
+                            else
+                            {
+                                <a asp-area="Admin" asp-controller="Announcement" asp-action="Edit"
+                                   asp-route-id="@ann.Id" class="btn btn-sm btn-outline-primary me-1">
+                                    <i class="bi bi-pencil"></i> 編輯
+                                </a>
+                                <form asp-area="Admin" asp-controller="Announcement" asp-action="Delete"
+                                      asp-route-id="@ann.Id" method="post" class="d-inline">
+                                    @Html.AntiForgeryToken()
+                                    <button type="submit" class="btn btn-sm btn-outline-danger"
+                                            data-confirm="確定要刪除此公告嗎？">
+                                        <i class="bi bi-trash"></i> 刪除
+                                    </button>
+                                </form>
+                            }
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+}
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.6/Sortable.min.js"></script>
+    <script>
+        (function() {
+            var el = document.getElementById('sortableBody');
+            if (!el) return;
+
+            Sortable.create(el, {
+                handle: '.drag-handle',
+                animation: 150,
+                filter: '.table-secondary',
+                onEnd: function() {
+                    var rows = el.querySelectorAll('tr:not(.table-secondary)');
+                    var ids = Array.from(rows).map(function(r) { return parseInt(r.dataset.id); });
+
+                    fetch('@Url.Action("Reorder", "Announcement", new { area = "Admin" })', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRF-TOKEN': document.querySelector('input[name="__RequestVerificationToken"]')?.value || ''
+                        },
+                        body: JSON.stringify(ids)
+                    })
+                    .then(function(r) { return r.json(); })
+                    .then(function(data) {
+                        if (data.success) showToast('排序已更新', 'success');
+                        else showToast('排序更新失敗', 'error');
+                    })
+                    .catch(function() { showToast('排序更新失敗', 'error'); });
+                }
+            });
+        })();
+    </script>
+}

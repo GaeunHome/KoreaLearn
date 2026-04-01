@@ -16,6 +16,7 @@ public class LessonPlayerService(
     public async Task<VideoPlayerViewModel?> GetVideoPlayerAsync(
         int lessonId, string userId, IEnumerable<string> userRoles, CancellationToken ct = default)
     {
+        logger.LogDebug("取得影片播放器 | LessonId={LessonId} | UserId={UserId}", lessonId, userId);
         var lesson = await uow.Lessons.GetByIdAsync(lessonId, ct).ConfigureAwait(false);
         if (lesson is null || lesson.Type != LessonType.Video)
         {
@@ -25,7 +26,7 @@ public class LessonPlayerService(
 
         var context = await GetLessonContextAsync(lesson, userId, userRoles, ct).ConfigureAwait(false);
         if (context is null) return null;
-        var (section, course, progress, prevId, nextId) = context.Value;
+        var (section, course, progress, prevId, prevAction, nextId, nextAction) = context.Value;
 
         return new VideoPlayerViewModel
         {
@@ -41,7 +42,9 @@ public class LessonPlayerService(
             CourseId = course?.Id ?? 0,
             CourseTitle = course?.Title,
             PreviousLessonId = prevId,
+            PreviousLessonAction = prevAction,
             NextLessonId = nextId,
+            NextLessonAction = nextAction,
             Attachments = await GetAttachmentsAsync(lesson.Id, ct).ConfigureAwait(false)
         };
     }
@@ -50,6 +53,7 @@ public class LessonPlayerService(
     public async Task<ArticlePlayerViewModel?> GetArticlePlayerAsync(
         int lessonId, string userId, IEnumerable<string> userRoles, CancellationToken ct = default)
     {
+        logger.LogDebug("取得文章播放器 | LessonId={LessonId} | UserId={UserId}", lessonId, userId);
         var lesson = await uow.Lessons.GetByIdAsync(lessonId, ct).ConfigureAwait(false);
         if (lesson is null || lesson.Type != LessonType.Article)
         {
@@ -59,7 +63,7 @@ public class LessonPlayerService(
 
         var context = await GetLessonContextAsync(lesson, userId, userRoles, ct).ConfigureAwait(false);
         if (context is null) return null;
-        var (section, course, progress, prevId, nextId) = context.Value;
+        var (section, course, progress, prevId, prevAction, nextId, nextAction) = context.Value;
 
         return new ArticlePlayerViewModel
         {
@@ -73,7 +77,9 @@ public class LessonPlayerService(
             CourseId = course?.Id ?? 0,
             CourseTitle = course?.Title,
             PreviousLessonId = prevId,
+            PreviousLessonAction = prevAction,
             NextLessonId = nextId,
+            NextLessonAction = nextAction,
             Attachments = await GetAttachmentsAsync(lesson.Id, ct).ConfigureAwait(false)
         };
     }
@@ -82,6 +88,7 @@ public class LessonPlayerService(
     public async Task<PdfPlayerViewModel?> GetPdfPlayerAsync(
         int lessonId, string userId, IEnumerable<string> userRoles, CancellationToken ct = default)
     {
+        logger.LogDebug("取得 PDF 播放器 | LessonId={LessonId} | UserId={UserId}", lessonId, userId);
         var lesson = await uow.Lessons.GetByIdAsync(lessonId, ct).ConfigureAwait(false);
         if (lesson is null || lesson.Type != LessonType.Pdf)
         {
@@ -91,7 +98,7 @@ public class LessonPlayerService(
 
         var context = await GetLessonContextAsync(lesson, userId, userRoles, ct).ConfigureAwait(false);
         if (context is null) return null;
-        var (section, course, progress, prevId, nextId) = context.Value;
+        var (section, course, progress, prevId, prevAction, nextId, nextAction) = context.Value;
 
         return new PdfPlayerViewModel
         {
@@ -106,67 +113,76 @@ public class LessonPlayerService(
             CourseId = course?.Id ?? 0,
             CourseTitle = course?.Title,
             PreviousLessonId = prevId,
+            PreviousLessonAction = prevAction,
             NextLessonId = nextId,
+            NextLessonAction = nextAction,
             Attachments = await GetAttachmentsAsync(lesson.Id, ct).ConfigureAwait(false)
         };
     }
 
-    /// <summary>取得單元的上下文資訊（章節、課程、學習進度、前後單元 ID），同時檢查存取權限</summary>
-    private async Task<(Section? section, Course? course, Progress? progress, int? prevId, int? nextId)?>
+    /// <summary>取得單元的上下文資訊（章節、課程、學習進度、前後單元 ID 與類型），同時檢查存取權限</summary>
+    private async Task<(Section? section, Course? course, Progress? progress, int? prevId, string? prevAction, int? nextId, string? nextAction)?>
         GetLessonContextAsync(Lesson lesson, string userId, IEnumerable<string> userRoles, CancellationToken ct)
     {
-        var roles = userRoles.ToList();
         var section = await uow.Sections.GetByIdAsync(lesson.SectionId, ct).ConfigureAwait(false);
         var course = section is not null
             ? await uow.Courses.GetByIdAsync(section.CourseId, ct).ConfigureAwait(false)
             : null;
 
-        // 權限檢查（依角色分流）
-        if (!lesson.IsFreePreview && course is not null)
-        {
-            var hasAccess = false;
-
-            // Admin：可檢視所有課程
-            if (roles.Contains("Admin", StringComparer.OrdinalIgnoreCase))
-            {
-                hasAccess = true;
-            }
-            // Teacher：可檢視自己發布的課程
-            else if (roles.Contains("Teacher", StringComparer.OrdinalIgnoreCase))
-            {
-                hasAccess = course.TeacherId == userId;
-            }
-
-            // Student（或其他角色）：需購買或訂閱
-            if (!hasAccess)
-            {
-                hasAccess = await uow.Enrollments.HasActiveAccessAsync(userId, course.Id, ct).ConfigureAwait(false);
-            }
-
-            if (!hasAccess)
-            {
-                logger.LogWarning("課程存取被拒 | UserId={UserId} | CourseId={CourseId} | LessonId={LessonId}",
-                    userId, course.Id, lesson.Id);
-                return null;
-            }
-        }
+        if (!await HasLessonAccessAsync(lesson, course, userId, userRoles, ct).ConfigureAwait(false))
+            return null;
 
         var progress = await uow.Progresses.GetByUserAndLessonAsync(userId, lesson.Id, ct).ConfigureAwait(false);
+        var (prevId, prevAction, nextId, nextAction) = await GetSiblingNavigationAsync(lesson, section, ct).ConfigureAwait(false);
 
-        // 計算同章節內的前後單元 ID，用於播放器導覽
-        int? prevId = null;
-        int? nextId = null;
-        if (section is not null)
-        {
-            var siblings = await uow.Lessons.GetBySectionIdAsync(section.Id, ct).ConfigureAwait(false);
-            var sorted = siblings.OrderBy(l => l.SortOrder).ThenBy(l => l.Id).ToList();
-            var idx = sorted.FindIndex(l => l.Id == lesson.Id);
-            if (idx > 0) prevId = sorted[idx - 1].Id;
-            if (idx >= 0 && idx < sorted.Count - 1) nextId = sorted[idx + 1].Id;
-        }
-
-        return (section, course, progress, prevId, nextId);
+        return (section, course, progress, prevId, prevAction, nextId, nextAction);
     }
+
+    /// <summary>檢查使用者是否有權存取該單元（Admin/Teacher/已購買/免費預覽）</summary>
+    private async Task<bool> HasLessonAccessAsync(
+        Lesson lesson, Course? course, string userId, IEnumerable<string> userRoles, CancellationToken ct)
+    {
+        if (lesson.IsFreePreview || course is null) return true;
+
+        var roles = userRoles.ToList();
+        if (roles.Contains("Admin", StringComparer.OrdinalIgnoreCase)) return true;
+        if (roles.Contains("Teacher", StringComparer.OrdinalIgnoreCase) && course.TeacherId == userId) return true;
+
+        var hasAccess = await uow.Enrollments.HasActiveAccessAsync(userId, course.Id, ct).ConfigureAwait(false);
+        if (!hasAccess)
+        {
+            logger.LogWarning("課程存取被拒 | UserId={UserId} | CourseId={CourseId} | LessonId={LessonId}",
+                userId, course.Id, lesson.Id);
+        }
+        return hasAccess;
+    }
+
+    /// <summary>計算同章節內的前後單元導覽資訊</summary>
+    private async Task<(int? prevId, string? prevAction, int? nextId, string? nextAction)>
+        GetSiblingNavigationAsync(Lesson lesson, Section? section, CancellationToken ct)
+    {
+        if (section is null) return (null, null, null, null);
+
+        var siblings = await uow.Lessons.GetBySectionIdAsync(section.Id, ct).ConfigureAwait(false);
+        var sorted = siblings.OrderBy(l => l.SortOrder).ThenBy(l => l.Id).ToList();
+        var idx = sorted.FindIndex(l => l.Id == lesson.Id);
+
+        var prevId = idx > 0 ? sorted[idx - 1].Id : (int?)null;
+        var prevAction = idx > 0 ? GetLessonAction(sorted[idx - 1].Type) : null;
+        var nextId = idx >= 0 && idx < sorted.Count - 1 ? sorted[idx + 1].Id : (int?)null;
+        var nextAction = idx >= 0 && idx < sorted.Count - 1 ? GetLessonAction(sorted[idx + 1].Type) : null;
+
+        return (prevId, prevAction, nextId, nextAction);
+    }
+
+    /// <summary>根據 LessonType 取得對應的 Controller Action 名稱</summary>
+    private static string GetLessonAction(LessonType type) => type switch
+    {
+        LessonType.Video => "Video",
+        LessonType.Article => "Article",
+        LessonType.Pdf => "Pdf",
+        _ => "Article"
+    };
 
     /// <summary>取得單元的附件列表並轉換檔案大小為可讀格式</summary>
     private async Task<IReadOnlyList<LessonAttachmentViewModel>> GetAttachmentsAsync(

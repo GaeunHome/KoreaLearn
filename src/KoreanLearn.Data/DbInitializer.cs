@@ -1114,6 +1114,8 @@ public static class DbInitializer
                 Title = "🎉 歡迎來到 KoreanLearn！",
                 Content = "感謝您加入韓文學習平台。我們提供從入門到進階的完整課程，包含影片教學、文章講義、PDF 練習單、字卡複習和測驗系統，幫助你系統化地學習韓語。",
                 IsActive = true,
+                IsPinned = true,
+                SortOrder = 0,
                 StartDate = DateTime.UtcNow,
             },
             new Announcement
@@ -1121,6 +1123,7 @@ public static class DbInitializer
                 Title = "📚 全新影片課程上線",
                 Content = "我們為每門課程加入了專業的影片教學單元，由金老師親自錄製，包含發音示範、口型特寫與慢速練習。搭配字卡系統的間隔重複複習法，讓你的學習效果加倍！",
                 IsActive = true,
+                SortOrder = 1,
                 StartDate = DateTime.UtcNow,
             },
             new Announcement
@@ -1128,6 +1131,7 @@ public static class DbInitializer
                 Title = "🏆 TOPIK 備考課程上線",
                 Content = "全新「TOPIK 備考：中高級衝刺」課程已上線，涵蓋聽力、閱讀、寫作三大題型的完整攻略，附有 PDF 必考文法整理。",
                 IsActive = true,
+                SortOrder = 2,
                 StartDate = DateTime.UtcNow,
             }
         );

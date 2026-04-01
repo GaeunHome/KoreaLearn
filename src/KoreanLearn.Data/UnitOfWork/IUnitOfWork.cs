@@ -26,6 +26,9 @@ public interface IUnitOfWork : IDisposable
     /// <summary>公告 Repository</summary>
     IAnnouncementRepository Announcements { get; }
 
+    /// <summary>公告附件 Repository</summary>
+    IAnnouncementAttachmentRepository AnnouncementAttachments { get; }
+
     /// <summary>測驗 Repository</summary>
     IQuizRepository Quizzes { get; }
 

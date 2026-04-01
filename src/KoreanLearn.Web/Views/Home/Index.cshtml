@@ -149,7 +149,21 @@
                         <div class="kl-course-card card h-100">
                             @if (!string.IsNullOrEmpty(course.CoverImageUrl))
                             {
-                                <img src="@course.CoverImageUrl" class="card-img-top" alt="@course.Title" />
+                                <img src="@course.CoverImageUrl" class="card-img-top" alt="@course.Title"
+                                     onerror="this.style.display='none'; this.nextElementSibling.style.display='';" />
+                                <div class="kl-course-placeholder card-img-top" style="display:none;">
+                                    <svg viewBox="0 0 400 180" xmlns="http://www.w3.org/2000/svg">
+                                        <defs>
+                                            <linearGradient id="grad-@course.Id" x1="0%" y1="0%" x2="100%" y2="100%">
+                                                <stop offset="0%" style="stop-color:#2B3A67;stop-opacity:1" />
+                                                <stop offset="100%" style="stop-color:#5B9BD5;stop-opacity:1" />
+                                            </linearGradient>
+                                        </defs>
+                                        <rect width="400" height="180" fill="url(#grad-@course.Id)" />
+                                        <text x="200" y="75" text-anchor="middle" fill="rgba(255,255,255,0.15)" font-size="64" font-weight="700" font-family="'Noto Sans KR', sans-serif">한국어</text>
+                                        <text x="200" y="120" text-anchor="middle" fill="rgba(255,255,255,0.7)" font-size="16" font-weight="500" font-family="'Noto Sans TC', sans-serif">@(course.Title.Length > 20 ? course.Title[..20] + "..." : course.Title)</text>
+                                    </svg>
+                                </div>
                             }
                             else
                             {
@@ -206,19 +220,27 @@
 {
     <section class="kl-announcements-bar">
         <div class="container">
-            <div class="d-flex align-items-center mb-3">
-                <i class="bi bi-megaphone-fill me-2" style="font-size: 1.2rem;"></i>
-                <h5 class="mb-0">最新公告</h5>
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <div class="d-flex align-items-center">
+                    <i class="bi bi-megaphone-fill me-2" style="font-size: 1.2rem;"></i>
+                    <h5 class="mb-0">最新公告</h5>
+                </div>
+                <a asp-controller="Announcement" asp-action="Index" class="text-decoration-none small">
+                    查看所有公告 <i class="bi bi-arrow-right"></i>
+                </a>
             </div>
             <div class="row g-3">
                 @foreach (var ann in Model.Announcements)
                 {
                     <div class="col-md-4">
-                        <div class="kl-announcement-item">
-                            <h6 class="mb-1">@ann.Title</h6>
-                            <p class="small mb-1 opacity-85">@ann.Content</p>
-                            <small class="opacity-60">@ann.CreatedAt.ToString("yyyy/MM/dd")</small>
-                        </div>
+                        <a asp-controller="Announcement" asp-action="Detail" asp-route-id="@ann.Id"
+                           class="text-decoration-none">
+                            <div class="kl-announcement-item">
+                                <h6 class="mb-1">@ann.Title</h6>
+                                <p class="small mb-1 opacity-85">@ann.Content</p>
+                                <small class="opacity-60">@ann.CreatedAt.ToString("yyyy/MM/dd")</small>
+                            </div>
+                        </a>
                     </div>
                 }
             </div>

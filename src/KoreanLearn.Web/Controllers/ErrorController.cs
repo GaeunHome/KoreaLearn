@@ -1,14 +1,17 @@
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Logging;
 
 namespace KoreanLearn.Web.Controllers;
 
 /// <summary>錯誤頁面 Controller，處理各種 HTTP 狀態碼對應的錯誤頁面</summary>
-public class ErrorController : BaseController
+public class ErrorController(ILogger<ErrorController> logger) : BaseController
 {
     /// <summary>500 通用錯誤頁面</summary>
     [Route("Error")]
     public IActionResult Index()
     {
+        logger.LogWarning("觸發錯誤頁面 | StatusCode=500 | Path={Path} | UserId={UserId}",
+            HttpContext.Request.Path, GetCurrentUserId());
         Response.StatusCode = 500;
         return View("Error500");
     }
@@ -17,6 +20,8 @@ public class ErrorController : BaseController
     [Route("Error/NotFound")]
     public IActionResult NotFoundPage()
     {
+        logger.LogWarning("觸發 404 頁面 | Path={Path} | UserId={UserId}",
+            HttpContext.Request.Path, GetCurrentUserId());
         Response.StatusCode = 404;
         return View("Error404");
     }
@@ -25,6 +30,8 @@ public class ErrorController : BaseController
     [Route("Error/{statusCode:int}")]
     public IActionResult StatusCodePage(int statusCode)
     {
+        logger.LogWarning("觸發錯誤頁面 | StatusCode={StatusCode} | Path={Path} | UserId={UserId}",
+            statusCode, HttpContext.Request.Path, GetCurrentUserId());
         Response.StatusCode = statusCode;
         return statusCode switch
         {

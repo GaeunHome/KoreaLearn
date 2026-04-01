@@ -24,7 +24,7 @@ public class AuthService(
         var checkUser = await userManager.FindByEmailAsync(email).ConfigureAwait(false);
         if (checkUser is not null && !await userManager.IsEmailConfirmedAsync(checkUser).ConfigureAwait(false))
         {
-            logger.LogWarning("登入嘗試失敗：Email 尚未驗證 | Email={Email}", email);
+            logger.LogWarning("登入嘗試失敗：Email 尚未驗證 | UserId={UserId}", checkUser.Id);
             return ServiceResult.Failure("EMAIL_NOT_CONFIRMED");
         }
 
@@ -33,22 +33,23 @@ public class AuthService(
 
         if (result.Succeeded)
         {
-            logger.LogInformation("使用者登入成功 | Email={Email}", email);
+            logger.LogInformation("使用者登入成功 | UserId={UserId}", checkUser?.Id);
             return ServiceResult.Success();
         }
 
         if (result.RequiresTwoFactor)
         {
-            logger.LogInformation("2FA 驗證需要 | Email={Email}", email);
+            logger.LogInformation("2FA 驗證需要 | UserId={UserId}", checkUser?.Id);
             return ServiceResult.Failure("2FA");
         }
 
         if (result.IsLockedOut)
         {
-            logger.LogWarning("帳號被鎖定 | Email={Email}", email);
+            logger.LogWarning("帳號被鎖定 | UserId={UserId}", checkUser?.Id);
             return ServiceResult.Failure("帳號已被鎖定，請稍後再試。");
         }
 
+        logger.LogWarning("登入失敗：帳號或密碼錯誤");
         return ServiceResult.Failure("帳號或密碼錯誤。");
     }
 
@@ -77,12 +78,13 @@ public class AuthService(
                 "PasswordTooShort" => "密碼長度至少 6 碼",
                 _ => e.Description
             }));
+            logger.LogWarning("註冊失敗 | Errors={Errors}", msg);
             return ServiceResult<string>.Failure(msg);
         }
 
         // 新註冊使用者預設為 Student 角色
         await userManager.AddToRoleAsync(user, "Student").ConfigureAwait(false);
-        logger.LogInformation("新使用者註冊成功（待驗證 Email）| Email={Email}", request.Email);
+        logger.LogInformation("新使用者註冊成功（待驗證 Email）| UserId={UserId}", user.Id);
 
         // 儲存初始密碼到歷史紀錄
         await SavePasswordHistoryAsync(user.Id, user.PasswordHash!, ct).ConfigureAwait(false);
@@ -94,6 +96,7 @@ public class AuthService(
     /// <inheritdoc />
     public async Task LogoutAsync(CancellationToken ct = default)
     {
+        logger.LogInformation("使用者登出");
         await signInManager.SignOutAsync().ConfigureAwait(false);
     }
 
@@ -104,6 +107,10 @@ public class AuthService(
     /// <inheritdoc />
     public string? GetUserName(ClaimsPrincipal user)
         => user.Identity?.Name;
+
+    /// <inheritdoc />
+    public string? GetDisplayName(ClaimsPrincipal user)
+        => user.FindFirst("DisplayName")?.Value;
 
     /// <inheritdoc />
     public string? GetUserId(ClaimsPrincipal user)
@@ -124,8 +131,14 @@ public class AuthService(
     public async Task<(bool Success, string? DisplayName, bool IsNewUser)> ExternalLoginAsync(
         string provider, string providerKey, string? email, string? displayName)
     {
+        // 正規化 email：空白字串視為 null
+        var normalizedEmail = string.IsNullOrWhiteSpace(email) ? null : email.Trim();
+
         // 嘗試以既有的外部登入資訊登入
-        var result = await signInManager.ExternalLoginSignInAsync(provider, providerKey, isPersistent: false)
+        // bypassTwoFactor: true — 外部 OAuth 登入本身即為強身份驗證，無需再做 2FA
+        // 且部分 provider（如 LINE）不提供 email，無法執行 Email OTP 驗證
+        var result = await signInManager.ExternalLoginSignInAsync(
+            provider, providerKey, isPersistent: false, bypassTwoFactor: true)
             .ConfigureAwait(false);
 
         if (result.Succeeded)
@@ -134,22 +147,33 @@ public class AuthService(
             return (true, null, false);
         }
 
-        // 若已有相同 Email 的帳號，基於安全考量不自動連結
-        if (!string.IsNullOrEmpty(email))
+        // 若已有相同 Email 的帳號，自動連結外部登入並登入
+        if (normalizedEmail is not null)
         {
-            var existingUser = await userManager.FindByEmailAsync(email).ConfigureAwait(false);
+            var existingUser = await userManager.FindByEmailAsync(normalizedEmail).ConfigureAwait(false);
             if (existingUser is not null)
             {
-                logger.LogWarning("外部登入失敗：Email 已被其他帳號使用 | Provider={Provider}, Email={Email}", provider, email);
-                return (false, null, false);
+                var addLoginResult = await userManager.AddLoginAsync(
+                    existingUser, new UserLoginInfo(provider, providerKey, provider)).ConfigureAwait(false);
+                if (!addLoginResult.Succeeded)
+                {
+                    logger.LogWarning("外部登入連結失敗 | Provider={Provider} | UserId={UserId} | Errors={Errors}",
+                        provider, existingUser.Id, string.Join(", ", addLoginResult.Errors.Select(e => e.Description)));
+                    return (false, null, false);
+                }
+
+                await signInManager.SignInAsync(existingUser, isPersistent: false).ConfigureAwait(false);
+                logger.LogInformation("外部登入已連結既有帳號 | Provider={Provider} | UserId={UserId}", provider, existingUser.Id);
+                return (true, existingUser.DisplayName, false);
             }
         }
 
-        // 建立新使用者
+        // 建立新使用者（無 email 時產生 placeholder email，因 Identity 的 RequireUniqueEmail 要求有效 email）
+        var placeholderEmail = $"{provider.ToLowerInvariant()}_{providerKey}@external.koreanlearn.local";
         var user = new AppUser
         {
-            UserName = email ?? $"{provider}_{providerKey}",
-            Email = email,
+            UserName = normalizedEmail ?? $"{provider}_{providerKey}",
+            Email = normalizedEmail ?? placeholderEmail,
             DisplayName = displayName ?? "使用者",
             EmailConfirmed = true,
             CreatedAt = DateTime.UtcNow,
@@ -170,7 +194,7 @@ public class AuthService(
 
         // 登入新使用者
         await signInManager.SignInAsync(user, isPersistent: false).ConfigureAwait(false);
-        logger.LogInformation("外部登入建立新使用者成功 | Provider={Provider}, Email={Email}", provider, email);
+        logger.LogInformation("外部登入建立新使用者成功 | Provider={Provider} | UserId={UserId}", provider, user.Id);
 
         return (true, user.DisplayName, true);
     }
@@ -205,15 +229,26 @@ public class AuthService(
         user.PhoneNumber = request.PhoneNumber;
         user.UpdatedAt = DateTime.UtcNow;
         var result = await userManager.UpdateAsync(user).ConfigureAwait(false);
-        return result.Succeeded ? ServiceResult.Success() : ServiceResult.Failure("更新失敗");
+        if (result.Succeeded)
+        {
+            logger.LogInformation("個人資料更新成功 | UserId={UserId}", userId);
+            return ServiceResult.Success();
+        }
+        logger.LogWarning("個人資料更新失敗 | UserId={UserId}", userId);
+        return ServiceResult.Failure("更新失敗");
     }
 
     /// <inheritdoc />
     public async Task<(string? Token, string? Email)> GeneratePasswordResetTokenAsync(string email, CancellationToken ct = default)
     {
         var user = await userManager.FindByEmailAsync(email).ConfigureAwait(false);
-        if (user is null) return (null, null);
+        if (user is null)
+        {
+            logger.LogWarning("密碼重設 Token 產生失敗：使用者不存在");
+            return (null, null);
+        }
         var token = await userManager.GeneratePasswordResetTokenAsync(user).ConfigureAwait(false);
+        logger.LogInformation("密碼重設 Token 已產生 | UserId={UserId}", user.Id);
         return (token, user.Email);
     }
 
@@ -238,7 +273,7 @@ public class AuthService(
         if (updatedUser is not null)
             await SavePasswordHistoryAsync(updatedUser.Id, updatedUser.PasswordHash!, ct).ConfigureAwait(false);
 
-        logger.LogInformation("密碼重設成功 | Email={Email}", email);
+        logger.LogInformation("密碼重設成功 | UserId={UserId}", updatedUser?.Id ?? user.Id);
         return ServiceResult.Success();
     }
 
@@ -303,7 +338,10 @@ public class AuthService(
 
         var result = await userManager.ConfirmEmailAsync(user, token).ConfigureAwait(false);
         if (!result.Succeeded)
+        {
+            logger.LogWarning("Email 驗證失敗：Token 無效或已過期 | UserId={UserId}", userId);
             return ServiceResult.Failure("驗證連結已過期，請重新申請");
+        }
 
         // 驗證成功後自動登入
         await signInManager.SignInAsync(user, isPersistent: false).ConfigureAwait(false);
@@ -323,9 +361,19 @@ public class AuthService(
         {
             var result = hasher.VerifyHashedPassword(user, history.PasswordHash, newPassword);
             if (result != PasswordVerificationResult.Failed)
+            {
+                logger.LogWarning("密碼重複使用 | UserId={UserId}", userId);
                 return true;
+            }
         }
         return false;
+    }
+
+    /// <inheritdoc />
+    public async Task<bool> HasPasswordAsync(string userId, CancellationToken ct = default)
+    {
+        var user = await userManager.FindByIdAsync(userId).ConfigureAwait(false);
+        return user is not null && await userManager.HasPasswordAsync(user).ConfigureAwait(false);
     }
 
     /// <inheritdoc />
@@ -523,14 +571,20 @@ public class AuthService(
 
     private (bool Success, bool IsLockedOut, int LockoutMinutes) HandleTwoFactorResult(SignInResult result)
     {
-        if (result.Succeeded) return (true, false, 0);
+        if (result.Succeeded)
+        {
+            logger.LogInformation("2FA 驗證登入成功");
+            return (true, false, 0);
+        }
 
         if (result.IsLockedOut)
         {
             var lockoutMinutes = (int)userManager.Options.Lockout.DefaultLockoutTimeSpan.TotalMinutes;
+            logger.LogWarning("2FA 驗證失敗：帳號被鎖定 | LockoutMinutes={LockoutMinutes}", lockoutMinutes);
             return (false, true, lockoutMinutes);
         }
 
+        logger.LogWarning("2FA 驗證失敗：驗證碼不正確");
         return (false, false, 0);
     }
 }

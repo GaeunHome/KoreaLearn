@@ -80,6 +80,9 @@ public class ProfileViewModel
     /// <summary>電子信箱（唯讀）</summary>
     [Display(Name = "電子信箱")]
     public string? Email { get; set; }
+
+    /// <summary>是否設有密碼（外部登入帳號為 false，不顯示「變更密碼」入口）</summary>
+    public bool HasPassword { get; set; }
 }
 
 /// <summary>變更密碼 ViewModel</summary>

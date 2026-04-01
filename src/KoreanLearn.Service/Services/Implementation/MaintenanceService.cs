@@ -13,6 +13,7 @@ public class MaintenanceService(
     /// <inheritdoc />
     public async Task<int> DeactivateExpiredSubscriptionsAsync(CancellationToken ct = default)
     {
+        logger.LogInformation("開始檢查過期訂閱");
         await using var db = await dbFactory.CreateDbContextAsync(ct).ConfigureAwait(false);
 
         // 查詢所有已到期但仍為啟用狀態的訂閱
@@ -30,6 +31,7 @@ public class MaintenanceService(
         if (expiredSubs.Count > 0)
             await db.SaveChangesAsync(ct).ConfigureAwait(false);
 
+        logger.LogInformation("過期訂閱檢查完成 | DeactivatedCount={Count}", expiredSubs.Count);
         return expiredSubs.Count;
     }
 
@@ -39,9 +41,12 @@ public class MaintenanceService(
         await using var db = await dbFactory.CreateDbContextAsync(ct).ConfigureAwait(false);
 
         // 統計所有已到複習時間的字卡學習紀錄
-        return await db.FlashcardLogs
+        var count = await db.FlashcardLogs
             .Where(l => l.NextReviewDate <= DateTime.UtcNow)
             .CountAsync(ct)
             .ConfigureAwait(false);
+
+        logger.LogInformation("到期字卡複習統計 | DueCount={DueCount}", count);
+        return count;
     }
 }

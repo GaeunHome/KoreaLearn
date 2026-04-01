@@ -88,7 +88,7 @@ public class CourseService(
     {
         logger.LogInformation("載入首頁資料");
         var courses = await uow.Courses.GetPublishedAsync(ct).ConfigureAwait(false);
-        var announcements = await uow.Announcements.GetActiveAsync(ct).ConfigureAwait(false);
+        var announcements = await uow.Announcements.GetLatestActiveAsync(5, ct).ConfigureAwait(false);
         logger.LogInformation("首頁資料 | Courses={CourseCount} | Announcements={AnnCount}",
             courses.Count, announcements.Count);
 

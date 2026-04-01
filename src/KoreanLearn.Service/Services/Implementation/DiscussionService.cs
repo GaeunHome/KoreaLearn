@@ -15,6 +15,7 @@ public class DiscussionService(
     public async Task<PagedResult<DiscussionListItem>> GetAllAsync(
         int page, int pageSize, CancellationToken ct = default)
     {
+        logger.LogInformation("查詢所有討論 | Page={Page} | PageSize={PageSize}", page, pageSize);
         var result = await uow.Discussions.GetAllPagedAsync(page, pageSize, ct).ConfigureAwait(false);
         var items = result.Items.Select(d => new DiscussionListItem
         {
@@ -31,6 +32,7 @@ public class DiscussionService(
     public async Task<PagedResult<DiscussionListItem>> GetByCourseAsync(
         int courseId, int page, int pageSize, CancellationToken ct = default)
     {
+        logger.LogInformation("查詢課程討論 | CourseId={CourseId} | Page={Page}", courseId, page);
         var result = await uow.Discussions.GetByCourseIdAsync(courseId, page, pageSize, ct).ConfigureAwait(false);
         var items = result.Items.Select(d => new DiscussionListItem
         {
@@ -46,8 +48,13 @@ public class DiscussionService(
     /// <inheritdoc />
     public async Task<DiscussionDetailViewModel?> GetDetailAsync(int id, CancellationToken ct = default)
     {
+        logger.LogInformation("查詢討論詳情 | DiscussionId={DiscussionId}", id);
         var d = await uow.Discussions.GetWithRepliesAsync(id, ct).ConfigureAwait(false);
-        if (d is null) return null;
+        if (d is null)
+        {
+            logger.LogWarning("討論不存在 | DiscussionId={DiscussionId}", id);
+            return null;
+        }
         return new DiscussionDetailViewModel
         {
             Id = d.Id, CourseId = d.CourseId, Title = d.Title, Content = d.Content,
@@ -81,7 +88,8 @@ public class DiscussionService(
         };
         await uow.Discussions.AddAsync(discussion, ct).ConfigureAwait(false);
         await uow.SaveChangesAsync(ct).ConfigureAwait(false);
-        logger.LogInformation("討論建立 | Id={Id} | Title={Title}", discussion.Id, title);
+        logger.LogInformation("討論建立 | Id={Id} | UserId={UserId} | CourseId={CourseId} | Title={Title}",
+            discussion.Id, userId, courseId, title);
         return ServiceResult<int>.Success(discussion.Id);
     }
 
@@ -90,13 +98,18 @@ public class DiscussionService(
         string userId, int discussionId, string content, CancellationToken ct = default)
     {
         var discussion = await uow.Discussions.GetWithRepliesAsync(discussionId, ct).ConfigureAwait(false);
-        if (discussion is null) return ServiceResult.Failure("討論不存在");
+        if (discussion is null)
+        {
+            logger.LogWarning("回覆失敗：討論不存在 | DiscussionId={DiscussionId}", discussionId);
+            return ServiceResult.Failure("討論不存在");
+        }
 
         discussion.Replies.Add(new DiscussionReply
         {
             UserId = userId, DiscussionId = discussionId, Content = content
         });
         await uow.SaveChangesAsync(ct).ConfigureAwait(false);
+        logger.LogInformation("討論回覆成功 | DiscussionId={DiscussionId} | UserId={UserId}", discussionId, userId);
         return ServiceResult.Success();
     }
 
@@ -105,11 +118,20 @@ public class DiscussionService(
         int id, string userId, bool isAdmin, CancellationToken ct = default)
     {
         var discussion = await uow.Discussions.GetByIdAsync(id, ct).ConfigureAwait(false);
-        if (discussion is null) return ServiceResult.Failure("討論不存在");
-        if (discussion.UserId != userId && !isAdmin) return ServiceResult.Failure("無權限");
+        if (discussion is null)
+        {
+            logger.LogWarning("刪除討論失敗：討論不存在 | DiscussionId={DiscussionId}", id);
+            return ServiceResult.Failure("討論不存在");
+        }
+        if (discussion.UserId != userId && !isAdmin)
+        {
+            logger.LogWarning("刪除討論失敗：無權限 | DiscussionId={DiscussionId} | UserId={UserId}", id, userId);
+            return ServiceResult.Failure("無權限");
+        }
 
         uow.Discussions.Remove(discussion);
         await uow.SaveChangesAsync(ct).ConfigureAwait(false);
+        logger.LogInformation("討論刪除成功（軟刪除）| DiscussionId={DiscussionId} | UserId={UserId}", id, userId);
         return ServiceResult.Success();
     }
 }

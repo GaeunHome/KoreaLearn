@@ -23,6 +23,7 @@ public class TeacherCourseService(
     public async Task<TeacherDashboardViewModel> GetDashboardAsync(
         string teacherId, CancellationToken ct = default)
     {
+        logger.LogInformation("教師儀表板載入 | TeacherId={TeacherId}", teacherId);
         var courses = await uow.Courses.GetByTeacherIdPagedAsync(teacherId, 1, 100, ct).ConfigureAwait(false);
         var courseIds = courses.Items.Select(c => c.Id).ToList();
         var totalStudents = await uow.Enrollments.CountByCourseIdsAsync(courseIds, ct).ConfigureAwait(false);
@@ -43,6 +44,7 @@ public class TeacherCourseService(
     public async Task<PagedResult<CourseAdminListViewModel>> GetTeacherCoursesPagedAsync(
         string teacherId, int page, int pageSize, CancellationToken ct = default)
     {
+        logger.LogInformation("教師查詢課程列表 | TeacherId={TeacherId} | Page={Page}", teacherId, page);
         var result = await uow.Courses.GetByTeacherIdPagedAsync(teacherId, page, pageSize, ct).ConfigureAwait(false);
         var items = mapper.Map<IReadOnlyList<CourseAdminListViewModel>>(result.Items);
         return new PagedResult<CourseAdminListViewModel>(items, result.TotalCount, result.Page, result.PageSize);
@@ -53,7 +55,10 @@ public class TeacherCourseService(
         int id, string teacherId, CancellationToken ct = default)
     {
         if (!await VerifyCourseOwnershipAsync(id, teacherId, ct).ConfigureAwait(false))
+        {
+            logger.LogWarning("教師所有權驗證失敗 | CourseId={CourseId} | TeacherId={TeacherId}", id, teacherId);
             return null;
+        }
         return await adminService.GetCourseDetailAsync(id, ct).ConfigureAwait(false);
     }
 
@@ -62,7 +67,10 @@ public class TeacherCourseService(
         int id, string teacherId, CancellationToken ct = default)
     {
         if (!await VerifyCourseOwnershipAsync(id, teacherId, ct).ConfigureAwait(false))
+        {
+            logger.LogWarning("教師所有權驗證失敗 | CourseId={CourseId} | TeacherId={TeacherId}", id, teacherId);
             return null;
+        }
         return await adminService.GetCourseForEditAsync(id, ct).ConfigureAwait(false);
     }
 
@@ -88,7 +96,11 @@ public class TeacherCourseService(
         CourseFormViewModel vm, string teacherId, CancellationToken ct = default)
     {
         if (!await VerifyCourseOwnershipAsync(vm.Id, teacherId, ct).ConfigureAwait(false))
+        {
+            logger.LogWarning("教師所有權驗證失敗 | CourseId={CourseId} | TeacherId={TeacherId}", vm.Id, teacherId);
             return ServiceResult.Failure("無權限操作此課程");
+        }
+        logger.LogInformation("教師更新課程 | TeacherId={TeacherId} | CourseId={CourseId}", teacherId, vm.Id);
         return await adminService.UpdateCourseAsync(vm, ct).ConfigureAwait(false);
     }
 
@@ -97,7 +109,11 @@ public class TeacherCourseService(
         int id, string teacherId, CancellationToken ct = default)
     {
         if (!await VerifyCourseOwnershipAsync(id, teacherId, ct).ConfigureAwait(false))
+        {
+            logger.LogWarning("教師所有權驗證失敗 | CourseId={CourseId} | TeacherId={TeacherId}", id, teacherId);
             return ServiceResult.Failure("無權限操作此課程");
+        }
+        logger.LogInformation("教師刪除課程 | TeacherId={TeacherId} | CourseId={CourseId}", teacherId, id);
         return await adminService.DeleteCourseAsync(id, ct).ConfigureAwait(false);
     }
 
@@ -106,7 +122,10 @@ public class TeacherCourseService(
         int courseId, string imageUrl, string teacherId, CancellationToken ct = default)
     {
         if (!await VerifyCourseOwnershipAsync(courseId, teacherId, ct).ConfigureAwait(false))
+        {
+            logger.LogWarning("教師所有權驗證失敗 | CourseId={CourseId} | TeacherId={TeacherId}", courseId, teacherId);
             return ServiceResult.Failure("無權限操作此課程");
+        }
         return await adminService.UpdateCourseImageAsync(courseId, imageUrl, ct).ConfigureAwait(false);
     }
 
@@ -117,7 +136,10 @@ public class TeacherCourseService(
         int id, string teacherId, CancellationToken ct = default)
     {
         if (!await VerifySectionOwnershipAsync(id, teacherId, ct).ConfigureAwait(false))
+        {
+            logger.LogWarning("教師章節所有權驗證失敗 | SectionId={SectionId} | TeacherId={TeacherId}", id, teacherId);
             return null;
+        }
         return await adminService.GetSectionForEditAsync(id, ct).ConfigureAwait(false);
     }
 
@@ -126,7 +148,11 @@ public class TeacherCourseService(
         SectionFormViewModel vm, string teacherId, CancellationToken ct = default)
     {
         if (!await VerifyCourseOwnershipAsync(vm.CourseId, teacherId, ct).ConfigureAwait(false))
+        {
+            logger.LogWarning("教師所有權驗證失敗 | CourseId={CourseId} | TeacherId={TeacherId}", vm.CourseId, teacherId);
             return ServiceResult<int>.Failure("無權限操作此課程");
+        }
+        logger.LogInformation("教師建立章節 | TeacherId={TeacherId} | CourseId={CourseId}", teacherId, vm.CourseId);
         return await adminService.CreateSectionAsync(vm, ct).ConfigureAwait(false);
     }
 
@@ -135,7 +161,10 @@ public class TeacherCourseService(
         SectionFormViewModel vm, string teacherId, CancellationToken ct = default)
     {
         if (!await VerifySectionOwnershipAsync(vm.Id, teacherId, ct).ConfigureAwait(false))
+        {
+            logger.LogWarning("教師章節所有權驗證失敗 | SectionId={SectionId} | TeacherId={TeacherId}", vm.Id, teacherId);
             return ServiceResult.Failure("無權限操作此章節");
+        }
         return await adminService.UpdateSectionAsync(vm, ct).ConfigureAwait(false);
     }
 
@@ -144,7 +173,11 @@ public class TeacherCourseService(
         int id, string teacherId, CancellationToken ct = default)
     {
         if (!await VerifySectionOwnershipAsync(id, teacherId, ct).ConfigureAwait(false))
+        {
+            logger.LogWarning("教師章節所有權驗證失敗 | SectionId={SectionId} | TeacherId={TeacherId}", id, teacherId);
             return ServiceResult.Failure("無權限操作此章節");
+        }
+        logger.LogInformation("教師刪除章節 | TeacherId={TeacherId} | SectionId={SectionId}", teacherId, id);
         return await adminService.DeleteSectionAsync(id, ct).ConfigureAwait(false);
     }
 
@@ -155,7 +188,10 @@ public class TeacherCourseService(
         int id, string teacherId, CancellationToken ct = default)
     {
         if (!await VerifyLessonOwnershipAsync(id, teacherId, ct).ConfigureAwait(false))
+        {
+            logger.LogWarning("教師單元所有權驗證失敗 | LessonId={LessonId} | TeacherId={TeacherId}", id, teacherId);
             return null;
+        }
         return await adminService.GetLessonForEditAsync(id, ct).ConfigureAwait(false);
     }
 
@@ -164,7 +200,11 @@ public class TeacherCourseService(
         LessonFormViewModel vm, string teacherId, CancellationToken ct = default)
     {
         if (!await VerifySectionOwnershipAsync(vm.SectionId, teacherId, ct).ConfigureAwait(false))
+        {
+            logger.LogWarning("教師章節所有權驗證失敗 | SectionId={SectionId} | TeacherId={TeacherId}", vm.SectionId, teacherId);
             return ServiceResult<int>.Failure("無權限操作此章節");
+        }
+        logger.LogInformation("教師建立單元 | TeacherId={TeacherId} | SectionId={SectionId}", teacherId, vm.SectionId);
         return await adminService.CreateLessonAsync(vm, ct).ConfigureAwait(false);
     }
 
@@ -173,7 +213,10 @@ public class TeacherCourseService(
         LessonFormViewModel vm, string teacherId, CancellationToken ct = default)
     {
         if (!await VerifyLessonOwnershipAsync(vm.Id, teacherId, ct).ConfigureAwait(false))
+        {
+            logger.LogWarning("教師單元所有權驗證失敗 | LessonId={LessonId} | TeacherId={TeacherId}", vm.Id, teacherId);
             return ServiceResult.Failure("無權限操作此單元");
+        }
         return await adminService.UpdateLessonAsync(vm, ct).ConfigureAwait(false);
     }
 
@@ -182,7 +225,11 @@ public class TeacherCourseService(
         int id, string teacherId, CancellationToken ct = default)
     {
         if (!await VerifyLessonOwnershipAsync(id, teacherId, ct).ConfigureAwait(false))
+        {
+            logger.LogWarning("教師單元所有權驗證失敗 | LessonId={LessonId} | TeacherId={TeacherId}", id, teacherId);
             return ServiceResult.Failure("無權限操作此單元");
+        }
+        logger.LogInformation("教師刪除單元 | TeacherId={TeacherId} | LessonId={LessonId}", teacherId, id);
         return await adminService.DeleteLessonAsync(id, ct).ConfigureAwait(false);
     }
 

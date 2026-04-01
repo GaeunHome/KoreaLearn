@@ -16,17 +16,15 @@ public class QuizAdminService(
     /// <inheritdoc />
     public async Task<QuizDetailViewModel?> GetQuizDetailAsync(int quizId, CancellationToken ct = default)
     {
+        logger.LogInformation("查詢測驗詳情 | QuizId={QuizId}", quizId);
         var quiz = await uow.Quizzes.GetWithQuestionsAsync(quizId, ct).ConfigureAwait(false);
-        if (quiz is null) return null;
+        if (quiz is null)
+        {
+            logger.LogWarning("測驗不存在 | QuizId={QuizId}", quizId);
+            return null;
+        }
 
-        // 反查所屬單元、章節、課程名稱，用於頁面導覽
-        var lesson = await uow.Lessons.GetByIdAsync(quiz.LessonId, ct).ConfigureAwait(false);
-        var section = lesson is not null
-            ? await uow.Sections.GetByIdAsync(lesson.SectionId, ct).ConfigureAwait(false)
-            : null;
-        var course = section is not null
-            ? await uow.Courses.GetByIdAsync(section.CourseId, ct).ConfigureAwait(false)
-            : null;
+        var (lesson, course) = await GetLessonCourseContextAsync(quiz.LessonId, ct).ConfigureAwait(false);
 
         return new QuizDetailViewModel
         {
@@ -39,29 +37,7 @@ public class QuizAdminService(
             LessonTitle = lesson?.Title,
             CourseTitle = course?.Title,
             CourseId = course?.Id,
-            Questions = quiz.Questions.Select(q => new QuestionViewModel
-            {
-                Id = q.Id,
-                Content = q.Content,
-                Type = q.Type switch
-                {
-                    QuestionType.SingleChoice => "單選題",
-                    QuestionType.MultipleChoice => "多選題",
-                    QuestionType.FillInBlank => "填空題",
-                    _ => "未知"
-                },
-                TypeValue = (int)q.Type,
-                Points = q.Points,
-                SortOrder = q.SortOrder,
-                CorrectAnswer = q.CorrectAnswer,
-                Options = q.Options.Select(o => new OptionViewModel
-                {
-                    Id = o.Id,
-                    Content = o.Content,
-                    IsCorrect = o.IsCorrect,
-                    SortOrder = o.SortOrder
-                }).ToList()
-            }).ToList()
+            Questions = quiz.Questions.Select(MapToQuestionVm).ToList()
         };
     }
 
@@ -71,13 +47,7 @@ public class QuizAdminService(
         var quiz = await uow.Quizzes.GetByIdAsync(quizId, ct).ConfigureAwait(false);
         if (quiz is null) return null;
 
-        var lesson = await uow.Lessons.GetByIdAsync(quiz.LessonId, ct).ConfigureAwait(false);
-        var section = lesson is not null
-            ? await uow.Sections.GetByIdAsync(lesson.SectionId, ct).ConfigureAwait(false)
-            : null;
-        var course = section is not null
-            ? await uow.Courses.GetByIdAsync(section.CourseId, ct).ConfigureAwait(false)
-            : null;
+        var (lesson, course) = await GetLessonCourseContextAsync(quiz.LessonId, ct).ConfigureAwait(false);
 
         return new QuizFormViewModel
         {
@@ -96,13 +66,7 @@ public class QuizAdminService(
     /// <inheritdoc />
     public async Task<QuizFormViewModel> PrepareCreateFormAsync(int lessonId, CancellationToken ct = default)
     {
-        var lesson = await uow.Lessons.GetByIdAsync(lessonId, ct).ConfigureAwait(false);
-        var section = lesson is not null
-            ? await uow.Sections.GetByIdAsync(lesson.SectionId, ct).ConfigureAwait(false)
-            : null;
-        var course = section is not null
-            ? await uow.Courses.GetByIdAsync(section.CourseId, ct).ConfigureAwait(false)
-            : null;
+        var (lesson, course) = await GetLessonCourseContextAsync(lessonId, ct).ConfigureAwait(false);
 
         return new QuizFormViewModel
         {
@@ -143,8 +107,13 @@ public class QuizAdminService(
     /// <inheritdoc />
     public async Task<ServiceResult> UpdateQuizAsync(QuizFormViewModel vm, CancellationToken ct = default)
     {
+        logger.LogInformation("更新測驗 | QuizId={QuizId} | Title={Title}", vm.Id, vm.Title);
         var quiz = await uow.Quizzes.GetByIdAsync(vm.Id, ct).ConfigureAwait(false);
-        if (quiz is null) return ServiceResult.Failure("測驗不存在");
+        if (quiz is null)
+        {
+            logger.LogWarning("更新測驗失敗：測驗不存在 | QuizId={QuizId}", vm.Id);
+            return ServiceResult.Failure("測驗不存在");
+        }
 
         quiz.Title = vm.Title;
         quiz.Description = vm.Description;
@@ -153,6 +122,7 @@ public class QuizAdminService(
 
         uow.Quizzes.Update(quiz);
         await uow.SaveChangesAsync(ct).ConfigureAwait(false);
+        logger.LogInformation("測驗更新成功 | QuizId={QuizId}", vm.Id);
         return ServiceResult.Success();
     }
 
@@ -247,11 +217,20 @@ public class QuizAdminService(
     /// <inheritdoc />
     public async Task<ServiceResult> UpdateQuestionAsync(QuestionFormViewModel vm, CancellationToken ct = default)
     {
+        logger.LogInformation("更新題目 | QuestionId={QuestionId} | QuizId={QuizId}", vm.Id, vm.QuizId);
         var quiz = await uow.Quizzes.GetWithQuestionsAsync(vm.QuizId, ct).ConfigureAwait(false);
-        if (quiz is null) return ServiceResult.Failure("測驗不存在");
+        if (quiz is null)
+        {
+            logger.LogWarning("更新題目失敗：測驗不存在 | QuizId={QuizId}", vm.QuizId);
+            return ServiceResult.Failure("測驗不存在");
+        }
 
         var question = quiz.Questions.FirstOrDefault(q => q.Id == vm.Id);
-        if (question is null) return ServiceResult.Failure("題目不存在");
+        if (question is null)
+        {
+            logger.LogWarning("更新題目失敗：題目不存在 | QuestionId={QuestionId}", vm.Id);
+            return ServiceResult.Failure("題目不存在");
+        }
 
         question.Content = vm.Content;
         question.Type = vm.Type;
@@ -276,6 +255,7 @@ public class QuizAdminService(
         }
 
         await uow.SaveChangesAsync(ct).ConfigureAwait(false);
+        logger.LogInformation("題目更新成功 | QuestionId={QuestionId}", vm.Id);
         return ServiceResult.Success();
     }
 
@@ -299,4 +279,44 @@ public class QuizAdminService(
 
         return ServiceResult.Failure("題目不存在");
     }
+
+    // ── 私有輔助方法 ──
+
+    /// <summary>反查單元所屬的 Lesson 與 Course</summary>
+    private async Task<(Lesson? lesson, Course? course)> GetLessonCourseContextAsync(
+        int lessonId, CancellationToken ct)
+    {
+        var lesson = await uow.Lessons.GetByIdAsync(lessonId, ct).ConfigureAwait(false);
+        var section = lesson is not null
+            ? await uow.Sections.GetByIdAsync(lesson.SectionId, ct).ConfigureAwait(false)
+            : null;
+        var course = section is not null
+            ? await uow.Courses.GetByIdAsync(section.CourseId, ct).ConfigureAwait(false)
+            : null;
+        return (lesson, course);
+    }
+
+    private static QuestionViewModel MapToQuestionVm(QuizQuestion q) => new()
+    {
+        Id = q.Id,
+        Content = q.Content,
+        Type = q.Type switch
+        {
+            QuestionType.SingleChoice => "單選題",
+            QuestionType.MultipleChoice => "多選題",
+            QuestionType.FillInBlank => "填空題",
+            _ => "未知"
+        },
+        TypeValue = (int)q.Type,
+        Points = q.Points,
+        SortOrder = q.SortOrder,
+        CorrectAnswer = q.CorrectAnswer,
+        Options = q.Options.Select(o => new OptionViewModel
+        {
+            Id = o.Id,
+            Content = o.Content,
+            IsCorrect = o.IsCorrect,
+            SortOrder = o.SortOrder
+        }).ToList()
+    };
 }

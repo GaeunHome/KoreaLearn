@@ -13,6 +13,7 @@ public class BannerService(IUnitOfWork uow, ILogger<BannerService> logger) : IBa
     /// <inheritdoc />
     public async Task<IReadOnlyList<BannerViewModel>> GetActiveBannersAsync(CancellationToken ct = default)
     {
+        logger.LogInformation("取得啟用中的 Banner 列表");
         var banners = await uow.Banners.GetActiveOrderedAsync(ct).ConfigureAwait(false);
         return banners.Select(MapToVm).ToList();
     }
@@ -20,6 +21,7 @@ public class BannerService(IUnitOfWork uow, ILogger<BannerService> logger) : IBa
     /// <inheritdoc />
     public async Task<IReadOnlyList<BannerViewModel>> GetAllBannersAsync(CancellationToken ct = default)
     {
+        logger.LogInformation("取得所有 Banner 列表");
         var banners = await uow.Banners.GetAllAsync(ct).ConfigureAwait(false);
         return banners.Select(MapToVm).ToList();
     }
@@ -27,6 +29,7 @@ public class BannerService(IUnitOfWork uow, ILogger<BannerService> logger) : IBa
     /// <inheritdoc />
     public async Task<BannerFormViewModel?> GetForEditAsync(int id, CancellationToken ct = default)
     {
+        logger.LogInformation("取得 Banner 編輯資料 | BannerId={BannerId}", id);
         var b = await uow.Banners.GetByIdAsync(id, ct).ConfigureAwait(false);
         if (b is null) return null;
         return new BannerFormViewModel
@@ -54,7 +57,7 @@ public class BannerService(IUnitOfWork uow, ILogger<BannerService> logger) : IBa
 
         await uow.Banners.AddAsync(entity, ct).ConfigureAwait(false);
         await uow.SaveChangesAsync(ct).ConfigureAwait(false);
-        logger.LogInformation("Banner 建立 | Id={Id}", entity.Id);
+        logger.LogInformation("Banner 建立 | Id={Id} | Title={Title} | IsActive={IsActive}", entity.Id, entity.Title, entity.IsActive);
         return ServiceResult<int>.Success(entity.Id);
     }
 
@@ -62,7 +65,11 @@ public class BannerService(IUnitOfWork uow, ILogger<BannerService> logger) : IBa
     public async Task<ServiceResult> UpdateAsync(BannerFormViewModel vm, CancellationToken ct = default)
     {
         var entity = await uow.Banners.GetByIdAsync(vm.Id, ct).ConfigureAwait(false);
-        if (entity is null) return ServiceResult.Failure("幻燈片不存在");
+        if (entity is null)
+        {
+            logger.LogWarning("更新 Banner 失敗：不存在 | Id={Id}", vm.Id);
+            return ServiceResult.Failure("幻燈片不存在");
+        }
 
         entity.Title = vm.Title;
         entity.ImageUrl = vm.ImageUrl;
@@ -72,7 +79,7 @@ public class BannerService(IUnitOfWork uow, ILogger<BannerService> logger) : IBa
 
         uow.Banners.Update(entity);
         await uow.SaveChangesAsync(ct).ConfigureAwait(false);
-        logger.LogInformation("Banner 更新 | Id={Id}", vm.Id);
+        logger.LogInformation("Banner 更新 | Id={Id} | Title={Title}", vm.Id, vm.Title);
         return ServiceResult.Success();
     }
 
@@ -80,11 +87,15 @@ public class BannerService(IUnitOfWork uow, ILogger<BannerService> logger) : IBa
     public async Task<ServiceResult> DeleteAsync(int id, CancellationToken ct = default)
     {
         var entity = await uow.Banners.GetByIdAsync(id, ct).ConfigureAwait(false);
-        if (entity is null) return ServiceResult.Failure("幻燈片不存在");
+        if (entity is null)
+        {
+            logger.LogWarning("刪除 Banner 失敗：不存在 | Id={Id}", id);
+            return ServiceResult.Failure("幻燈片不存在");
+        }
 
         uow.Banners.Remove(entity);
         await uow.SaveChangesAsync(ct).ConfigureAwait(false);
-        logger.LogInformation("Banner 刪除 | Id={Id}", id);
+        logger.LogInformation("Banner 刪除 | Id={Id} | Title={Title}", id, entity.Title);
         return ServiceResult.Success();
     }
 
@@ -92,7 +103,11 @@ public class BannerService(IUnitOfWork uow, ILogger<BannerService> logger) : IBa
     public async Task<ServiceResult> ToggleActiveAsync(int id, CancellationToken ct = default)
     {
         var entity = await uow.Banners.GetByIdAsync(id, ct).ConfigureAwait(false);
-        if (entity is null) return ServiceResult.Failure("幻燈片不存在");
+        if (entity is null)
+        {
+            logger.LogWarning("切換 Banner 狀態失敗：不存在 | Id={Id}", id);
+            return ServiceResult.Failure("幻燈片不存在");
+        }
 
         entity.IsActive = !entity.IsActive;
         uow.Banners.Update(entity);

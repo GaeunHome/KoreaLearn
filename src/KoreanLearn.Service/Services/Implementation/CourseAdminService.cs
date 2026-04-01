@@ -46,8 +46,13 @@ public class CourseAdminService(
     public async Task<CourseFormViewModel?> GetCourseForEditAsync(
         int id, CancellationToken ct = default)
     {
+        logger.LogInformation("取得課程編輯資料 | CourseId={CourseId}", id);
         var course = await uow.Courses.GetByIdAsync(id, ct).ConfigureAwait(false);
-        if (course is null) return null;
+        if (course is null)
+        {
+            logger.LogWarning("取得課程編輯資料失敗：課程不存在 | CourseId={CourseId}", id);
+            return null;
+        }
         return mapper.Map<CourseFormViewModel>(course);
     }
 
@@ -122,13 +127,18 @@ public class CourseAdminService(
     public async Task<ServiceResult> UpdateCourseImageAsync(
         int courseId, string imageUrl, CancellationToken ct = default)
     {
+        logger.LogInformation("更新課程封面圖片 | CourseId={CourseId} | ImageUrl={ImageUrl}", courseId, imageUrl);
         var course = await uow.Courses.GetByIdAsync(courseId, ct).ConfigureAwait(false);
         if (course is null)
+        {
+            logger.LogWarning("更新課程封面圖片失敗：課程不存在 | CourseId={CourseId}", courseId);
             return ServiceResult.Failure("課程不存在");
+        }
 
         course.CoverImageUrl = imageUrl;
         uow.Courses.Update(course);
         await uow.SaveChangesAsync(ct).ConfigureAwait(false);
+        logger.LogInformation("課程封面圖片更新成功 | CourseId={CourseId}", courseId);
         return ServiceResult.Success();
     }
 
@@ -138,8 +148,13 @@ public class CourseAdminService(
     public async Task<SectionFormViewModel?> GetSectionForEditAsync(
         int id, CancellationToken ct = default)
     {
+        logger.LogInformation("取得章節編輯資料 | SectionId={SectionId}", id);
         var section = await uow.Sections.GetByIdAsync(id, ct).ConfigureAwait(false);
-        if (section is null) return null;
+        if (section is null)
+        {
+            logger.LogWarning("取得章節編輯資料失敗：章節不存在 | SectionId={SectionId}", id);
+            return null;
+        }
 
         var course = await uow.Courses.GetByIdAsync(section.CourseId, ct).ConfigureAwait(false);
         var vm = mapper.Map<SectionFormViewModel>(section);
@@ -209,8 +224,13 @@ public class CourseAdminService(
     public async Task<LessonFormViewModel?> GetLessonForEditAsync(
         int id, CancellationToken ct = default)
     {
+        logger.LogInformation("取得單元編輯資料 | LessonId={LessonId}", id);
         var lesson = await uow.Lessons.GetByIdAsync(id, ct).ConfigureAwait(false);
-        if (lesson is null) return null;
+        if (lesson is null)
+        {
+            logger.LogWarning("取得單元編輯資料失敗：單元不存在 | LessonId={LessonId}", id);
+            return null;
+        }
 
         var section = await uow.Sections.GetByIdAsync(lesson.SectionId, ct).ConfigureAwait(false);
         var course = section is not null

@@ -19,6 +19,7 @@ public class UserManagementService(
     public async Task<PagedResult<UserListViewModel>> GetUsersPagedAsync(
         string? search, int page, int pageSize, CancellationToken ct = default)
     {
+        logger.LogDebug("查詢使用者列表 | Search={Search} | Page={Page} | PageSize={PageSize}", search, page, pageSize);
         var query = userManager.Users.AsNoTracking();
         if (!string.IsNullOrWhiteSpace(search))
             query = query.Where(u => u.Email!.Contains(search) || u.DisplayName.Contains(search));
@@ -46,8 +47,13 @@ public class UserManagementService(
     public async Task<UserDetailViewModel?> GetUserDetailAsync(
         string userId, CancellationToken ct = default)
     {
+        logger.LogDebug("查詢使用者詳情 | UserId={UserId}", userId);
         var user = await userManager.FindByIdAsync(userId).ConfigureAwait(false);
-        if (user is null) return null;
+        if (user is null)
+        {
+            logger.LogWarning("使用者不存在 | UserId={UserId}", userId);
+            return null;
+        }
 
         var roles = await userManager.GetRolesAsync(user).ConfigureAwait(false);
         var enrollments = await uow.Enrollments.GetByUserIdAsync(userId, ct).ConfigureAwait(false);
@@ -67,17 +73,25 @@ public class UserManagementService(
     public async Task<ServiceResult> PromoteToTeacherAsync(
         string userId, CancellationToken ct = default)
     {
+        logger.LogInformation("升級使用者為教師 | UserId={UserId}", userId);
         var user = await userManager.FindByIdAsync(userId).ConfigureAwait(false);
-        if (user is null) return ServiceResult.Failure("使用者不存在");
+        if (user is null)
+        {
+            logger.LogWarning("升級失敗：使用者不存在 | UserId={UserId}", userId);
+            return ServiceResult.Failure("使用者不存在");
+        }
 
         if (await userManager.IsInRoleAsync(user, "Teacher").ConfigureAwait(false))
+        {
+            logger.LogWarning("升級失敗：使用者已是教師 | UserId={UserId}", userId);
             return ServiceResult.Failure("該使用者已是教師");
+        }
 
         var result = await userManager.AddToRoleAsync(user, "Teacher").ConfigureAwait(false);
         if (!result.Succeeded)
             return ServiceResult.Failure("升級失敗");
 
-        logger.LogInformation("使用者升級為教師 | UserId={UserId} | Email={Email}", userId, user.Email);
+        logger.LogInformation("使用者升級為教師 | UserId={UserId}", userId);
         return ServiceResult.Success();
     }
 
@@ -85,17 +99,25 @@ public class UserManagementService(
     public async Task<ServiceResult> DemoteFromTeacherAsync(
         string userId, CancellationToken ct = default)
     {
+        logger.LogInformation("降級使用者從教師 | UserId={UserId}", userId);
         var user = await userManager.FindByIdAsync(userId).ConfigureAwait(false);
-        if (user is null) return ServiceResult.Failure("使用者不存在");
+        if (user is null)
+        {
+            logger.LogWarning("降級失敗：使用者不存在 | UserId={UserId}", userId);
+            return ServiceResult.Failure("使用者不存在");
+        }
 
         if (!await userManager.IsInRoleAsync(user, "Teacher").ConfigureAwait(false))
+        {
+            logger.LogWarning("降級失敗：使用者不是教師 | UserId={UserId}", userId);
             return ServiceResult.Failure("該使用者不是教師");
+        }
 
         var result = await userManager.RemoveFromRoleAsync(user, "Teacher").ConfigureAwait(false);
         if (!result.Succeeded)
             return ServiceResult.Failure("降級失敗");
 
-        logger.LogInformation("使用者從教師降級 | UserId={UserId} | Email={Email}", userId, user.Email);
+        logger.LogInformation("使用者從教師降級 | UserId={UserId}", userId);
         return ServiceResult.Success();
     }
 }

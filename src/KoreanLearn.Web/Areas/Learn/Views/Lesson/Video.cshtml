@@ -88,7 +88,7 @@
                 <div class="list-group list-group-flush">
                     @if (Model.PreviousLessonId.HasValue)
                     {
-                        <a asp-area="Learn" asp-controller="Lesson" asp-action="Video" asp-route-id="@Model.PreviousLessonId"
+                        <a asp-area="Learn" asp-controller="Lesson" asp-action="@Model.PreviousLessonAction" asp-route-id="@Model.PreviousLessonId"
                            class="list-group-item list-group-item-action">
                             <i class="bi bi-arrow-left me-1"></i>上一個單元
                         </a>
@@ -98,7 +98,7 @@
                     </div>
                     @if (Model.NextLessonId.HasValue)
                     {
-                        <a asp-area="Learn" asp-controller="Lesson" asp-action="Video" asp-route-id="@Model.NextLessonId"
+                        <a asp-area="Learn" asp-controller="Lesson" asp-action="@Model.NextLessonAction" asp-route-id="@Model.NextLessonId"
                            class="list-group-item list-group-item-action">
                             下一個單元<i class="bi bi-arrow-right ms-1"></i>
                         </a>
@@ -172,7 +172,7 @@
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
-                        'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]')?.value || ''
+                        'X-CSRF-TOKEN': document.querySelector('input[name="__RequestVerificationToken"]')?.value || ''
                     },
                     body: JSON.stringify({ lessonId: lessonId, progressSeconds: seconds })
                 })
@@ -201,7 +201,10 @@
             window.markComplete = function () {
                 fetch('@Url.Action("Complete", "Lesson", new { area = "Learn" })' + '/' + lessonId, {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' }
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': document.querySelector('input[name="__RequestVerificationToken"]')?.value || ''
+                    }
                 })
                     .then(r => r.json())
                     .then(data => {
@@ -209,15 +212,21 @@
                             showToast('已標記完成', 'success');
                             var btn = document.getElementById('btnComplete');
                             if (btn) btn.outerHTML = '<button class="btn btn-success btn-sm" id="completeBadge" onclick="undoComplete()" title="點擊取消完成"><i class="bi bi-check-circle-fill me-1"></i>已完成</button>';
+                        } else {
+                            showToast(data.error || '標記失敗，請稍後再試', 'error');
                         }
-                    });
+                    })
+                    .catch(() => showToast('請求失敗，請稍後再試', 'error'));
             };
 
             window.undoComplete = function () {
                 showConfirm('確定要取消此單元的完成狀態嗎？', '取消完成', function () {
                     fetch('@Url.Action("UndoComplete", "Lesson", new { area = "Learn" })' + '/' + lessonId, {
                         method: 'POST',
-                        headers: { 'Content-Type': 'application/json' }
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRF-TOKEN': document.querySelector('input[name="__RequestVerificationToken"]')?.value || ''
+                        }
                     })
                         .then(r => r.json())
                         .then(data => {
@@ -225,8 +234,11 @@
                                 showToast('已取消完成標記', 'info');
                                 var el = document.getElementById('completeBadge');
                                 if (el) el.outerHTML = '<button class="btn btn-outline-success btn-sm" id="btnComplete" onclick="markComplete()"><i class="bi bi-check-circle me-1"></i>標記完成</button>';
+                            } else {
+                                showToast(data.error || '操作失敗，請稍後再試', 'error');
                             }
-                        });
+                        })
+                        .catch(() => showToast('請求失敗，請稍後再試', 'error'));
                 });
             };
         })();

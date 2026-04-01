@@ -1,3 +1,4 @@
+using KoreanLearn.Data.Entities;
 using KoreanLearn.Data.UnitOfWork;
 using KoreanLearn.Service.Services.Interfaces;
 using Microsoft.Extensions.Logging;
@@ -16,44 +17,24 @@ public class CertificateService(
     public async Task<CertificateEligibility> CheckEligibilityAsync(
         string userId, int courseId, CancellationToken ct = default)
     {
+        logger.LogInformation("檢查證書資格 | UserId={UserId} | CourseId={CourseId}", userId, courseId);
         var course = await uow.Courses.GetWithSectionsAndLessonsAsync(courseId, ct).ConfigureAwait(false);
         if (course is null)
+        {
+            logger.LogWarning("檢查證書資格失敗：課程不存在 | CourseId={CourseId}", courseId);
             return new CertificateEligibility { Reason = "課程不存在" };
+        }
 
-        // 計算單元完成狀況
         var totalLessons = course.Sections.SelectMany(s => s.Lessons).Count();
         var progresses = await uow.Progresses.GetByUserAndCourseAsync(userId, courseId, ct).ConfigureAwait(false);
         var completedLessons = progresses.Count(p => p.IsCompleted);
-
         var allCompleted = completedLessons >= totalLessons && totalLessons > 0;
 
-        // 檢查測驗成績（取最高分的作答紀錄）
-        int? bestScore = null;
-        var passingScore = 70;
-        var quizPassed = true; // 若課程無測驗則預設通過
-
-        foreach (var lesson in course.Sections.SelectMany(s => s.Lessons))
-        {
-            var quiz = await uow.Quizzes.GetByLessonIdAsync(lesson.Id, ct).ConfigureAwait(false);
-            if (quiz is null) continue;
-
-            var attempts = await uow.QuizAttempts.GetByUserAndQuizAsync(userId, quiz.Id, ct).ConfigureAwait(false);
-            if (!attempts.Any())
-            {
-                quizPassed = false;
-                break;
-            }
-
-            var best = attempts.Max(a => a.TotalPoints > 0 ? a.Score * 100 / a.TotalPoints : 0);
-            bestScore = best;
-            if (best < passingScore)
-            {
-                quizPassed = false;
-                break;
-            }
-        }
+        var (quizPassed, bestScore) = await CheckAllQuizzesPassedAsync(userId, course, ct).ConfigureAwait(false);
 
         var isEligible = allCompleted && quizPassed;
+        logger.LogInformation("證書資格檢查結果 | UserId={UserId} | CourseId={CourseId} | IsEligible={IsEligible} | CompletedLessons={Completed}/{Total}",
+            userId, courseId, isEligible, completedLessons, totalLessons);
         return new CertificateEligibility
         {
             IsEligible = isEligible,
@@ -61,8 +42,31 @@ public class CertificateService(
             CompletedLessons = completedLessons,
             TotalLessons = totalLessons,
             QuizScore = bestScore,
-            PassingScore = passingScore
+            PassingScore = 70
         };
+    }
+
+    /// <summary>檢查課程內所有測驗是否全數通過及格分數</summary>
+    private async Task<(bool passed, int? bestScore)> CheckAllQuizzesPassedAsync(
+        string userId, Course course, CancellationToken ct)
+    {
+        int? bestScore = null;
+        const int passingScore = 70;
+
+        foreach (var lesson in course.Sections.SelectMany(s => s.Lessons))
+        {
+            var quiz = await uow.Quizzes.GetByLessonIdAsync(lesson.Id, ct).ConfigureAwait(false);
+            if (quiz is null) continue;
+
+            var attempts = await uow.QuizAttempts.GetByUserAndQuizAsync(userId, quiz.Id, ct).ConfigureAwait(false);
+            if (!attempts.Any()) return (false, bestScore);
+
+            var best = attempts.Max(a => a.TotalPoints > 0 ? a.Score * 100 / a.TotalPoints : 0);
+            bestScore = best;
+            if (best < passingScore) return (false, bestScore);
+        }
+
+        return (true, bestScore);
     }
 
     /// <inheritdoc />
@@ -71,7 +75,12 @@ public class CertificateService(
     {
         // 先確認資格
         var eligibility = await CheckEligibilityAsync(userId, courseId, ct).ConfigureAwait(false);
-        if (!eligibility.IsEligible) return null;
+        if (!eligibility.IsEligible)
+        {
+            logger.LogWarning("生成證書失敗：資格不符 | UserId={UserId} | CourseId={CourseId} | Reason={Reason}",
+                userId, courseId, eligibility.Reason);
+            return null;
+        }
 
         var course = await uow.Courses.GetByIdAsync(courseId, ct).ConfigureAwait(false);
         if (course is null) return null;

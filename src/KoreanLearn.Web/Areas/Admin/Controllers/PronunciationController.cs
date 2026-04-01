@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Logging;
 using KoreanLearn.Service.Services.Interfaces;
 using KoreanLearn.Service.ViewModels.Admin.Pronunciation;
 using KoreanLearn.Web.Infrastructure;
@@ -7,28 +8,38 @@ using KoreanLearn.Library.Helpers;
 namespace KoreanLearn.Web.Areas.Admin.Controllers;
 
 /// <summary>後台發音練習管理 Controller，提供發音練習題的 CRUD 操作（含標準音檔上傳）</summary>
-public class PronunciationController(IPronunciationService pronunciationService, IFileUploadService fileUploadService) : AdminBaseController
+public class PronunciationController(IPronunciationService pronunciationService, IFileUploadService fileUploadService, ILogger<PronunciationController> logger) : AdminBaseController
 {
     /// <summary>發音練習列表頁（分頁），顯示所有發音練習題</summary>
     public async Task<IActionResult> Index(int page = 1, CancellationToken ct = default)
     {
+        logger.LogInformation("管理員查看發音練習列表 | Page={Page} | UserId={UserId}", page, GetCurrentUserId());
         var result = await pronunciationService.GetPagedAsync(page, DisplayConstants.AdminPageSize, ct);
         return View(result);
     }
 
     /// <summary>新增發音練習表單頁（GET）</summary>
-    public IActionResult Create() => View(new PronunciationFormViewModel());
+    public IActionResult Create()
+    {
+        logger.LogInformation("管理員進入新增發音練習頁面 | UserId={UserId}", GetCurrentUserId());
+        return View(new PronunciationFormViewModel());
+    }
 
     /// <summary>新增發音練習（POST），上傳標準音檔後建立練習題，成功導回列表</summary>
     [HttpPost]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Create(PronunciationFormViewModel vm, CancellationToken ct = default)
     {
-        if (!ModelState.IsValid) return View(vm);
+        if (!ModelState.IsValid)
+        {
+            logger.LogWarning("管理員新增發音練習失敗：模型驗證錯誤 | UserId={UserId}", GetCurrentUserId());
+            return View(vm);
+        }
 
         var audioUrl = vm.AudioFile is not null ? await fileUploadService.SaveAsync(vm.AudioFile, "audio") : "";
         if (string.IsNullOrEmpty(audioUrl) && vm.AudioFile is null)
         {
+            logger.LogWarning("管理員新增發音練習失敗：未上傳音檔 | UserId={UserId}", GetCurrentUserId());
             ModelState.AddModelError("AudioFile", "請上傳標準音檔");
             return View(vm);
         }
@@ -36,9 +47,11 @@ public class PronunciationController(IPronunciationService pronunciationService,
         var result = await pronunciationService.CreateAsync(vm, audioUrl, ct);
         if (result.IsSuccess)
         {
+            logger.LogInformation("管理員新增發音練習成功 | UserId={UserId}", GetCurrentUserId());
             TempData[TempDataKeys.Success] = "發音練習建立成功";
             return RedirectToAction(nameof(Index));
         }
+        logger.LogWarning("管理員新增發音練習失敗 | Error={Error} | UserId={UserId}", result.ErrorMessage, GetCurrentUserId());
         ModelState.AddModelError("", result.ErrorMessage ?? "建立失敗");
         return View(vm);
     }
@@ -46,8 +59,13 @@ public class PronunciationController(IPronunciationService pronunciationService,
     /// <summary>編輯發音練習表單頁（GET），載入現有練習資料</summary>
     public async Task<IActionResult> Edit(int id, CancellationToken ct = default)
     {
+        logger.LogInformation("管理員進入編輯發音練習頁面 | ExerciseId={ExerciseId} | UserId={UserId}", id, GetCurrentUserId());
         var vm = await pronunciationService.GetForEditAsync(id, ct);
-        if (vm is null) return NotFound();
+        if (vm is null)
+        {
+            logger.LogWarning("管理員查看發音練習失敗：資料不存在 | ExerciseId={ExerciseId} | UserId={UserId}", id, GetCurrentUserId());
+            return NotFound();
+        }
         return View(vm);
     }
 
@@ -56,14 +74,20 @@ public class PronunciationController(IPronunciationService pronunciationService,
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Edit(PronunciationFormViewModel vm, CancellationToken ct = default)
     {
-        if (!ModelState.IsValid) return View(vm);
+        if (!ModelState.IsValid)
+        {
+            logger.LogWarning("管理員更新發音練習失敗：模型驗證錯誤 | ExerciseId={ExerciseId} | UserId={UserId}", vm.Id, GetCurrentUserId());
+            return View(vm);
+        }
         string? newAudioUrl = vm.AudioFile is not null ? await fileUploadService.SaveAsync(vm.AudioFile, "audio") : null;
         var result = await pronunciationService.UpdateAsync(vm, newAudioUrl, ct);
         if (result.IsSuccess)
         {
+            logger.LogInformation("管理員更新發音練習成功 | ExerciseId={ExerciseId} | UserId={UserId}", vm.Id, GetCurrentUserId());
             TempData[TempDataKeys.Success] = "發音練習更新成功";
             return RedirectToAction(nameof(Index));
         }
+        logger.LogWarning("管理員更新發音練習失敗 | ExerciseId={ExerciseId} | Error={Error} | UserId={UserId}", vm.Id, result.ErrorMessage, GetCurrentUserId());
         ModelState.AddModelError("", result.ErrorMessage ?? "更新失敗");
         return View(vm);
     }
@@ -74,6 +98,10 @@ public class PronunciationController(IPronunciationService pronunciationService,
     public async Task<IActionResult> Delete(int id, CancellationToken ct = default)
     {
         var result = await pronunciationService.DeleteAsync(id, ct);
+        if (result.IsSuccess)
+            logger.LogInformation("管理員刪除發音練習 | ExerciseId={ExerciseId} | UserId={UserId}", id, GetCurrentUserId());
+        else
+            logger.LogWarning("管理員刪除發音練習失敗 | ExerciseId={ExerciseId} | Error={Error} | UserId={UserId}", id, result.ErrorMessage, GetCurrentUserId());
         TempData[result.IsSuccess ? TempDataKeys.Success : TempDataKeys.Error] = result.IsSuccess ? "已刪除" : (result.ErrorMessage ?? "刪除失敗");
         return RedirectToAction(nameof(Index));
     }

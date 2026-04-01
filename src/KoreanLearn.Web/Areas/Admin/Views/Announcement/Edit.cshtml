@@ -1,0 +1,121 @@
+@model KoreanLearn.Service.ViewModels.Admin.Announcement.AnnouncementFormViewModel
+@{
+    ViewData["Title"] = "編輯公告";
+}
+
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <h2 class="mb-4"><i class="bi bi-megaphone me-2"></i>編輯公告</h2>
+
+        <div class="card shadow-sm">
+            <div class="card-body p-4">
+                <form asp-area="Admin" asp-controller="Announcement" asp-action="Edit"
+                      method="post" enctype="multipart/form-data">
+                    @Html.AntiForgeryToken()
+                    <input asp-for="Id" type="hidden" />
+                    <input asp-for="SortOrder" type="hidden" />
+
+                    <div class="mb-3">
+                        <label asp-for="Title" class="form-label">標題 <span class="text-danger">*</span></label>
+                        <input asp-for="Title" class="form-control" />
+                        <span asp-validation-for="Title" class="text-danger"></span>
+                    </div>
+
+                    <div class="mb-3">
+                        <label asp-for="Content" class="form-label">內容 <span class="text-danger">*</span></label>
+                        <textarea asp-for="Content" class="form-control" rows="10"></textarea>
+                        <span asp-validation-for="Content" class="text-danger"></span>
+                    </div>
+
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label asp-for="StartDate" class="form-label">開始日期</label>
+                            <input asp-for="StartDate" type="datetime-local" class="form-control" />
+                        </div>
+                        <div class="col-md-6">
+                            <label asp-for="EndDate" class="form-label">結束日期</label>
+                            <input asp-for="EndDate" type="datetime-local" class="form-control" />
+                        </div>
+                    </div>
+
+                    <!-- 既有附件 -->
+                    @if (Model.ExistingAttachments.Any())
+                    {
+                        <div class="mb-3">
+                            <label class="form-label">目前附件</label>
+                            <div class="list-group" id="existingAttachments">
+                                @foreach (var att in Model.ExistingAttachments)
+                                {
+                                    <div class="list-group-item d-flex justify-content-between align-items-center" id="att-@att.Id">
+                                        <span>
+                                            <i class="bi bi-file-earmark me-2"></i>
+                                            <a href="@att.FileUrl" target="_blank">@att.FileName</a>
+                                            <small class="text-muted ms-2">@att.FileSizeDisplay</small>
+                                        </span>
+                                        <button type="button" class="btn btn-sm btn-outline-danger"
+                                                onclick="markDeleteAttachment(@att.Id, this)">
+                                            <i class="bi bi-x-lg"></i>
+                                        </button>
+                                    </div>
+                                }
+                            </div>
+                        </div>
+                        <div id="deleteAttachmentContainer"></div>
+                    }
+
+                    <div class="mb-3">
+                        <label asp-for="AttachmentFiles" class="form-label">新增附件</label>
+                        <input asp-for="AttachmentFiles" type="file" class="form-control" multiple />
+                        <div class="form-text">上傳新檔案會加入現有附件列表</div>
+                    </div>
+
+                    <div class="row mb-4">
+                        <div class="col-auto">
+                            <div class="form-check">
+                                <input asp-for="IsActive" class="form-check-input" />
+                                <label asp-for="IsActive" class="form-check-label">已發布</label>
+                            </div>
+                        </div>
+                        <div class="col-auto">
+                            <div class="form-check">
+                                <input asp-for="IsPinned" class="form-check-input" />
+                                <label asp-for="IsPinned" class="form-check-label">置頂</label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="d-flex justify-content-between">
+                        <a asp-area="Admin" asp-controller="Announcement" asp-action="Index"
+                           class="btn btn-outline-secondary">
+                            <i class="bi bi-arrow-left me-1"></i>取消
+                        </a>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-check-lg me-1"></i>儲存
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script>
+        function markDeleteAttachment(id, btn) {
+            var container = document.getElementById('deleteAttachmentContainer');
+            var input = document.createElement('input');
+            input.type = 'hidden';
+            input.name = 'DeleteAttachmentIds';
+            input.value = id;
+            container.appendChild(input);
+
+            var row = document.getElementById('att-' + id);
+            if (row) {
+                row.classList.add('list-group-item-danger');
+                row.style.opacity = '0.5';
+                btn.disabled = true;
+            }
+        }
+    </script>
+}

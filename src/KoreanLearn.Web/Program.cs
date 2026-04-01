@@ -92,17 +92,36 @@ try
     });
 
     // ── Cookie 安全設定 ──
+    // 涵蓋 OWASP Top 10 中 A01（存取控制）、A03（XSS）、A07（認證）相關項目
     builder.Services.ConfigureApplicationCookie(opts =>
     {
-        opts.Cookie.HttpOnly = true;
-        opts.Cookie.SameSite = SameSiteMode.Lax;
-        opts.Cookie.SecurePolicy = CookieSecurePolicy.SameAsRequest;
-        opts.Cookie.Name = "KoreanLearn.Auth";
-        opts.ExpireTimeSpan = TimeSpan.FromHours(2);
-        opts.SlidingExpiration = true;
         opts.LoginPath = "/Identity/Account/Login";
         opts.LogoutPath = "/Identity/Account/Logout";
         opts.AccessDeniedPath = "/Error/403";
+
+        // ─── Session 過期控制（CWE-613: Insufficient Session Expiration）───
+        // 閒置超過 2 小時自動失效；SlidingExpiration 讓持續操作的使用者不被強制登出
+        opts.ExpireTimeSpan = TimeSpan.FromHours(2);
+        opts.SlidingExpiration = true;
+
+        // ─── HttpOnly（CWE-1004: Sensitive Cookie Without HttpOnly Flag）───
+        // 禁止 JavaScript 透過 document.cookie 讀取認證 Cookie，
+        // 即使存在 XSS 漏洞，攻擊者腳本也無法竊取 Cookie 送往外部伺服器
+        opts.Cookie.HttpOnly = true;
+
+        // ─── Secure（CWE-614: Sensitive Cookie Without Secure Attribute）──
+        // Cookie 僅在 HTTPS 加密連線時傳送，防止 MITM 攔截明文 Cookie
+        // SameAsRequest：開發環境 http 可用，正式環境自動套用 Secure flag
+        opts.Cookie.SecurePolicy = CookieSecurePolicy.SameAsRequest;
+
+        // ─── SameSite（CWE-1275: Improper SameSite Attribute）─────────────
+        // Lax：阻擋跨站 POST 表單（CSRF 主要攻擊向量），允許 GET 導覽帶 Cookie
+        // 搭配 [ValidateAntiForgeryToken] + AddAntiforgery 形成雙重 CSRF 防護
+        opts.Cookie.SameSite = SameSiteMode.Lax;
+
+        // ─── 自訂名稱（CWE-200: Information Disclosure）────────────────────
+        // 隱藏 .AspNetCore.Identity.Application 預設名稱，降低被自動化工具識別框架的風險
+        opts.Cookie.Name = "KoreanLearn.Auth";
     });
 
     // ── 快取服務 ──
@@ -129,6 +148,27 @@ try
         options.Cookie.Name = "KoreanLearn.Session";
         options.Cookie.SameSite = SameSiteMode.Lax;
         options.Cookie.SecurePolicy = CookieSecurePolicy.SameAsRequest;
+    });
+
+    // ── CSRF 防護設定（CWE-352: Cross-Site Request Forgery）──
+    // 搭配 [ValidateAntiForgeryToken] 形成雙重防護：
+    // Cookie 驗證（SameSite=Strict）+ 請求 Token 比對
+    // AJAX 呼叫透過 X-CSRF-TOKEN 標頭傳遞 Token
+    builder.Services.AddAntiforgery(options =>
+    {
+        options.Cookie.Name = "KoreanLearn.Csrf";
+        options.Cookie.SameSite = SameSiteMode.Strict;
+        options.Cookie.SecurePolicy = CookieSecurePolicy.SameAsRequest;
+        options.HeaderName = "X-CSRF-TOKEN";   // AJAX fetch/XHR 使用此標頭
+    });
+
+    // ── HSTS 設定（CWE-319: Cleartext Transmission）──
+    // 告知瀏覽器未來 365 天內只能透過 HTTPS 連線（含子網域）
+    // 防止 SSL Stripping 攻擊；僅正式環境由 UseHsts() 啟用
+    builder.Services.AddHsts(options =>
+    {
+        options.MaxAge = TimeSpan.FromDays(365);
+        options.IncludeSubDomains = true;
     });
 
     builder.Services.AddControllersWithViews();
@@ -304,14 +344,15 @@ try
     app.UseRateLimiter();                                // 速率限制
     app.UseAuthentication();                             // 身份驗證
     app.UseAuthorization();                              // 授權
-    app.UseMaintenanceMode();                            // 維護模式
 
-    // Serilog 請求日誌
+    // Serilog 請求日誌（在 MaintenanceMode 之前，確保維護模式請求也被記錄）
     app.UseSerilogRequestLogging(options =>
     {
         options.MessageTemplate =
             "HTTP {RequestMethod} {RequestPath} responded {StatusCode} in {Elapsed:0.000}ms";
     });
+
+    app.UseMaintenanceMode();                            // 維護模式
 
     // ── 路由設定 ──
     app.MapControllerRoute("areas", "{area:exists}/{controller=Dashboard}/{action=Index}/{id?}");

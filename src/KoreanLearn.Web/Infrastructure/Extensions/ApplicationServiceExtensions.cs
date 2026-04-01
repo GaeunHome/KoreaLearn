@@ -39,6 +39,7 @@ public static class ApplicationServiceExtensions
         services.AddScoped<IAuthService, AuthService>();
         services.AddScoped<ISystemSettingService, SystemSettingService>();
         services.AddScoped<IBannerService, BannerService>();
+        services.AddScoped<IAnnouncementService, AnnouncementService>();
 
         return services;
     }

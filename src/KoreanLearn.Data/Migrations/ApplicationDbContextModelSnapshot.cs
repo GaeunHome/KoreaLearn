@@ -50,10 +50,16 @@ namespace KoreanLearn.Data.Migrations
                     b.Property<bool>("IsDeleted")
                         .HasColumnType("bit");
 
+                    b.Property<bool>("IsPinned")
+                        .HasColumnType("bit");
+
                     b.Property<byte[]>("RowVersion")
                         .IsConcurrencyToken()
                         .ValueGeneratedOnAddOrUpdate()
                         .HasColumnType("rowversion");
+
+                    b.Property<int>("SortOrder")
+                        .HasColumnType("int");
 
                     b.Property<DateTime?>("StartDate")
                         .HasColumnType("datetime2");
@@ -70,7 +76,56 @@ namespace KoreanLearn.Data.Migrations
 
                     b.HasIndex("IsActive");
 
+                    b.HasIndex("IsPinned");
+
+                    b.HasIndex("SortOrder");
+
                     b.ToTable("Announcements");
+                });
+
+            modelBuilder.Entity("KoreanLearn.Data.Entities.AnnouncementAttachment", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("AnnouncementId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("FileName")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<long>("FileSizeBytes")
+                        .HasColumnType("bigint");
+
+                    b.Property<string>("FileUrl")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<byte[]>("RowVersion")
+                        .IsConcurrencyToken()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("rowversion");
+
+                    b.Property<int>("SortOrder")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("AnnouncementId");
+
+                    b.ToTable("AnnouncementAttachments");
                 });
 
             modelBuilder.Entity("KoreanLearn.Data.Entities.AppUser", b =>
@@ -1556,6 +1611,17 @@ namespace KoreanLearn.Data.Migrations
                     b.ToTable("AspNetUserTokens", (string)null);
                 });
 
+            modelBuilder.Entity("KoreanLearn.Data.Entities.AnnouncementAttachment", b =>
+                {
+                    b.HasOne("KoreanLearn.Data.Entities.Announcement", "Announcement")
+                        .WithMany("Attachments")
+                        .HasForeignKey("AnnouncementId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Announcement");
+                });
+
             modelBuilder.Entity("KoreanLearn.Data.Entities.Banner", b =>
                 {
                     b.HasOne("KoreanLearn.Data.Entities.Course", "Course")
@@ -1960,6 +2026,11 @@ namespace KoreanLearn.Data.Migrations
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+                });
+
+            modelBuilder.Entity("KoreanLearn.Data.Entities.Announcement", b =>
+                {
+                    b.Navigation("Attachments");
                 });
 
             modelBuilder.Entity("KoreanLearn.Data.Entities.AppUser", b =>

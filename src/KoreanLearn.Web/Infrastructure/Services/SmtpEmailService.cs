@@ -28,11 +28,11 @@ public class SmtpEmailService(IOptions<SmtpSettings> settings, ILogger<SmtpEmail
                 _settings.Username ?? _settings.FromEmail, _settings.Password);
 
             await client.SendMailAsync(message);
-            logger.LogInformation("Email 寄送成功 | To={ToEmail}", toEmail);
+            logger.LogInformation("Email 寄送成功 | To={ToEmail} | Subject={Subject}", toEmail, subject);
         }
         catch (Exception ex)
         {
-            logger.LogError(ex, "Email 寄送失敗 | To={ToEmail}", toEmail);
+            logger.LogError(ex, "Email 寄送失敗 | To={ToEmail} | Subject={Subject}", toEmail, subject);
             throw;
         }
     }

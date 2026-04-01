@@ -11,7 +11,10 @@ using Microsoft.AspNetCore.RateLimiting;
 namespace KoreanLearn.Web.Areas.Identity.Controllers;
 
 /// <summary>帳號相關 Controller，處理登入、註冊、登出、個人資料管理等功能</summary>
-public class AccountController(IAuthService authService, IEmailService emailService) : IdentityBaseController
+public class AccountController(
+    IAuthService authService,
+    IEmailService emailService,
+    ILogger<AccountController> logger) : IdentityBaseController
 {
     // ─── Login ──────────────────────────────────────────────
 
@@ -181,7 +184,8 @@ public class AccountController(IAuthService authService, IEmailService emailServ
         {
             DisplayName = profile.DisplayName,
             PhoneNumber = profile.PhoneNumber,
-            Email = profile.Email
+            Email = profile.Email,
+            HasPassword = await authService.HasPasswordAsync(userId)
         };
         return View(model);
     }
@@ -211,9 +215,18 @@ public class AccountController(IAuthService authService, IEmailService emailServ
 
     // ─── Change Password ────────────────────────────────────
 
-    /// <summary>顯示變更密碼頁面</summary>
+    /// <summary>顯示變更密碼頁面（外部登入使用者無密碼，直接導回個人資料頁）</summary>
     [Authorize]
-    public IActionResult ChangePassword() => View(new ChangePasswordViewModel());
+    public async Task<IActionResult> ChangePassword()
+    {
+        var userId = GetAuthorizedUserId();
+        if (!await authService.HasPasswordAsync(userId))
+        {
+            TempData[TempDataKeys.Warning] = "您的帳號透過第三方登入建立，無法使用此功能。";
+            return RedirectToAction(nameof(Profile));
+        }
+        return View(new ChangePasswordViewModel());
+    }
 
     /// <summary>處理變更密碼表單</summary>
     [HttpPost, ValidateAntiForgeryToken, Authorize]
@@ -251,35 +264,15 @@ public class AccountController(IAuthService authService, IEmailService emailServ
         if (token is not null && email is not null)
         {
             var callbackUrl = Url.Action(nameof(ResetPassword), "Account",
-                new { area = "Identity", email, token }, Request.Scheme);
-
-            var html = $"""
-                <div style="font-family: 'Noto Sans TC', sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
-                    <div style="text-align: center; padding: 20px 0;">
-                        <h2 style="color: #2B3A67;">KoreanLearn 韓文學習平台</h2>
-                    </div>
-                    <div style="background: #f8f6f3; border-radius: 8px; padding: 30px;">
-                        <h3 style="color: #1E2A4A;">密碼重設</h3>
-                        <p>我們收到了您的密碼重設請求，請點擊下方按鈕設定新密碼：</p>
-                        <div style="text-align: center; margin: 30px 0;">
-                            <a href="{callbackUrl}"
-                               style="background: #2B3A67; color: #fff; padding: 12px 30px; border-radius: 8px;
-                                      text-decoration: none; font-weight: 600; display: inline-block;">
-                                重設密碼
-                            </a>
-                        </div>
-                        <p style="color: #7A7A7A; font-size: 0.85rem;">若您未要求重設密碼，請忽略此信。</p>
-                    </div>
-                </div>
-                """;
+                new { area = "Identity", email, token }, Request.Scheme)!;
 
             try
             {
+                var html = BuildPasswordResetEmailHtml(callbackUrl);
                 await emailService.SendEmailAsync(email, "KoreanLearn — 密碼重設", html);
             }
             catch (Exception ex)
             {
-                var logger = HttpContext.RequestServices.GetRequiredService<ILogger<AccountController>>();
                 logger.LogError(ex, "寄送密碼重設信失敗 | Email={Email}", email);
             }
         }
@@ -572,33 +565,28 @@ public class AccountController(IAuthService authService, IEmailService emailServ
     private async Task SendConfirmationEmailAsync(string userId, string email, string token)
     {
         var callbackUrl = Url.Action(nameof(ConfirmEmail), "Account",
-            new { area = "Identity", userId, token }, Request.Scheme);
+            new { area = "Identity", userId, token }, Request.Scheme)!;
 
-        var html = $"""
-            <div style="font-family: 'Noto Sans TC', sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
-                <div style="text-align: center; padding: 20px 0;">
-                    <h2 style="color: #2B3A67;">KoreanLearn 韓文學習平台</h2>
+        var html = WrapEmailHtml($"""
+            <div style="background: #f8f6f3; border-radius: 8px; padding: 30px;">
+                <h3 style="color: #1E2A4A;">歡迎加入 KoreanLearn！</h3>
+                <p>請點擊下方按鈕驗證您的電子信箱：</p>
+                <div style="text-align: center; margin: 30px 0;">
+                    <a href="{callbackUrl}"
+                       style="background: #2B3A67; color: #fff; padding: 12px 30px; border-radius: 8px;
+                              text-decoration: none; font-weight: 600; display: inline-block;">
+                        驗證 Email
+                    </a>
                 </div>
-                <div style="background: #f8f6f3; border-radius: 8px; padding: 30px;">
-                    <h3 style="color: #1E2A4A;">歡迎加入 KoreanLearn！</h3>
-                    <p>請點擊下方按鈕驗證您的電子信箱：</p>
-                    <div style="text-align: center; margin: 30px 0;">
-                        <a href="{callbackUrl}"
-                           style="background: #2B3A67; color: #fff; padding: 12px 30px; border-radius: 8px;
-                                  text-decoration: none; font-weight: 600; display: inline-block;">
-                            驗證 Email
-                        </a>
-                    </div>
-                    <p style="color: #7A7A7A; font-size: 0.85rem;">
-                        若按鈕無法點擊，請複製以下連結至瀏覽器：<br />
-                        <a href="{callbackUrl}" style="color: #2B3A67; word-break: break-all;">{callbackUrl}</a>
-                    </p>
-                </div>
-                <p style="text-align: center; color: #7A7A7A; font-size: 0.8rem; margin-top: 20px;">
-                    此信件由系統自動發送，請勿直接回覆。
+                <p style="color: #7A7A7A; font-size: 0.85rem;">
+                    若按鈕無法點擊，請複製以下連結至瀏覽器：<br />
+                    <a href="{callbackUrl}" style="color: #2B3A67; word-break: break-all;">{callbackUrl}</a>
                 </p>
             </div>
-            """;
+            <p style="text-align: center; color: #7A7A7A; font-size: 0.8rem; margin-top: 20px;">
+                此信件由系統自動發送，請勿直接回覆。
+            </p>
+            """);
 
         try
         {
@@ -607,7 +595,6 @@ public class AccountController(IAuthService authService, IEmailService emailServ
         catch (Exception ex)
         {
             // 寄送失敗不阻擋註冊流程，但記錄錯誤
-            var logger = HttpContext.RequestServices.GetRequiredService<ILogger<AccountController>>();
             logger.LogError(ex, "寄送驗證信失敗 | Email={Email}", email);
         }
     }
@@ -615,25 +602,20 @@ public class AccountController(IAuthService authService, IEmailService emailServ
     /// <summary>寄送 2FA 驗證碼 Email</summary>
     private async Task Send2faCodeEmailAsync(string email, string code)
     {
-        var html = $"""
-            <div style="font-family: 'Noto Sans TC', sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
-                <div style="text-align: center; padding: 20px 0;">
-                    <h2 style="color: #2B3A67;">KoreanLearn 韓文學習平台</h2>
+        var html = WrapEmailHtml($"""
+            <div style="background: #f8f6f3; border-radius: 8px; padding: 30px; text-align: center;">
+                <h3 style="color: #1E2A4A;">兩步驟驗證碼</h3>
+                <p>您的登入驗證碼為：</p>
+                <div style="font-size: 2rem; font-weight: 700; letter-spacing: 0.5em; color: #2B3A67;
+                            background: #fff; border-radius: 8px; padding: 15px; margin: 20px 0;
+                            border: 2px solid #E5E2DD;">
+                    {code}
                 </div>
-                <div style="background: #f8f6f3; border-radius: 8px; padding: 30px; text-align: center;">
-                    <h3 style="color: #1E2A4A;">兩步驟驗證碼</h3>
-                    <p>您的登入驗證碼為：</p>
-                    <div style="font-size: 2rem; font-weight: 700; letter-spacing: 0.5em; color: #2B3A67;
-                                background: #fff; border-radius: 8px; padding: 15px; margin: 20px 0;
-                                border: 2px solid #E5E2DD;">
-                        {code}
-                    </div>
-                    <p style="color: #7A7A7A; font-size: 0.85rem;">
-                        此驗證碼有效期限為 5 分鐘。若非本人操作，請忽略此信。
-                    </p>
-                </div>
+                <p style="color: #7A7A7A; font-size: 0.85rem;">
+                    此驗證碼有效期限為 5 分鐘。若非本人操作，請忽略此信。
+                </p>
             </div>
-            """;
+            """);
 
         try
         {
@@ -641,10 +623,35 @@ public class AccountController(IAuthService authService, IEmailService emailServ
         }
         catch (Exception ex)
         {
-            var logger = HttpContext.RequestServices.GetRequiredService<ILogger<AccountController>>();
             logger.LogError(ex, "寄送 2FA 驗證碼 Email 失敗 | Email={Email}", email);
         }
     }
+
+    /// <summary>產生密碼重設 Email HTML</summary>
+    private static string BuildPasswordResetEmailHtml(string callbackUrl) => WrapEmailHtml($"""
+        <div style="background: #f8f6f3; border-radius: 8px; padding: 30px;">
+            <h3 style="color: #1E2A4A;">密碼重設</h3>
+            <p>我們收到了您的密碼重設請求，請點擊下方按鈕設定新密碼：</p>
+            <div style="text-align: center; margin: 30px 0;">
+                <a href="{callbackUrl}"
+                   style="background: #2B3A67; color: #fff; padding: 12px 30px; border-radius: 8px;
+                          text-decoration: none; font-weight: 600; display: inline-block;">
+                    重設密碼
+                </a>
+            </div>
+            <p style="color: #7A7A7A; font-size: 0.85rem;">若您未要求重設密碼，請忽略此信。</p>
+        </div>
+        """);
+
+    /// <summary>共用 Email HTML 外框（platform header + 內容）</summary>
+    private static string WrapEmailHtml(string bodyHtml) => $"""
+        <div style="font-family: 'Noto Sans TC', sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+            <div style="text-align: center; padding: 20px 0;">
+                <h2 style="color: #2B3A67;">KoreanLearn 韓文學習平台</h2>
+            </div>
+            {bodyHtml}
+        </div>
+        """;
 
     /// <summary>使用 QRCoder 產生 QR Code Base64 PNG 圖片</summary>
     private static string GenerateQrCodeBase64(string text)

@@ -13,6 +13,7 @@ public class SystemSettingService(IUnitOfWork uow, ILogger<SystemSettingService>
     /// <inheritdoc />
     public async Task<IReadOnlyList<SystemSettingViewModel>> GetAllSettingsAsync(CancellationToken ct = default)
     {
+        logger.LogInformation("取得所有系統參數");
         var settings = await uow.SystemSettings.GetAllOrderedAsync(ct).ConfigureAwait(false);
         return settings.Select(s => new SystemSettingViewModel
         {
@@ -28,6 +29,7 @@ public class SystemSettingService(IUnitOfWork uow, ILogger<SystemSettingService>
     /// <inheritdoc />
     public async Task<SystemSettingFormViewModel?> GetForEditAsync(int id, CancellationToken ct = default)
     {
+        logger.LogInformation("取得系統參數編輯資料 | SettingId={SettingId}", id);
         var s = await uow.SystemSettings.GetByIdAsync(id, ct).ConfigureAwait(false);
         if (s is null) return null;
         return new SystemSettingFormViewModel
@@ -65,7 +67,7 @@ public class SystemSettingService(IUnitOfWork uow, ILogger<SystemSettingService>
 
         await uow.SystemSettings.AddAsync(entity, ct).ConfigureAwait(false);
         await uow.SaveChangesAsync(ct).ConfigureAwait(false);
-        logger.LogInformation("系統參數建立 | Key={Key}", vm.Key);
+        logger.LogInformation("系統參數建立 | Key={Key} | Value={Value} | Group={Group}", vm.Key, vm.Value, vm.Group);
         return ServiceResult<int>.Success(entity.Id);
     }
 
@@ -73,7 +75,11 @@ public class SystemSettingService(IUnitOfWork uow, ILogger<SystemSettingService>
     public async Task<ServiceResult> UpdateAsync(SystemSettingFormViewModel vm, CancellationToken ct = default)
     {
         var entity = await uow.SystemSettings.GetByIdAsync(vm.Id, ct).ConfigureAwait(false);
-        if (entity is null) return ServiceResult.Failure("參數不存在");
+        if (entity is null)
+        {
+            logger.LogWarning("更新系統參數失敗：不存在 | Id={Id}", vm.Id);
+            return ServiceResult.Failure("參數不存在");
+        }
 
         entity.Value = vm.Value;
         entity.Description = vm.Description;
@@ -82,7 +88,7 @@ public class SystemSettingService(IUnitOfWork uow, ILogger<SystemSettingService>
 
         uow.SystemSettings.Update(entity);
         await uow.SaveChangesAsync(ct).ConfigureAwait(false);
-        logger.LogInformation("系統參數更新 | Key={Key}", entity.Key);
+        logger.LogInformation("系統參數更新 | Key={Key} | Value={Value}", entity.Key, vm.Value);
         return ServiceResult.Success();
     }
 
@@ -90,7 +96,11 @@ public class SystemSettingService(IUnitOfWork uow, ILogger<SystemSettingService>
     public async Task<ServiceResult> DeleteAsync(int id, CancellationToken ct = default)
     {
         var entity = await uow.SystemSettings.GetByIdAsync(id, ct).ConfigureAwait(false);
-        if (entity is null) return ServiceResult.Failure("參數不存在");
+        if (entity is null)
+        {
+            logger.LogWarning("刪除系統參數失敗：不存在 | Id={Id}", id);
+            return ServiceResult.Failure("參數不存在");
+        }
 
         uow.SystemSettings.Remove(entity);
         await uow.SaveChangesAsync(ct).ConfigureAwait(false);

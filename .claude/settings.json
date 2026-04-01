@@ -1,6 +1,9 @@
 {
   "permissions": {
     "allow": [
+      "Read(**)",
+      "Glob(**)",
+      "Grep(**)",
       "Bash(dotnet build*)",
       "Bash(dotnet run*)",
       "Bash(dotnet watch*)",

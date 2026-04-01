@@ -21,6 +21,9 @@ public interface IAuthService
     /// <summary>取得目前使用者名稱</summary>
     string? GetUserName(ClaimsPrincipal user);
 
+    /// <summary>取得目前使用者顯示名稱（從 claims 讀取，不查資料庫）</summary>
+    string? GetDisplayName(ClaimsPrincipal user);
+
     /// <summary>取得目前使用者 ID</summary>
     string? GetUserId(ClaimsPrincipal user);
 
@@ -66,6 +69,9 @@ public interface IAuthService
 
     /// <summary>儲存密碼到歷史紀錄</summary>
     Task SavePasswordHistoryAsync(string userId, string passwordHash, CancellationToken ct = default);
+
+    /// <summary>使用者是否設有密碼（外部登入建立的帳號無密碼）</summary>
+    Task<bool> HasPasswordAsync(string userId, CancellationToken ct = default);
 
     // ─── 2FA 狀態管理 ─────────────────────────────────────
 

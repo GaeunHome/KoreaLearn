@@ -16,6 +16,7 @@ public class FlashcardAdminService(
     public async Task<PagedResult<DeckListViewModel>> GetDecksPagedAsync(
         int page, int pageSize, CancellationToken ct = default)
     {
+        logger.LogInformation("取得字卡牌組列表 | Page={Page} | PageSize={PageSize}", page, pageSize);
         var result = await uow.FlashcardDecks.GetPagedAsync(page, pageSize, ct).ConfigureAwait(false);
         var items = new List<DeckListViewModel>();
         foreach (var deck in result.Items)
@@ -37,8 +38,13 @@ public class FlashcardAdminService(
     /// <inheritdoc />
     public async Task<DeckDetailViewModel?> GetDeckDetailAsync(int id, CancellationToken ct = default)
     {
+        logger.LogInformation("查詢牌組詳情 | DeckId={DeckId}", id);
         var deck = await uow.FlashcardDecks.GetWithCardsAsync(id, ct).ConfigureAwait(false);
-        if (deck is null) return null;
+        if (deck is null)
+        {
+            logger.LogWarning("牌組不存在 | DeckId={DeckId}", id);
+            return null;
+        }
 
         return new DeckDetailViewModel
         {
@@ -61,6 +67,7 @@ public class FlashcardAdminService(
     /// <inheritdoc />
     public async Task<DeckFormViewModel?> GetDeckForEditAsync(int id, CancellationToken ct = default)
     {
+        logger.LogInformation("取得牌組編輯資料 | DeckId={DeckId}", id);
         var deck = await uow.FlashcardDecks.GetByIdAsync(id, ct).ConfigureAwait(false);
         if (deck is null) return null;
         return new DeckFormViewModel
@@ -91,14 +98,20 @@ public class FlashcardAdminService(
     /// <inheritdoc />
     public async Task<ServiceResult> UpdateDeckAsync(DeckFormViewModel vm, CancellationToken ct = default)
     {
+        logger.LogInformation("更新牌組 | DeckId={DeckId} | Title={Title}", vm.Id, vm.Title);
         var deck = await uow.FlashcardDecks.GetByIdAsync(vm.Id, ct).ConfigureAwait(false);
-        if (deck is null) return ServiceResult.Failure("牌組不存在");
+        if (deck is null)
+        {
+            logger.LogWarning("更新牌組失敗：牌組不存在 | DeckId={DeckId}", vm.Id);
+            return ServiceResult.Failure("牌組不存在");
+        }
 
         deck.Title = vm.Title;
         deck.Description = vm.Description;
         deck.CourseId = vm.CourseId;
         uow.FlashcardDecks.Update(deck);
         await uow.SaveChangesAsync(ct).ConfigureAwait(false);
+        logger.LogInformation("牌組更新成功 | DeckId={DeckId}", vm.Id);
         return ServiceResult.Success();
     }
 
@@ -118,6 +131,7 @@ public class FlashcardAdminService(
     /// <inheritdoc />
     public async Task<CardFormViewModel?> GetCardForEditAsync(int cardId, CancellationToken ct = default)
     {
+        logger.LogInformation("取得字卡編輯資料 | CardId={CardId}", cardId);
         var card = await uow.FlashcardDecks.GetCardByIdAsync(cardId, ct).ConfigureAwait(false);
         if (card is null) return null;
 
@@ -159,9 +173,14 @@ public class FlashcardAdminService(
     /// <inheritdoc />
     public async Task<ServiceResult> UpdateCardAsync(CardFormViewModel vm, CancellationToken ct = default)
     {
+        logger.LogInformation("更新字卡 | CardId={CardId} | DeckId={DeckId} | Korean={Korean}", vm.Id, vm.DeckId, vm.Korean);
         var deck = await uow.FlashcardDecks.GetWithCardsAsync(vm.DeckId, ct).ConfigureAwait(false);
         var card = deck?.Flashcards.FirstOrDefault(c => c.Id == vm.Id);
-        if (card is null) return ServiceResult.Failure("字卡不存在");
+        if (card is null)
+        {
+            logger.LogWarning("更新字卡失敗：字卡不存在 | CardId={CardId}", vm.Id);
+            return ServiceResult.Failure("字卡不存在");
+        }
 
         card.Korean = vm.Korean;
         card.Chinese = vm.Chinese;
@@ -169,6 +188,7 @@ public class FlashcardAdminService(
         card.ExampleSentence = vm.ExampleSentence;
         card.SortOrder = vm.SortOrder;
         await uow.SaveChangesAsync(ct).ConfigureAwait(false);
+        logger.LogInformation("字卡更新成功 | CardId={CardId}", vm.Id);
         return ServiceResult.Success();
     }
 

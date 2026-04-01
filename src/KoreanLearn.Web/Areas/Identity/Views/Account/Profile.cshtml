@@ -7,9 +7,12 @@
         <a class="btn btn-primary btn-sm" asp-action="Profile" asp-controller="Account" asp-area="Identity">
             <i class="bi bi-person me-1"></i>個人資料
         </a>
-        <a class="btn btn-outline-secondary btn-sm" asp-action="ChangePassword" asp-controller="Account" asp-area="Identity">
-            <i class="bi bi-key me-1"></i>變更密碼
-        </a>
+        @if (Model.HasPassword)
+        {
+            <a class="btn btn-outline-secondary btn-sm" asp-action="ChangePassword" asp-controller="Account" asp-area="Identity">
+                <i class="bi bi-key me-1"></i>變更密碼
+            </a>
+        }
         <a class="btn btn-outline-secondary btn-sm" asp-action="TwoFactorAuthentication" asp-controller="Account" asp-area="Identity">
             <i class="bi bi-shield-check me-1"></i>兩步驟驗證
         </a>

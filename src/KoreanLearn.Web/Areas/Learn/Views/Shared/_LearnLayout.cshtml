@@ -17,6 +17,7 @@
     @await RenderSectionAsync("Styles", required: false)
 </head>
 <body>
+    @Html.AntiForgeryToken()
     <nav class="navbar navbar-expand-lg navbar-dark kl-learn-navbar">
         <div class="container">
             <a class="navbar-brand fw-bold" asp-area="Learn" asp-controller="Dashboard" asp-action="Index">

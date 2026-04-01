@@ -5,7 +5,4 @@
     <Project Path="src/KoreanLearn.Service/KoreanLearn.Service.csproj" />
     <Project Path="src/KoreanLearn.Web/KoreanLearn.Web.csproj" />
   </Folder>
-  <Folder Name="/tests/">
-    <Project Path="tests/KoreanLearn.Tests/KoreanLearn.Tests.csproj" />
-  </Folder>
 </Solution>

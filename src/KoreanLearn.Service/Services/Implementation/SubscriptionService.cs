@@ -14,6 +14,7 @@ public class SubscriptionService(
     /// <inheritdoc />
     public async Task<IReadOnlyList<SubscriptionPlanViewModel>> GetActivePlansAsync(CancellationToken ct = default)
     {
+        logger.LogInformation("查詢啟用中的訂閱方案");
         var plans = await uow.SubscriptionPlans.GetActivePlansAsync(ct).ConfigureAwait(false);
         return plans.Select(p => new SubscriptionPlanViewModel
         {
@@ -25,6 +26,7 @@ public class SubscriptionService(
     /// <inheritdoc />
     public async Task<UserSubscriptionViewModel?> GetUserSubscriptionAsync(string userId, CancellationToken ct = default)
     {
+        logger.LogInformation("查詢使用者訂閱狀態 | UserId={UserId}", userId);
         var sub = await uow.UserSubscriptions.GetActiveByUserAsync(userId, ct).ConfigureAwait(false);
         if (sub is null) return null;
         return new UserSubscriptionViewModel
@@ -37,11 +39,20 @@ public class SubscriptionService(
     /// <inheritdoc />
     public async Task<ServiceResult> SubscribeAsync(string userId, int planId, CancellationToken ct = default)
     {
+        logger.LogInformation("訂閱申請 | UserId={UserId} | PlanId={PlanId}", userId, planId);
         var plan = await uow.SubscriptionPlans.GetByIdAsync(planId, ct).ConfigureAwait(false);
-        if (plan is null || !plan.IsActive) return ServiceResult.Failure("方案不存在或已停用");
+        if (plan is null || !plan.IsActive)
+        {
+            logger.LogWarning("訂閱失敗：方案不存在或已停用 | PlanId={PlanId}", planId);
+            return ServiceResult.Failure("方案不存在或已停用");
+        }
 
         var existing = await uow.UserSubscriptions.GetActiveByUserAsync(userId, ct).ConfigureAwait(false);
-        if (existing is not null) return ServiceResult.Failure("您已有有效訂閱");
+        if (existing is not null)
+        {
+            logger.LogWarning("訂閱失敗：使用者已有有效訂閱 | UserId={UserId}", userId);
+            return ServiceResult.Failure("您已有有效訂閱");
+        }
 
         var sub = new UserSubscription
         {
@@ -53,13 +64,15 @@ public class SubscriptionService(
         await uow.UserSubscriptions.AddAsync(sub, ct).ConfigureAwait(false);
         await uow.SaveChangesAsync(ct).ConfigureAwait(false);
 
-        logger.LogInformation("用戶訂閱成功 | UserId={UserId} | PlanId={PlanId}", userId, planId);
+        logger.LogInformation("用戶訂閱成功 | UserId={UserId} | PlanId={PlanId} | EndDate={EndDate}",
+            userId, planId, sub.EndDate);
         return ServiceResult.Success();
     }
 
     /// <inheritdoc />
     public async Task<bool> HasActiveSubscriptionAsync(string userId, CancellationToken ct = default)
     {
+        logger.LogInformation("檢查使用者是否有有效訂閱 | UserId={UserId}", userId);
         var sub = await uow.UserSubscriptions.GetActiveByUserAsync(userId, ct).ConfigureAwait(false);
         return sub is not null;
     }
@@ -67,6 +80,7 @@ public class SubscriptionService(
     /// <inheritdoc />
     public async Task<PagedResult<SubscriptionPlanViewModel>> GetPlansPagedAsync(int page, int pageSize, CancellationToken ct = default)
     {
+        logger.LogInformation("取得訂閱方案列表 | Page={Page} | PageSize={PageSize}", page, pageSize);
         var result = await uow.SubscriptionPlans.GetPagedAsync(page, pageSize, ct).ConfigureAwait(false);
         var items = result.Items.Select(p => new SubscriptionPlanViewModel
         {
@@ -87,6 +101,8 @@ public class SubscriptionService(
         };
         await uow.SubscriptionPlans.AddAsync(plan, ct).ConfigureAwait(false);
         await uow.SaveChangesAsync(ct).ConfigureAwait(false);
+        logger.LogInformation("訂閱方案建立成功 | PlanId={PlanId} | Name={Name} | MonthlyPrice={MonthlyPrice}",
+            plan.Id, name, monthlyPrice);
         return ServiceResult<int>.Success(plan.Id);
     }
 
@@ -94,9 +110,14 @@ public class SubscriptionService(
     public async Task<ServiceResult> DeletePlanAsync(int id, CancellationToken ct = default)
     {
         var plan = await uow.SubscriptionPlans.GetByIdAsync(id, ct).ConfigureAwait(false);
-        if (plan is null) return ServiceResult.Failure("方案不存在");
+        if (plan is null)
+        {
+            logger.LogWarning("刪除訂閱方案失敗：方案不存在 | PlanId={PlanId}", id);
+            return ServiceResult.Failure("方案不存在");
+        }
         uow.SubscriptionPlans.Remove(plan);
         await uow.SaveChangesAsync(ct).ConfigureAwait(false);
+        logger.LogInformation("訂閱方案刪除成功 | PlanId={PlanId} | Name={Name}", id, plan.Name);
         return ServiceResult.Success();
     }
 }

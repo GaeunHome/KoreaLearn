@@ -23,6 +23,7 @@ public class UnitOfWork : IUnitOfWork
     private IOrderRepository? _orders;
     private IProgressRepository? _progresses;
     private IAnnouncementRepository? _announcements;
+    private IAnnouncementAttachmentRepository? _announcementAttachments;
     private IQuizRepository? _quizzes;
     private IQuizAttemptRepository? _quizAttempts;
     private IFlashcardDeckRepository? _flashcardDecks;
@@ -62,6 +63,9 @@ public class UnitOfWork : IUnitOfWork
 
     /// <summary>公告 Repository</summary>
     public IAnnouncementRepository Announcements => _announcements ??= new AnnouncementRepository(_context);
+
+    /// <summary>公告附件 Repository</summary>
+    public IAnnouncementAttachmentRepository AnnouncementAttachments => _announcementAttachments ??= new AnnouncementAttachmentRepository(_context);
 
     /// <summary>測驗 Repository</summary>
     public IQuizRepository Quizzes => _quizzes ??= new QuizRepository(_context);

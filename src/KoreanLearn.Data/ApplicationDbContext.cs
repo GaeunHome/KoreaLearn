@@ -33,6 +33,7 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
     public DbSet<SubscriptionPlan> SubscriptionPlans => Set<SubscriptionPlan>();
     public DbSet<UserSubscription> UserSubscriptions => Set<UserSubscription>();
     public DbSet<Announcement> Announcements => Set<Announcement>();
+    public DbSet<AnnouncementAttachment> AnnouncementAttachments => Set<AnnouncementAttachment>();
     public DbSet<Certificate> Certificates => Set<Certificate>();
     public DbSet<SystemSetting> SystemSettings => Set<SystemSetting>();
     public DbSet<Banner> Banners => Set<Banner>();
@@ -69,6 +70,7 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
         builder.Entity<PronunciationAttempt>().HasQueryFilter(a => !a.Exercise.IsDeleted);
         builder.Entity<Certificate>().HasQueryFilter(c => !c.Course.IsDeleted);
         builder.Entity<UserSubscription>().HasQueryFilter(s => !s.Plan.IsDeleted);
+        builder.Entity<AnnouncementAttachment>().HasQueryFilter(a => !a.Announcement.IsDeleted);
 
         // ===== 欄位約束（原 DataAnnotations 轉 Fluent API）=====
 
@@ -218,6 +220,17 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
         {
             e.Property(a => a.Title).IsRequired().HasMaxLength(200);
             e.Property(a => a.Content).IsRequired().HasMaxLength(4000);
+            e.HasMany(a => a.Attachments)
+                .WithOne(at => at.Announcement)
+                .HasForeignKey(at => at.AnnouncementId)
+                .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        // ── AnnouncementAttachment ──
+        builder.Entity<AnnouncementAttachment>(e =>
+        {
+            e.Property(a => a.FileName).IsRequired().HasMaxLength(500);
+            e.Property(a => a.FileUrl).IsRequired().HasMaxLength(500);
         });
 
         // ── SystemSetting ──
@@ -548,6 +561,8 @@ public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options
 
         // ===== Announcement 索引 =====
         builder.Entity<Announcement>().HasIndex(a => a.IsActive);
+        builder.Entity<Announcement>().HasIndex(a => a.IsPinned);
+        builder.Entity<Announcement>().HasIndex(a => a.SortOrder);
     }
 
     // ── 覆寫 SaveChangesAsync：軟刪除攔截與時間戳記自動化 ──

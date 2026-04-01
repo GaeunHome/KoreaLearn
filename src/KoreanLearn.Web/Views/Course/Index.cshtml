@@ -29,7 +29,12 @@
                 <div class="kl-course-card card h-100">
                     @if (!string.IsNullOrEmpty(course.CoverImageUrl))
                     {
-                        <img src="@course.CoverImageUrl" class="card-img-top" alt="@course.Title" />
+                        <img src="@course.CoverImageUrl" class="card-img-top" alt="@course.Title"
+                             onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';" />
+                        <div class="card-img-top d-flex align-items-center justify-content-center"
+                             style="height: 180px; background: linear-gradient(135deg, #EEF1F7 0%, #E1E6EF 100%); display:none;">
+                            <i class="bi bi-book display-3" style="color: var(--kl-primary); opacity: 0.25;"></i>
+                        </div>
                     }
                     else
                     {

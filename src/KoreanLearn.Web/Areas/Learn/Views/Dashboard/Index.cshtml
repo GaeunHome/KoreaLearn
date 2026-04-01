@@ -92,7 +92,12 @@ else
                 <div class="kl-course-card card h-100">
                     @if (!string.IsNullOrEmpty(c.CoverImageUrl))
                     {
-                        <img src="@c.CoverImageUrl" class="card-img-top" style="height:150px; object-fit:cover;" alt="@c.Title" />
+                        <img src="@c.CoverImageUrl" class="card-img-top" style="height:150px; object-fit:cover;" alt="@c.Title"
+                             onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';" />
+                        <div class="card-img-top d-flex align-items-center justify-content-center"
+                             style="height:150px; background: linear-gradient(135deg, #EEF1F7 0%, #E1E6EF 100%); display:none;">
+                            <i class="bi bi-book display-4" style="color: var(--kl-primary); opacity: 0.2;"></i>
+                        </div>
                     }
                     else
                     {

@@ -18,7 +18,8 @@ public class FileUploadService(ILogger<FileUploadService> logger) : IFileUploadS
         await using var stream = new FileStream(filePath, FileMode.Create);
         await file.CopyToAsync(stream);
 
-        logger.LogInformation("檔案上傳成功 | Folder={Folder} | File={FileName}", folder, fileName);
+        logger.LogInformation("檔案上傳成功 | Folder={Folder} | File={FileName} | Size={FileSize} bytes | Extension={Extension}",
+            folder, fileName, file.Length, Path.GetExtension(file.FileName));
         return $"/uploads/{folder}/{fileName}";
     }
 }

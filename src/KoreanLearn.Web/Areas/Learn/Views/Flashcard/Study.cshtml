@@ -82,7 +82,7 @@ else
 
 @section Scripts {
     <script>
-        var cards = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.Cards));
+        var cards = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.Cards, new System.Text.Json.JsonSerializerOptions { PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase }));
         var currentIndex = 0;
         var isFlipped = false;
 
@@ -116,7 +116,10 @@ else
             var card = cards[currentIndex];
             fetch('@Url.Action("Review", "Flashcard", new { area = "Learn" })', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': document.querySelector('input[name="__RequestVerificationToken"]')?.value || ''
+                },
                 body: JSON.stringify({ cardId: card.cardId, quality: quality })
             }).then(function () {
                 currentIndex++;

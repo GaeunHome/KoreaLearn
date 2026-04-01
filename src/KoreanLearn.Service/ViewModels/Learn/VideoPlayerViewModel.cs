@@ -43,8 +43,14 @@ public class VideoPlayerViewModel
     /// <summary>上一個單元 ID</summary>
     public int? PreviousLessonId { get; set; }
 
+    /// <summary>上一個單元的 Action 名稱（Video/Article/Pdf）</summary>
+    public string? PreviousLessonAction { get; set; }
+
     /// <summary>下一個單元 ID</summary>
     public int? NextLessonId { get; set; }
+
+    /// <summary>下一個單元的 Action 名稱（Video/Article/Pdf）</summary>
+    public string? NextLessonAction { get; set; }
 
     // ── 附件 ──
 

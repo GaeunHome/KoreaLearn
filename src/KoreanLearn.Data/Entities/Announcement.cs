@@ -9,8 +9,13 @@ public class Announcement : BaseEntity, ISoftDeletable
     public string Content { get; set; } = string.Empty;
 
     public bool IsActive { get; set; }
+    public bool IsPinned { get; set; }
+    public int SortOrder { get; set; }
     public DateTime? StartDate { get; set; }
     public DateTime? EndDate { get; set; }
+
+    // ==================== 關聯 ====================
+    public ICollection<AnnouncementAttachment> Attachments { get; set; } = [];
 
     // ==================== 軟刪除 ====================
     public bool IsDeleted { get; set; }

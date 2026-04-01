@@ -5,7 +5,7 @@ using Mapster;
 
 namespace KoreanLearn.Service.Mapper;
 
-/// <summary>前台課程 Mapster 映射設定（Course / Section / Lesson / Announcement）</summary>
+/// <summary>前台課程 Mapster 映射設定（Course / Section / Lesson）</summary>
 public class CourseMapping : IRegister
 {
     public void Register(TypeAdapterConfig config)
@@ -24,6 +24,5 @@ public class CourseMapping : IRegister
             .Map(d => d.Lessons, s => s.Lessons.OrderBy(l => l.SortOrder));
 
         config.NewConfig<Lesson, LessonSummaryViewModel>();
-        config.NewConfig<Announcement, AnnouncementViewModel>();
     }
 }

@@ -56,8 +56,13 @@ public class PronunciationService(
     public async Task<ServiceResult> UpdateAsync(
         PronunciationFormViewModel vm, string? newAudioUrl, CancellationToken ct = default)
     {
+        logger.LogInformation("更新發音練習 | Id={Id} | Korean={Korean}", vm.Id, vm.Korean);
         var entity = await uow.Pronunciations.GetByIdAsync(vm.Id, ct).ConfigureAwait(false);
-        if (entity is null) return ServiceResult.Failure("發音練習不存在");
+        if (entity is null)
+        {
+            logger.LogWarning("更新發音練習失敗：不存在 | Id={Id}", vm.Id);
+            return ServiceResult.Failure("發音練習不存在");
+        }
 
         entity.Korean = vm.Korean;
         entity.Romanization = vm.Romanization;
@@ -67,6 +72,7 @@ public class PronunciationService(
 
         uow.Pronunciations.Update(entity);
         await uow.SaveChangesAsync(ct).ConfigureAwait(false);
+        logger.LogInformation("發音練習更新成功 | Id={Id}", vm.Id);
         return ServiceResult.Success();
     }
 
@@ -74,9 +80,14 @@ public class PronunciationService(
     public async Task<ServiceResult> DeleteAsync(int id, CancellationToken ct = default)
     {
         var entity = await uow.Pronunciations.GetByIdAsync(id, ct).ConfigureAwait(false);
-        if (entity is null) return ServiceResult.Failure("發音練習不存在");
+        if (entity is null)
+        {
+            logger.LogWarning("刪除發音練習失敗：不存在 | Id={Id}", id);
+            return ServiceResult.Failure("發音練習不存在");
+        }
         uow.Pronunciations.Remove(entity);
         await uow.SaveChangesAsync(ct).ConfigureAwait(false);
+        logger.LogInformation("發音練習刪除成功（軟刪除）| Id={Id} | Korean={Korean}", id, entity.Korean);
         return ServiceResult.Success();
     }
 
@@ -97,13 +108,18 @@ public class PronunciationService(
         string userId, int exerciseId, string recordingUrl, CancellationToken ct = default)
     {
         var exercise = await uow.Pronunciations.GetByIdAsync(exerciseId, ct).ConfigureAwait(false);
-        if (exercise is null) return ServiceResult.Failure("發音練習不存在");
+        if (exercise is null)
+        {
+            logger.LogWarning("儲存發音嘗試失敗：練習不存在 | ExerciseId={ExerciseId}", exerciseId);
+            return ServiceResult.Failure("發音練習不存在");
+        }
 
         exercise.Attempts.Add(new PronunciationAttempt
         {
             UserId = userId, ExerciseId = exerciseId, RecordingUrl = recordingUrl
         });
         await uow.SaveChangesAsync(ct).ConfigureAwait(false);
+        logger.LogInformation("發音錄音上傳成功 | UserId={UserId} | ExerciseId={ExerciseId}", userId, exerciseId);
         return ServiceResult.Success();
     }
 }

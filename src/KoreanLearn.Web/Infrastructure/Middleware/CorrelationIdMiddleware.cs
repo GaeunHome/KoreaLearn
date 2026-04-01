@@ -6,7 +6,7 @@ namespace KoreanLearn.Web.Infrastructure.Middleware;
 /// 關聯識別碼中介軟體，為每個 HTTP 請求產生唯一 Correlation ID，
 /// 貫穿整個請求生命週期的日誌，方便追蹤同一請求的所有操作。
 /// </summary>
-public class CorrelationIdMiddleware(RequestDelegate next)
+public class CorrelationIdMiddleware(RequestDelegate next, ILogger<CorrelationIdMiddleware> logger)
 {
     private const string CorrelationIdHeader = "X-Correlation-ID";
 
@@ -17,6 +17,8 @@ public class CorrelationIdMiddleware(RequestDelegate next)
 
         context.Response.Headers[CorrelationIdHeader] = correlationId;
         context.Items["CorrelationId"] = correlationId;
+
+        logger.LogDebug("CorrelationId 已指派 | CorrelationId={CorrelationId}", correlationId);
 
         using (LogContext.PushProperty("CorrelationId", correlationId))
         {

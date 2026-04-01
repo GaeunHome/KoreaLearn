@@ -1,0 +1,89 @@
+@model KoreanLearn.Library.Helpers.PagedResult<KoreanLearn.Service.ViewModels.Announcement.AnnouncementCardViewModel>
+@{
+    ViewData["Title"] = "最新公告";
+}
+
+<div class="container py-4">
+    <div class="text-center mb-4">
+        <h2><i class="bi bi-megaphone-fill me-2"></i>最新公告</h2>
+        <p class="text-muted">掌握平台最新動態與重要訊息</p>
+    </div>
+
+    @if (Model.Items.Any())
+    {
+        <div class="row justify-content-center">
+            <div class="col-lg-8">
+                @foreach (var ann in Model.Items)
+                {
+                    <a asp-action="Detail" asp-route-id="@ann.Id" class="text-decoration-none d-block mb-3">
+                        <div class="card shadow-sm kl-announcement-card">
+                            <div class="card-body d-flex align-items-start">
+                                <div class="kl-announcement-date-box me-3 text-center flex-shrink-0">
+                                    <div class="kl-announcement-month">@ann.CreatedAt.ToString("MMM")</div>
+                                    <div class="kl-announcement-day">@ann.CreatedAt.Day</div>
+                                </div>
+                                <div class="flex-grow-1">
+                                    <h5 class="mb-1" style="color: var(--kl-text);">
+                                        @if (ann.IsPinned)
+                                        {
+                                            <span class="badge bg-warning text-dark me-1"><i class="bi bi-pin-angle-fill"></i> 置頂</span>
+                                        }
+                                        @ann.Title
+                                    </h5>
+                                    <p class="text-muted mb-1 small">@ann.ContentPreview</p>
+                                    <small class="text-muted">
+                                        <i class="bi bi-calendar3 me-1"></i>@ann.CreatedAt.ToString("yyyy/MM/dd HH:mm")
+                                        @if (ann.HasAttachment)
+                                        {
+                                            <span class="ms-2"><i class="bi bi-paperclip"></i> 附件</span>
+                                        }
+                                    </small>
+                                </div>
+                                <div class="flex-shrink-0 align-self-center ms-2">
+                                    <i class="bi bi-chevron-right text-muted"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </a>
+                }
+            </div>
+        </div>
+
+        @await Html.PartialAsync("_Pagination")
+    }
+    else
+    {
+        <div class="text-center py-5">
+            <i class="bi bi-megaphone display-4 text-muted"></i>
+            <p class="text-muted mt-3">目前沒有公告</p>
+        </div>
+    }
+</div>
+
+<style>
+    .kl-announcement-card {
+        border-left: 4px solid var(--kl-primary);
+        transition: transform 0.15s, box-shadow 0.15s;
+    }
+    .kl-announcement-card:hover {
+        transform: translateX(4px);
+        box-shadow: 0 4px 12px rgba(0,0,0,0.1) !important;
+    }
+    .kl-announcement-date-box {
+        width: 56px;
+        padding: 8px;
+        border-radius: var(--kl-radius-sm, 8px);
+        background: var(--kl-primary);
+        color: white;
+    }
+    .kl-announcement-month {
+        font-size: 0.7rem;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+    }
+    .kl-announcement-day {
+        font-size: 1.4rem;
+        font-weight: 700;
+        line-height: 1;
+    }
+</style>

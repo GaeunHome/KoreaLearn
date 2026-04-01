@@ -4,7 +4,7 @@ namespace KoreanLearn.Web.Infrastructure.Middleware;
 /// 維護模式中介軟體，從 AppSettings:MaintenanceMode 讀取開關。
 /// Admin 角色放行，靜態資源與 /health 不攔截。
 /// </summary>
-public class MaintenanceModeMiddleware(RequestDelegate next, IConfiguration config)
+public class MaintenanceModeMiddleware(RequestDelegate next, IConfiguration config, ILogger<MaintenanceModeMiddleware> logger)
 {
     private static readonly string[] ExcludedPrefixes =
         ["/Admin", "/Identity/Account/Login", "/health", "/lib/", "/css/", "/js/", "/images/", "/uploads/"];
@@ -35,6 +35,8 @@ public class MaintenanceModeMiddleware(RequestDelegate next, IConfiguration conf
         }
 
         // 回傳 503 維護頁面
+        var ip = context.Connection.RemoteIpAddress?.ToString() ?? "unknown";
+        logger.LogInformation("維護模式攔截請求 | Path={Path} | IP={IP}", path, ip);
         var message = config["AppSettings:MaintenanceMessage"] ?? "系統維護中，請稍後再試。";
         context.Response.StatusCode = StatusCodes.Status503ServiceUnavailable;
         context.Response.ContentType = "text/html; charset=utf-8";

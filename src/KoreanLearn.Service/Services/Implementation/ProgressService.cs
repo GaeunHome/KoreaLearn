@@ -15,8 +15,14 @@ public class ProgressService(
     public async Task<ServiceResult<int>> SaveVideoProgressAsync(
         string userId, int lessonId, int progressSeconds, IEnumerable<string> userRoles, CancellationToken ct = default)
     {
+        logger.LogDebug("儲存影片進度請求 | UserId={UserId} | LessonId={LessonId} | Seconds={Seconds}",
+            userId, lessonId, progressSeconds);
         var accessCheck = await CheckLessonAccessAsync(userId, lessonId, userRoles, ct).ConfigureAwait(false);
-        if (!accessCheck.IsSuccess) return ServiceResult<int>.Failure(accessCheck.ErrorMessage!);
+        if (!accessCheck.IsSuccess)
+        {
+            logger.LogWarning("儲存影片進度失敗：存取被拒 | UserId={UserId} | LessonId={LessonId}", userId, lessonId);
+            return ServiceResult<int>.Failure(accessCheck.ErrorMessage!);
+        }
 
         var progress = await uow.Progresses.GetByUserAndLessonAsync(userId, lessonId, ct).ConfigureAwait(false);
 
@@ -85,7 +91,10 @@ public class ProgressService(
 
         var progress = await uow.Progresses.GetByUserAndLessonAsync(userId, lessonId, ct).ConfigureAwait(false);
         if (progress is null || !progress.IsCompleted)
+        {
+            logger.LogWarning("取消完成標記失敗：單元尚未標記完成 | UserId={UserId} | LessonId={LessonId}", userId, lessonId);
             return ServiceResult.Failure("此單元尚未標記完成");
+        }
 
         progress.IsCompleted = false;
         progress.CompletedAt = null;

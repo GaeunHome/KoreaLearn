@@ -17,6 +17,7 @@ public class DashboardService(
     public async Task<StudentDashboardViewModel> GetStudentDashboardAsync(
         string userId, CancellationToken ct = default)
     {
+        logger.LogInformation("載入學生儀表板 | UserId={UserId}", userId);
         var enrollments = await uow.Enrollments.GetByUserIdAsync(userId, ct).ConfigureAwait(false);
         var courses = new List<EnrolledCourseItem>();
         var totalCompleted = 0;
@@ -46,6 +47,9 @@ public class DashboardService(
             });
         }
 
+        logger.LogInformation("學生儀表板載入完成 | UserId={UserId} | EnrolledCourses={Count} | CompletedLessons={Completed}/{Total}",
+            userId, enrollments.Count, totalCompleted, totalLessons);
+
         return new StudentDashboardViewModel
         {
             EnrolledCourses = enrollments.Count,
@@ -70,7 +74,7 @@ public class DashboardService(
         await Task.WhenAll(courseCountTask, orderCountTask, revenueTask, recentOrdersTask, userCountTask)
             .ConfigureAwait(false);
 
-        return new AdminDashboardViewModel
+        var result = new AdminDashboardViewModel
         {
             TotalCourses = await courseCountTask.ConfigureAwait(false),
             TotalOrders = await orderCountTask.ConfigureAwait(false),
@@ -78,6 +82,11 @@ public class DashboardService(
             RecentOrders = await recentOrdersTask.ConfigureAwait(false),
             TotalUsers = await userCountTask.ConfigureAwait(false)
         };
+
+        logger.LogInformation("管理員儀表板載入完成 | TotalCourses={Courses} | TotalOrders={Orders} | TotalRevenue={Revenue} | TotalUsers={Users}",
+            result.TotalCourses, result.TotalOrders, result.TotalRevenue, result.TotalUsers);
+
+        return result;
     }
 
     /// <summary>以獨立 DbContext 計算課程總數</summary>

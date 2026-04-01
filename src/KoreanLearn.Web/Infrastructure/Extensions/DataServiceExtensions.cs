@@ -42,6 +42,9 @@ public static class DataServiceExtensions
             .AddEntityFrameworkStores<ApplicationDbContext>()
             .AddDefaultTokenProviders();
 
+        // 自訂 Claims Factory — 將 DisplayName 寫入 claims 供 Navbar 直接讀取
+        services.AddScoped<IUserClaimsPrincipalFactory<AppUser>, AppUserClaimsPrincipalFactory>();
+
         return services;
     }
 }
